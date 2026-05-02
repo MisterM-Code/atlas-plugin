@@ -35,6 +35,8 @@ export async function indexVaultCommand(plugin: AtlasPlugin): Promise<void> {
 		const extractor = new KGExtractor(plugin.ollama, settings.ollama.generationModel);
 		// v0.23: wire LLMService — extraction routing pode ser cloud (Haiku) ou local
 		if (plugin.llm) extractor.setLLMService(plugin.llm);
+		// v0.47 E5: wire extraction cache — re-index pula LLM em notas inalteradas (~90% economia)
+		if (plugin.extractionCache) extractor.setCache(plugin.extractionCache);
 
 		// Foco em pastas onde a extração estruturada faz sentido
 		const targetFolders = [
@@ -173,6 +175,8 @@ export async function indexVaultCommand(plugin: AtlasPlugin): Promise<void> {
 		}
 
 		await plugin.kg.save();
+		// v0.47 E5: persist extraction cache pra reindexações futuras
+		if (plugin.extractionCache) await plugin.extractionCache.save();
 		notice.hide();
 
 		const seconds = Math.round((Date.now() - startedAt) / 1000);

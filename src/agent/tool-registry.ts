@@ -756,6 +756,105 @@ _📎 Backlinks_
 			};
 		},
 	},
+	// v0.47 E4: Vault aggregation tools — para "email sobre sistemas da semana"
+	{
+		name: "aggregate_systems_by_period",
+		description:
+			"Agrega menções de sistemas em todas as notas do vault dentro de um período. Retorna mapa { sistema → { mentions: count, notePaths: [...] } }. Útil pra gerar emails/relatórios sobre status de múltiplos sistemas em janela temporal.",
+		parameters: {
+			type: "object",
+			properties: {
+				period: {
+					type: "string",
+					description: "today | week | month | custom",
+					enum: ["today", "week", "month", "custom"],
+				},
+				since: {
+					type: "string",
+					description: "ISO date (apenas se period=custom)",
+				},
+				until: {
+					type: "string",
+					description: "ISO date (apenas se period=custom)",
+				},
+			},
+			required: ["period"],
+		},
+		destructive: false,
+		handler: async (params, plugin): Promise<ToolResult> => {
+			const period = asStr(params.period, "week");
+			const now = new Date();
+			let start: Date;
+			let end: Date = now;
+
+			if (period === "today") {
+				start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+			} else if (period === "week") {
+				start = new Date(now.getTime() - 7 * 86_400_000);
+			} else if (period === "month") {
+				start = new Date(now.getFullYear(), now.getMonth(), 1);
+			} else {
+				const sinceStr = asStr(params.since);
+				const untilStr = asStr(params.until);
+				if (!sinceStr) return { ok: false, message: "period=custom requer since." };
+				start = new Date(sinceStr);
+				if (untilStr) end = new Date(untilStr);
+			}
+
+			const startMs = start.getTime();
+			const endMs = end.getTime();
+
+			const notes = plugin.app.vault
+				.getMarkdownFiles()
+				.filter((f) => f.stat.mtime >= startMs && f.stat.mtime <= endMs);
+
+			const sysMod = await import("../automation/system-detector");
+			const detector = new sysMod.SystemDetector(plugin.app, plugin);
+
+			const aggregated = new Map<
+				string,
+				{ count: number; notePaths: Set<string> }
+			>();
+
+			for (const note of notes) {
+				let text: string;
+				try {
+					text = await plugin.app.vault.cachedRead(note);
+				} catch {
+					continue;
+				}
+				const mentions = detector.detect(text);
+				for (const m of mentions) {
+					const cur =
+						aggregated.get(m.systemName) ?? { count: 0, notePaths: new Set() };
+					cur.count += 1;
+					cur.notePaths.add(note.path);
+					aggregated.set(m.systemName, cur);
+				}
+			}
+
+			const results = Array.from(aggregated.entries())
+				.map(([name, v]) => ({
+					system: name,
+					mentions: v.count,
+					notes: Array.from(v.notePaths),
+				}))
+				.sort((a, b) => b.mentions - a.mentions);
+
+			const summary = results
+				.map((r) => `- **${r.system}** (${r.mentions} menções em ${r.notes.length} notas)`)
+				.join("\n");
+
+			return {
+				ok: true,
+				message:
+					results.length === 0
+						? `Nenhum sistema mencionado no período ${period}.`
+						: `${results.length} sistemas mencionados (${period}):\n${summary}`,
+				data: { period, since: start.toISOString(), until: end.toISOString(), results },
+			};
+		},
+	},
 ];
 
 /**

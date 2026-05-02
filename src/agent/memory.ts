@@ -39,10 +39,21 @@ interface MemoryState {
 const MAX_SESSIONS_KEEP = 20;
 const MAX_TURNS_PER_SESSION = 40;
 
+/** v0.47 E2: Pending slot pra slot-filling conversational */
+export interface PendingSlot {
+	intent: string;
+	tool: string;
+	args: Record<string, unknown>;
+	missing: string;
+	expiresAt: number; // epoch ms
+}
+
 export class Memory {
 	private state: MemoryState;
 	private dirty = false;
 	private flushTimer: number | null = null;
+	/** v0.47 E2: in-memory pending slot (não persiste — TTL 5min) */
+	private pendingSlot: PendingSlot | null = null;
 
 	constructor(private app: App, private folder: string) {
 		this.state = {
@@ -191,6 +202,24 @@ export class Memory {
 		const id = this.state.currentSessionId;
 		if (!id) return null;
 		return this.state.sessions.find((s) => s.id === id) ?? null;
+	}
+
+	/** v0.47 E2: pending slot management — TTL 5min, single slot at a time */
+	setPendingSlot(slot: PendingSlot): void {
+		this.pendingSlot = slot;
+	}
+
+	getPendingSlot(): PendingSlot | null {
+		if (!this.pendingSlot) return null;
+		if (this.pendingSlot.expiresAt < Date.now()) {
+			this.pendingSlot = null;
+			return null;
+		}
+		return this.pendingSlot;
+	}
+
+	clearPendingSlot(): void {
+		this.pendingSlot = null;
 	}
 
 	addTurn(turn: Omit<ConversationTurn, "timestamp">): void {

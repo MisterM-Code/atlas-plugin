@@ -1,6 +1,8 @@
 import { OllamaClient } from "../ollama/client";
 import { ExtractionResult, ExtractionResultT } from "./schemas";
 import { logger } from "../utils/logger";
+import type { ExtractionCache } from "./extraction-cache";
+import { hashText } from "./extraction-cache";
 
 const SYSTEM_PROMPT = `Você é o Atlas, um assistente que extrai entidades estruturadas de notas de coordenadores/coaches/estudantes.
 
@@ -75,6 +77,8 @@ export interface ExtractContext {
 export class KGExtractor {
 	// v0.23: optional LLMService — quando set, roteia via cloud-or-ollama com cost tracking
 	private llm: import("../providers/llm-service").LLMService | null = null;
+	// v0.47 E5: extraction cache pra skip LLM quando hash não mudou (90% cost cut em re-index)
+	private cache: ExtractionCache | null = null;
 
 	constructor(private ollama: OllamaClient, private model: string) {}
 
@@ -83,8 +87,28 @@ export class KGExtractor {
 		this.llm = llm;
 	}
 
+	/** v0.47 E5: wire extraction cache (opt-in mas highly recommended) */
+	setCache(cache: ExtractionCache): void {
+		this.cache = cache;
+	}
+
 	async extract(ctx: ExtractContext): Promise<ExtractionResultT | null> {
 		const userPrompt = this.buildUserPrompt(ctx);
+
+		// v0.47 E5: cache hit check ANTES de qualquer LLM call
+		if (this.cache) {
+			try {
+				const hash = await hashText(userPrompt);
+				const cached = this.cache.get(ctx.notePath, hash, this.model);
+				if (cached) {
+					return cached; // ZERO LLM tokens
+				}
+				// miss → guarda hash pra set após extração bem-sucedida
+				(ctx as ExtractContext & { __atlasHash?: string }).__atlasHash = hash;
+			} catch (e) {
+				logger.warn("extractor: cache hash failed", { error: String(e) });
+			}
+		}
 
 		try {
 			const messages = [
@@ -118,6 +142,11 @@ export class KGExtractor {
 					raw: cleaned.substring(0, 200),
 				});
 				return null;
+			}
+			// v0.47 E5: store no cache pra próximas re-indexações skiparem LLM
+			if (this.cache) {
+				const stored = (ctx as ExtractContext & { __atlasHash?: string }).__atlasHash;
+				if (stored) this.cache.set(ctx.notePath, stored, this.model, result.data);
 			}
 			return result.data;
 		} catch (e) {

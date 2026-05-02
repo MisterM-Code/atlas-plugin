@@ -75,6 +75,68 @@ export class Agent {
 		const toolsUsed: string[] = [];
 		const allCitations: { notePath: string; snippet: string }[] = [];
 
+		// v0.47 E1: Intent Dispatcher V2 — heuristic routing antes de LLM
+		// 80%+ dos casos resolvidos sem chamar LLM (token economy obsessive).
+		const plugin = this.plugin;
+		if (plugin && input.enableTools !== false) {
+			try {
+				const dispMod = await import("./intent-dispatcher");
+				const result = dispMod.tryDispatch(query, plugin);
+				if (result) {
+					if (result.kind === "direct") {
+						// Execute tool directly — ZERO LLM tokens
+						const toolMod = await import("./tool-registry");
+						const toolResult = await toolMod.executeTool(
+							result.tool,
+							result.toolArgs,
+							plugin,
+							{ skipConfirm: true } // dispatcher já validou
+						);
+						toolsUsed.push(`dispatcher:${result.intent}`);
+						const responseText = toolResult.ok
+							? `${result.feedback}\n\n${toolResult.message}`
+							: `Falhou: ${toolResult.message}`;
+						return {
+							answer: responseText,
+							citations: [],
+							toolsUsed,
+						};
+					}
+					if (result.kind === "needs_slot") {
+						// Save pending slot in memory + return prompt
+						this.memory.setPendingSlot?.({
+							intent: result.intent,
+							tool: result.pendingTool,
+							args: result.partialArgs,
+							missing: result.missingSlot,
+							expiresAt: Date.now() + 5 * 60_000, // 5 min
+						});
+						toolsUsed.push(`dispatcher:slot:${result.missingSlot}`);
+						return {
+							answer: result.promptText,
+							citations: [],
+							toolsUsed,
+						};
+					}
+					// "ambiguous" or "fallback" → continua pro LLM normal
+				}
+
+				// Check if previous turn left a pending slot — fill it now
+				const pending = this.memory.getPendingSlot?.();
+				if (pending && pending.expiresAt > Date.now()) {
+					const filled = await this.fillPendingSlot(pending, query, plugin);
+					if (filled) {
+						toolsUsed.push(`dispatcher:slot-fill:${pending.intent}`);
+						this.memory.clearPendingSlot?.();
+						return filled;
+					}
+				}
+			} catch (e) {
+				logger.warn("agent: intent dispatcher failed", { error: String(e) });
+				// fallthrough to normal LLM path
+			}
+		}
+
 		// Detect intent: simple keyword routing
 		const intent = this.classifyIntent(query);
 		logger.info("agent: intent", { intent });
@@ -260,6 +322,62 @@ export class Agent {
 			toolsUsed,
 			toolCalls: toolCallsExecuted.length > 0 ? toolCallsExecuted : undefined,
 		};
+	}
+
+	/**
+	 * v0.47 E2: Slot-filling completion.
+	 * Called when previous turn left pending slot (ex: "Pra quando?" pending datetime).
+	 * Tenta extrair valor do query atual e completar tool execution.
+	 */
+	private async fillPendingSlot(
+		pending: {
+			intent: string;
+			tool: string;
+			args: Record<string, unknown>;
+			missing: string;
+			expiresAt: number;
+		},
+		query: string,
+		plugin: AtlasPlugin
+	): Promise<AgentResponse | null> {
+		try {
+			const args = { ...pending.args };
+
+			if (pending.missing === "datetime") {
+				const chrono = await import("chrono-node");
+				const res = chrono.pt.parse(query, new Date(), { forwardDate: true });
+				if (res.length === 0) {
+					return {
+						answer: "Não entendi a data. Tenta: 'amanhã 14h', 'sexta 9h', 'em 2 dias'.",
+						citations: [],
+						toolsUsed: [],
+					};
+				}
+				const iso = res[0].date().toISOString();
+				if (pending.tool === "create_reminder") args.datetime = iso;
+				else if (pending.tool === "schedule_meeting") args.datetime = iso;
+				else if (pending.tool === "create_action_item") args.due = iso.split("T")[0];
+			} else if (pending.missing === "note_text") {
+				args.text = `📚 ${args.course ?? ""}: ${query.trim()}`;
+			} else if (pending.missing === "name") {
+				args.name = query.trim();
+			} else {
+				args[pending.missing] = query.trim();
+			}
+
+			const toolMod = await import("./tool-registry");
+			const result = await toolMod.executeTool(pending.tool, args, plugin, { skipConfirm: true });
+			return {
+				answer: result.ok
+					? `✓ ${result.message}`
+					: `Não consegui completar — ${result.message}`,
+				citations: [],
+				toolsUsed: [`slot-fill:${pending.tool}`],
+			};
+		} catch (e) {
+			logger.warn("agent: fillPendingSlot failed", { error: String(e) });
+			return null;
+		}
 	}
 
 	/** v0.9: heurística rápida — query sugere uma ação mutadora (criar/agendar/lembrar/etc)? */

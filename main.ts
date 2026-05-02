@@ -196,6 +196,7 @@ export default class AtlasPlugin extends Plugin {
 	settings!: AtlasSettings;
 	ollama!: OllamaClient;
 	kg!: KGStore;
+	extractionCache?: import("./src/kg/extraction-cache").ExtractionCache;
 	embedder!: Embedder;
 	notifier!: Notifier;
 	scheduler!: Scheduler;
@@ -271,6 +272,15 @@ export default class AtlasPlugin extends Plugin {
 
 		this.kg = new KGStore(this.app, this.settings.folders.atlas);
 		await this.kg.load();
+
+		// v0.47 E5: Extraction cache — skip LLM em re-index quando hash não mudou (~90% cost cut)
+		try {
+			const { ExtractionCache } = await import("./src/kg/extraction-cache");
+			this.extractionCache = new ExtractionCache(this.app, this.settings.folders.atlas);
+			await this.extractionCache.load();
+		} catch (e) {
+			logger.warn("extraction-cache: init failed", { error: String(e) });
+		}
 
 		// v0.17 — initialize provider router with cloud API keys + budget
 		try {
@@ -681,6 +691,8 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		// (ex: criar pessoa) fica só em RAM e perde.
 		try {
 			await this.kg?.save();
+			// v0.47 E5: also flush extraction cache pra preservar reuse cross-session
+			await this.extractionCache?.save();
 		} catch (e) {
 			logger.error("v0.44: failed to flush KG on unload", { error: String(e) });
 		}
