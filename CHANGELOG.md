@@ -4,6 +4,67 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.22.0] — 2026-05-02 — "Polish backend: Whisper UX + Quick Presets + Analytics fixes + LLM wiring"
+
+### Sprint F — Whisper Settings UX
+- 🔒 **FREE 100% local banner** verde no topo da Voice section com link pro repo whisper.cpp
+- 🔍 **Auto-detect now** button — re-scan paths conhecidos, auto-fill paths se encontrar, Notice com versão
+- ✓ **Testar binário** button — executa `whisper-cpp --version` via shell, valida saída
+- 📦 **Como instalar?** button — mostra comando + instruções por OS, copia comando pro clipboard
+
+### Sprint I — Quick Presets em Cloud Providers Settings
+4 botões grandes no topo de Settings → ☁️ Cloud Providers:
+- 🎨 **All-Anthropic balanced** — Sonnet 4.6 chat / Opus 4.7 reasoning / Haiku summary / Ollama embed
+- 💰 **Cheap mix** — Haiku chat / DeepSeek R1 reasoning / 4o-mini summary / OpenAI 3-small embed / GPT-4o vision
+- 💎 **Premium tudo** — Opus 4.7 chat+reasoning / GPT-4o vision / Sonnet summary / OpenAI 3-large embed
+- 🏠 **Local-only** — tudo Ollama (zera routing cloud, restaura default privacy total)
+
+Click → confirmAsync com tagline detalhada → aplica routing + saveSettings + Notice. UI re-renders pra refletir.
+
+### Sprint G — Analytics 4 bugs fixados
+- **Heatmap scale**: `Math.max(10, maxDay.count)` → `Math.max(1, maxDay.count)` — vault novos não esmagam mais visualmente. ([heatmap.ts:106](src/views/master/analytics-sub/heatmap.ts#L106))
+- **Trends period persiste**: localStorage `atlas-trends-period` lido no mount + salvo on click. Sobrevive entre sessions. ([trends.ts:32-59](src/views/master/analytics-sub/trends.ts#L32))
+- **KG Graph ResizeObserver leak**: track previous observer no container `.__atlasRO`, disconnect antes de criar novo. Memória estável após N tab switches. ([kg-graph.ts:241](src/views/master/analytics-sub/kg-graph.ts#L241))
+- **Mood radar empty months**: filter out meses sem mood/energy data antes de plotar — radar não renderiza pontos zero confusos. ([mood.ts:205-223](src/views/master/analytics-sub/mood.ts#L205))
+
+**Deferido pra v0.23** (escopo evita regressão): inline styles → CSS classes (~30 sites) + loading skeletons em ECharts.
+
+### Sprint H — Wire 4/13 LLM sites via LLMService
+Sites com `plugin.X.ollama` direto reference (4 wired):
+- **automation/auto-tagger.ts** ⭐ — wired COM toggle `settings.providers.allowAutoTaggerCloud` (default OFF — proteção contra cost overrun: roda em CADA save de nota). main.ts wira via `autoTagger.configureCloud(allow, llm)` após plugin.llm init.
+- **innovations/smart-paste.ts** — wired via `plugin.llm.generate({ feature: "innovation.smart-paste", taskKind: "summarization" })`
+- **views/atlas-status.ts** — botão "🧪 Testar chat" agora testa cloud routing se configurado
+- **editor/slash-suggest.ts** — slash commands (rewrite/summarize/explain/translate-en) usam cloud quando configurado (cloud rewrites tons muito melhor que 7B)
+
+**Deferido pra v0.23** (precisam constructor refactor pra acessar plugin):
+- kg/extractor.ts, retrieval/reranker.ts (3 calls), study/socratic.ts, study/flashcard-gen.ts, tools/prepare-1on1.ts (2 calls), tools/auto-summary.ts, serendipity/engine.ts, summarizer/chain-of-density.ts, summarizer/map-reduce.ts (2 calls)
+
+**Settings types update**: `providers.allowAutoTaggerCloud?: boolean` adicionado. Default false (silent).
+
+### Files modified (8)
+- `src/views/settings-tab.ts` — Voice section UX completo + Quick Presets section + ApiKey detector já existente
+- `src/views/master/analytics-sub/heatmap.ts`, `trends.ts`, `kg-graph.ts`, `mood.ts` — 4 bugs fix
+- `src/automation/auto-tagger.ts` — configureCloud setter + opt-in cloud routing
+- `src/innovations/smart-paste.ts`, `src/views/atlas-status.ts`, `src/editor/slash-suggest.ts` — wired via plugin.llm
+- `main.ts` — autoTagger.configureCloud wire after llm init
+- `src/types.ts` — `allowAutoTaggerCloud?` added
+- `styles.css` — voice banner CSS + Quick Presets CSS (~80 LOC novas)
+- CHANGELOG, manifest, package, versions
+
+### Verification
+- [ ] Settings → Voice: ver FREE banner verde + Auto-detect button + Test button + Como instalar
+- [ ] Click "Testar binário" → executa version → Notice "✓ whisper.cpp OK: vX.Y"
+- [ ] Settings → Cloud Providers: 4 Quick Presets visíveis
+- [ ] Click "All-Anthropic balanced" → confirmAsync → routing aplicado → Notice
+- [ ] Click "Local-only" → todas routings voltam pra Ollama
+- [ ] Heatmap em vault novo: cores distribuídas (não tudo cinza)
+- [ ] Trends 30d → 90d → close+reopen Atlas → period sticky em 90d
+- [ ] KG Graph profile memory: switch entre Analytics sub-tabs N×, memória estável
+- [ ] Mood radar com vault sem mood data: graceful empty-state, não renderiza pontos zero
+- [ ] Auto-tagger com cloud key configurado mas `allowAutoTaggerCloud=false` (default): SEMPRE Ollama (zero spend log entries com `feature: automation.auto-tagger`)
+- [ ] Slash command `/rewrite` com cloud configured: usa cloud (Spend log mostra `feature: editor.slash-suggest.rewrite`)
+- [ ] Build TypeScript zero errors
+
 ## [0.21.0] — 2026-05-02 — "Premium Atlas: JARVIS Cyan + Today Command Center + Auto-Whisper + API Auto-Activate"
 
 ### Sprint A — Whisper auto-detect (NEW: src/automation/whisper-detector.ts)

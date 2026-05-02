@@ -103,7 +103,9 @@ export async function renderAnalyticsHeatmap(
 			visualMap: {
 				show: false,
 				min: 0,
-				max: Math.max(10, maxDay.count),
+				// v0.22 Sprint G: scale dinâmica — não esmaga vault novos
+				// Use percentile P95 ou maxDay.count direto (mín 1 pra evitar div-by-0)
+				max: Math.max(1, maxDay.count),
 				inRange: {
 					color: [
 						"#161b22",

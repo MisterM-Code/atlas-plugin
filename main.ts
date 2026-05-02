@@ -465,6 +465,17 @@ export default class AtlasPlugin extends Plugin {
 				],
 			}
 		);
+		// v0.22 Sprint H: opt-in cloud (default OFF — auto-tagger roda em cada save = high freq cost risk)
+		const allowAutoTaggerCloud = Boolean(this.settings.providers?.allowAutoTaggerCloud);
+		if (this.llm) {
+			this.autoTagger.configureCloud(allowAutoTaggerCloud, {
+				willUseCloud: () => this.llm.willUseCloud("extraction"),
+				chat: (msgs, opts) => this.llm.chat(
+					msgs as Parameters<typeof this.llm.chat>[0],
+					opts as Parameters<typeof this.llm.chat>[1]
+				),
+			});
+		}
 		this.autoTagger.register((cleanup) => this.register(cleanup));
 
 		// Auto-aliaser (manual via comando)

@@ -278,14 +278,20 @@ async function detectAndProcess(text: string, plugin: AtlasPlugin): Promise<Dete
 	// 8. Long text → summarize via LLM
 	if (text.length > 500) {
 		try {
-			const summary = await plugin.ollama.generate(
-				`Resuma este texto em 2-3 linhas em PT-BR (apenas o resumo, sem prefácio):\n\n${text.substring(0, 3000)}`,
-				{
-					model: plugin.settings.ollama.generationModel,
-					temperature: 0.4,
-					max_tokens: 200,
-				}
-			);
+			// v0.22 Sprint H: wire via LLMService (cloud auto se configured)
+			const promptText = `Resuma este texto em 2-3 linhas em PT-BR (apenas o resumo, sem prefácio):\n\n${text.substring(0, 3000)}`;
+			const summary = plugin.llm
+				? await plugin.llm.generate(promptText, {
+						feature: "innovation.smart-paste",
+						taskKind: "summarization",
+						temperature: 0.4,
+						maxTokens: 200,
+				  })
+				: await plugin.ollama.generate(promptText, {
+						model: plugin.settings.ollama.generationModel,
+						temperature: 0.4,
+						max_tokens: 200,
+				  });
 			return {
 				kind: "long-text",
 				original: text,

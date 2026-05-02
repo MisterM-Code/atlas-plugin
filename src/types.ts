@@ -57,6 +57,9 @@ export interface AtlasSettings {
 		// Failover order if primary provider fails
 		failoverChain?: string[];
 		preferLocalForCheap?: boolean;
+		// v0.22 Sprint H: Auto-tagger roda em CADA save de nota → high freq cost risk
+		// Default OFF — auto-tagger sempre Ollama mesmo com cloud key. User opta in via Settings.
+		allowAutoTaggerCloud?: boolean;
 		// Budget controls
 		budget?: {
 			enabled: boolean;

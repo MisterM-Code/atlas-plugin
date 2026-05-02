@@ -37,6 +37,9 @@ export class AtlasSettingTab extends PluginSettingTab {
 			text: "Atlas funciona 100% local com Ollama. Adicione API keys aqui para usar GPT-4o, Claude Opus 4.7, Gemini 2.0, etc — Atlas controla o gasto e mostra dashboard de spend.",
 		});
 
+		// v0.22 Sprint I: Quick Presets (4 buttons)
+		this.renderQuickPresets(containerEl);
+
 		const providers: { id: string; name: string; field: string; signupUrl: string }[] = [
 			{ id: "openai", name: "OpenAI", field: "openaiEncrypted", signupUrl: "https://platform.openai.com/api-keys" },
 			{ id: "anthropic", name: "Anthropic (Claude)", field: "anthropicEncrypted", signupUrl: "https://console.anthropic.com/settings/keys" },
@@ -243,6 +246,114 @@ export class AtlasSettingTab extends PluginSettingTab {
 					await this.plugin.activateMasterTab("status");
 				});
 			});
+	}
+
+	/** v0.22 Sprint I: render 4 Quick Presets buttons no topo de Cloud Providers section */
+	private renderQuickPresets(parent: HTMLElement): void {
+		const wrap = parent.createDiv({ cls: "atlas-quick-presets" });
+		const title = wrap.createDiv({ cls: "atlas-quick-presets-title" });
+		title.createSpan({ text: "🎯 Quick Presets" });
+		const sub = wrap.createDiv({ cls: "atlas-quick-presets-sub" });
+		sub.setText("Aplica routing pré-configurado pra todas as 6 task kinds em 1 click.");
+
+		const grid = wrap.createDiv({ cls: "atlas-quick-presets-grid" });
+
+		interface PresetBtn {
+			id: string;
+			emoji: string;
+			label: string;
+			tagline: string;
+			routing: import("../providers/router").TaskRouting;
+		}
+
+		const presets: PresetBtn[] = [
+			{
+				id: "anthropic-balanced",
+				emoji: "🎨",
+				label: "All-Anthropic balanced",
+				tagline: "Sonnet 4.6 chat · Opus 4.7 reasoning · Haiku summary · Ollama embed",
+				routing: {
+					chat: { provider: "anthropic", model: "claude-sonnet-4-6" },
+					extraction: { provider: "anthropic", model: "claude-haiku-4-5-20251001" },
+					summarization: { provider: "anthropic", model: "claude-haiku-4-5-20251001" },
+					vision: { provider: "anthropic", model: "claude-sonnet-4-6" },
+					reasoning: { provider: "anthropic", model: "claude-opus-4-7" },
+					embedding: { provider: "ollama", model: "bge-m3" },
+				},
+			},
+			{
+				id: "cheap-mix",
+				emoji: "💰",
+				label: "Cheap mix",
+				tagline: "Haiku chat · DeepSeek R1 reasoning · 4o-mini summary · Cloud cheap embed",
+				routing: {
+					chat: { provider: "anthropic", model: "claude-haiku-4-5-20251001" },
+					extraction: { provider: "anthropic", model: "claude-haiku-4-5-20251001" },
+					summarization: { provider: "openai", model: "gpt-4o-mini" },
+					vision: { provider: "openai", model: "gpt-4o" },
+					reasoning: { provider: "deepseek", model: "deepseek-reasoner" },
+					embedding: { provider: "openai", model: "text-embedding-3-small" },
+				},
+			},
+			{
+				id: "premium",
+				emoji: "💎",
+				label: "Premium tudo",
+				tagline: "Opus 4.7 chat+reasoning · GPT-4o vision · Sonnet summary · OpenAI 3-large embed",
+				routing: {
+					chat: { provider: "anthropic", model: "claude-opus-4-7" },
+					extraction: { provider: "anthropic", model: "claude-sonnet-4-6" },
+					summarization: { provider: "anthropic", model: "claude-sonnet-4-6" },
+					vision: { provider: "openai", model: "gpt-4o" },
+					reasoning: { provider: "anthropic", model: "claude-opus-4-7" },
+					embedding: { provider: "openai", model: "text-embedding-3-large" },
+				},
+			},
+			{
+				id: "local-only",
+				emoji: "🏠",
+				label: "Local-only (zero $)",
+				tagline: "Tudo Ollama. Zero gasto. Privacidade total. Restaura default.",
+				routing: {
+					chat: { provider: "ollama", model: "qwen2.5:7b-instruct" },
+					extraction: { provider: "ollama", model: "qwen2.5:7b-instruct" },
+					summarization: { provider: "ollama", model: "qwen2.5:7b-instruct" },
+					vision: { provider: "ollama", model: "llama3.2-vision:11b" },
+					reasoning: { provider: "ollama", model: "qwen2.5:7b-instruct" },
+					embedding: { provider: "ollama", model: "bge-m3" },
+				},
+			},
+		];
+
+		for (const preset of presets) {
+			const btn = grid.createDiv({ cls: "atlas-quick-preset-btn" });
+			btn.createDiv({ cls: "atlas-quick-preset-emoji", text: preset.emoji });
+			btn.createDiv({ cls: "atlas-quick-preset-label", text: preset.label });
+			btn.createDiv({ cls: "atlas-quick-preset-tagline", text: preset.tagline });
+			btn.addEventListener("click", async () => {
+				const { confirmAsync } = await import("../ui/confirm-modal");
+				const ok = await confirmAsync(
+					this.app,
+					`Aplicar preset "${preset.label}"? Vai substituir routing atual de TODAS as 6 task kinds.\n\n${preset.tagline}`,
+					{ title: `🎯 Aplicar: ${preset.label}`, yesLabel: "Aplicar", noLabel: "Cancelar" }
+				);
+				if (!ok) return;
+
+				if (!this.plugin.settings.providers) {
+					this.plugin.settings.providers = {
+						apiKeys: {},
+						routing: {},
+						failoverChain: ["ollama"],
+						budget: { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 },
+					};
+				}
+				this.plugin.settings.providers.routing = preset.routing as never;
+				await this.plugin.saveSettings();
+				this.plugin.providerRouter?.updateConfig({ routing: preset.routing as never });
+				new Notice(`✓ Atlas: preset "${preset.label}" aplicado.`, 6000);
+				this.display();
+			});
+		}
 	}
 
 	/** v0.21 Sprint J: open ApiKeyDetectedModal pra ativar IA paga depois user colar key */
@@ -734,6 +845,27 @@ export class AtlasSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.createEl("h3", { text: "🎤 Voice (whisper.cpp)" });
 
+		// v0.22 Sprint F: FREE local banner
+		const banner = containerEl.createDiv({ cls: "atlas-voice-banner" });
+		banner.createDiv({ cls: "atlas-voice-banner-icon", text: "🔒" });
+		const bannerText = banner.createDiv({ cls: "atlas-voice-banner-text" });
+		bannerText.createDiv({
+			cls: "atlas-voice-banner-title",
+			text: "100% gratis e local",
+		});
+		bannerText.createDiv({
+			cls: "atlas-voice-banner-desc",
+			text: "Whisper.cpp roda na sua máquina, zero envio pra nuvem. Open source. Atlas auto-detecta o binário no first-run.",
+		});
+		const bannerLink = banner.createEl("a", {
+			cls: "atlas-voice-banner-link",
+			text: "github.com/ggerganov/whisper.cpp →",
+		});
+		bannerLink.addEventListener("click", (e) => {
+			e.preventDefault();
+			window.open("https://github.com/ggerganov/whisper.cpp", "_blank");
+		});
+
 		new Setting(containerEl).setName("Habilitar voice capture").addToggle((t) =>
 			t
 				.setValue(this.plugin.settings.voice.enabled)
@@ -742,6 +874,41 @@ export class AtlasSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				})
 		);
+
+		// v0.22 Sprint F: Auto-detect now button
+		new Setting(containerEl)
+			.setName("🔍 Auto-detect whisper.cpp agora")
+			.setDesc("Re-scan dos paths conhecidos (/opt/homebrew, /usr/local, ~/whisper.cpp/build, etc).")
+			.addButton((b) => {
+				b.setButtonText("Detectar").onClick(async () => {
+					b.setButtonText("Detectando...");
+					b.setDisabled(true);
+					try {
+						const { autoDetectWhisper } = await import("../automation/whisper-detector");
+						const detection = await autoDetectWhisper();
+						if (detection.installed && detection.binaryPath) {
+							this.plugin.settings.voice.whisperBinaryPath = detection.binaryPath;
+							if (detection.modelPath) {
+								this.plugin.settings.voice.whisperModelPath = detection.modelPath;
+							}
+							await this.plugin.saveSettings();
+							new Notice(
+								`✓ Atlas: detectado em ${detection.binaryPath}${detection.version ? ` (${detection.version})` : ""}`,
+								8000
+							);
+							this.display(); // re-render to show updated paths
+						} else {
+							new Notice(
+								"Atlas: whisper.cpp não encontrado nos paths conhecidos. Use 'Como instalar' abaixo.",
+								8000
+							);
+						}
+					} finally {
+						b.setButtonText("Detectar");
+						b.setDisabled(false);
+					}
+				});
+			});
 
 		new Setting(containerEl)
 			.setName("Caminho do binário whisper.cpp")
@@ -757,6 +924,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Caminho do modelo whisper")
+			.setDesc("Ex: ~/whisper.cpp/models/ggml-base.bin")
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.voice.whisperModelPath)
@@ -765,6 +933,59 @@ export class AtlasSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
+		// v0.22 Sprint F: Test button (validates binary executes)
+		new Setting(containerEl)
+			.setName("✓ Testar binário whisper.cpp")
+			.setDesc("Executa `whisper-cpp --version` e confirma que está funcionando.")
+			.addButton((b) => {
+				b.setButtonText("Testar").onClick(async () => {
+					const path = this.plugin.settings.voice.whisperBinaryPath;
+					if (!path) {
+						new Notice("Atlas: configure o path do binário primeiro.", 5000);
+						return;
+					}
+					b.setButtonText("Testando...");
+					b.setDisabled(true);
+					try {
+						const { exec } = await import("child_process");
+						const { promisify } = await import("util");
+						const execAsync = promisify(exec);
+						const { stdout, stderr } = await execAsync(`"${path}" --version`, { timeout: 5000 });
+						const version = (stdout || stderr).trim().split("\n")[0]?.substring(0, 100);
+						new Notice(`✓ whisper.cpp OK: ${version}`, 8000);
+					} catch (e) {
+						new Notice(`✗ whisper.cpp falhou: ${String(e).substring(0, 200)}`, 10000);
+					} finally {
+						b.setButtonText("Testar");
+						b.setDisabled(false);
+					}
+				});
+			});
+
+		// v0.22 Sprint F: Install instructions (per-OS)
+		new Setting(containerEl)
+			.setName("📦 Como instalar whisper.cpp?")
+			.setDesc("Comando + instruções específicas pra seu OS.")
+			.addButton((b) => {
+				b.setButtonText("Ver instruções").onClick(async () => {
+					const { installInstructionsFor } = await import("../automation/whisper-detector");
+					const platform = process.platform === "darwin" ? "darwin" :
+						process.platform === "win32" ? "win32" :
+						process.platform === "linux" ? "linux" : "other";
+					const inst = installInstructionsFor(platform);
+					new Notice(
+						`📦 ${inst.command}\n\n${inst.help}`,
+						20000
+					);
+					try {
+						await navigator.clipboard.writeText(inst.command);
+						new Notice("📋 Comando copiado pro clipboard!", 4000);
+					} catch {
+						// ignore
+					}
+				});
+			});
 	}
 
 	private section_advanced(): void {

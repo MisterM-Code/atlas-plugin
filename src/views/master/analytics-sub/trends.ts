@@ -30,7 +30,18 @@ export async function renderAnalyticsTrends(
 	periodBar.style.marginBottom = "12px";
 
 	type PeriodId = "30d" | "90d" | "1y";
-	let activePeriod: PeriodId = "90d";
+	// v0.22 Sprint G: persist period selector entre sessions via localStorage
+	const STORAGE_KEY = "atlas-trends-period";
+	const stored = (() => {
+		try {
+			const v = localStorage.getItem(STORAGE_KEY);
+			if (v === "30d" || v === "90d" || v === "1y") return v as PeriodId;
+		} catch {
+			// ignore
+		}
+		return "90d" as PeriodId;
+	})();
+	let activePeriod: PeriodId = stored;
 	const periods: { id: PeriodId; label: string; days: number }[] = [
 		{ id: "30d", label: "30 dias", days: 30 },
 		{ id: "90d", label: "90 dias", days: 90 },
@@ -45,6 +56,11 @@ export async function renderAnalyticsTrends(
 		periodButtons.push({ btn, id: p.id });
 		btn.addEventListener("click", () => {
 			activePeriod = p.id;
+			try {
+				localStorage.setItem(STORAGE_KEY, p.id);
+			} catch {
+				// ignore quota errors
+			}
 			updateButtons();
 			void renderCharts();
 		});

@@ -54,6 +54,9 @@ export interface AutoTagOptions {
 export class AutoTagger {
 	private debouncers = new Map<string, ReturnType<typeof setTimeout>>();
 	private indexer: Indexer;
+	// v0.22 Sprint H: optional LLMService — toggle settings.providers.allowAutoTaggerCloud controla cloud usage
+	private llmService: { willUseCloud: () => boolean; chat: (msgs: unknown[], opts: unknown) => Promise<string> } | null = null;
+	private allowCloud = false;
 
 	constructor(
 		private app: App,
@@ -62,6 +65,12 @@ export class AutoTagger {
 		private opts: AutoTagOptions
 	) {
 		this.indexer = new Indexer(app);
+	}
+
+	/** v0.22: opt-in cloud routing pra auto-tagger (default OFF — high freq risk) */
+	configureCloud(allow: boolean, llm: typeof this.llmService): void {
+		this.allowCloud = allow;
+		this.llmService = llm;
 	}
 
 	register(register: (cb: () => void) => void): () => void {
@@ -119,20 +128,30 @@ Frontmatter: ${fmExcerpt}
 
 ${bodyExcerpt}`;
 
-			const raw = await this.ollama.chat(
-				[
-					{ role: "system", content: SYSTEM_PROMPT },
-					{ role: "user", content: FEW_SHOT_USER },
-					{ role: "assistant", content: FEW_SHOT_ASSISTANT },
-					{ role: "user", content: userPrompt },
-				],
-				{
+			// v0.22 Sprint H: cloud só se opt-in explícito (default Ollama — proteção contra cost overrun)
+			const messages = [
+				{ role: "system" as const, content: SYSTEM_PROMPT },
+				{ role: "user" as const, content: FEW_SHOT_USER },
+				{ role: "assistant" as const, content: FEW_SHOT_ASSISTANT },
+				{ role: "user" as const, content: userPrompt },
+			];
+			let raw: string;
+			if (this.allowCloud && this.llmService) {
+				raw = await this.llmService.chat(messages, {
+					feature: "automation.auto-tagger",
+					taskKind: "extraction",
+					temperature: 0.2,
+					maxTokens: 200,
+					jsonFormat: true,
+				});
+			} else {
+				raw = await this.ollama.chat(messages, {
 					model: this.model,
 					temperature: 0.2,
 					format: "json",
 					max_tokens: 200,
-				}
-			);
+				});
+			}
 
 			const cleaned = cleanJson(raw);
 			let parsed: unknown;

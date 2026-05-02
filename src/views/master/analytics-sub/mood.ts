@@ -214,6 +214,8 @@ function aggregateByMonth(data: { date: string; mood: number | null; energy: num
 	}
 	const out: MonthlyAgg[] = [];
 	for (const [month, g] of groups) {
+		// v0.22 Sprint G: skip empty months (avoids confusing radar with all-zero points)
+		if (g.moods.length === 0 && g.energies.length === 0) continue;
 		out.push({
 			month,
 			avgMood: g.moods.length > 0 ? g.moods.reduce((s, v) => s + v, 0) / g.moods.length : 0,

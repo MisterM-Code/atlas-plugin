@@ -13,6 +13,12 @@ export async function renderAnalyticsKgGraph(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	// v0.22 Sprint G: cleanup any previous ResizeObserver attached to old container
+	// (prevents memory leak when switching sub-tabs back-and-forth)
+	const prevRO = (container as HTMLElement & { __atlasRO?: ResizeObserver }).__atlasRO;
+	if (prevRO) {
+		prevRO.disconnect();
+	}
 
 	const intro = container.createDiv();
 	intro.style.fontSize = "11px";
@@ -238,7 +244,10 @@ export async function renderAnalyticsKgGraph(
 				}
 			});
 
-			new ResizeObserver(() => chart.resize()).observe(chartEl);
+			// v0.22 Sprint G: track observer pra disconnect quando container re-renderizar
+			const ro = new ResizeObserver(() => chart.resize());
+			ro.observe(chartEl);
+			(container as HTMLElement & { __atlasRO?: ResizeObserver }).__atlasRO = ro;
 		} catch (e) {
 			chartEl.setText(`Atlas: erro ao carregar ECharts — ${String(e)}`);
 			chartEl.style.color = "var(--color-red)";

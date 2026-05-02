@@ -235,11 +235,21 @@ async function runInlineAi(plugin: AtlasPlugin, editor: Editor, kind: "rewrite" 
 
 	const notice = new Notice(`Atlas: ${kind}...`, 0);
 	try {
-		const out = await plugin.ollama.generate(prompts[kind], {
-			model: plugin.settings.ollama.generationModel,
-			temperature: kind === "translate-en" ? 0.2 : 0.4,
-			max_tokens: Math.max(text.length / 2, 400),
-		});
+		// v0.22 Sprint H: wire via LLMService (cloud rewrites > local 7B)
+		const temp = kind === "translate-en" ? 0.2 : 0.4;
+		const maxOut = Math.max(text.length / 2, 400);
+		const out = plugin.llm
+			? await plugin.llm.generate(prompts[kind], {
+					feature: `editor.slash-suggest.${kind}`,
+					taskKind: "chat",
+					temperature: temp,
+					maxTokens: maxOut,
+			  })
+			: await plugin.ollama.generate(prompts[kind], {
+					model: plugin.settings.ollama.generationModel,
+					temperature: temp,
+					max_tokens: maxOut,
+			  });
 		notice.hide();
 		const cleaned = out.trim();
 		if (selection) {

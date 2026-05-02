@@ -177,14 +177,20 @@ export class AtlasStatusView extends ItemView {
 
 		action("🧪 Testar chat", async () => {
 			try {
-				const out = await this.plugin.ollama.chat(
-					[{ role: "user", content: "responda só 'OK'" }],
-					{
-						model: this.plugin.settings.ollama.generationModel,
-						temperature: 0,
-						max_tokens: 10,
-					}
-				);
+				// v0.22 Sprint H: wire via LLMService (testa cloud routing se configurado)
+				const messages = [{ role: "user" as const, content: "responda só 'OK'" }];
+				const out = this.plugin.llm
+					? await this.plugin.llm.chat(messages, {
+							feature: "views.atlas-status.test",
+							taskKind: "chat",
+							temperature: 0,
+							maxTokens: 10,
+					  })
+					: await this.plugin.ollama.chat(messages, {
+							model: this.plugin.settings.ollama.generationModel,
+							temperature: 0,
+							max_tokens: 10,
+					  });
 				new Notice(`Atlas: chat OK · "${out.substring(0, 30)}"`, 6000);
 			} catch (e) {
 				const ae = e as { humanMessage?: string };
