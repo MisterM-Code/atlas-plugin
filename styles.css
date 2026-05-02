@@ -4957,3 +4957,390 @@ button.atlas-btn:active::after,
 		min-height: 420px;
 	}
 }
+
+/* ════════════════════════════════════════════════════════════════
+ * v0.26 — Utility classes pra polish across remaining tabs
+ * (consistente com Today widgets, CRUD cards, Analytics)
+ * ════════════════════════════════════════════════════════════════ */
+
+/* Section header com gradient title cyan→indigo (uniforme) */
+.atlas-tab-section-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 14px;
+	flex-wrap: wrap;
+}
+.atlas-tab-section-title {
+	font-size: 19px;
+	font-weight: 700;
+	margin: 0;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	letter-spacing: -0.3px;
+}
+.atlas-tab-section-subtitle {
+	font-size: 12px;
+	opacity: 0.7;
+	margin: 0 0 14px 0;
+	line-height: 1.55;
+}
+.atlas-tab-section-divider {
+	height: 1px;
+	background: linear-gradient(90deg,
+		transparent,
+		rgba(0, 229, 229, 0.4),
+		transparent);
+	margin: 14px 0;
+}
+
+/* Empty state polished (emoji + copy + opcional CTA) */
+.atlas-tab-empty-state {
+	padding: 36px 24px;
+	text-align: center;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 92%, var(--atlas-accent, #6366f1)));
+	border: 1px dashed var(--background-modifier-border);
+	border-radius: 12px;
+}
+.atlas-tab-empty-emoji {
+	font-size: 36px;
+	margin-bottom: 8px;
+	display: block;
+	animation: atlas-empty-bob 3s ease-in-out infinite;
+}
+@keyframes atlas-empty-bob {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-4px); }
+}
+.atlas-tab-empty-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+.atlas-tab-empty-desc {
+	font-size: 12px;
+	opacity: 0.7;
+	line-height: 1.55;
+	max-width: 380px;
+	margin: 0 auto 12px auto;
+}
+.atlas-tab-empty-cta {
+	margin-top: 10px;
+}
+
+/* Premium card (uniforme com Today widgets + CRUD cards) */
+.atlas-tab-card-premium {
+	position: relative;
+	padding: 14px 16px;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 92%, var(--atlas-accent, #6366f1)));
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 12px;
+	overflow: hidden;
+	cursor: pointer;
+	transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+	            box-shadow 240ms ease,
+	            border-color 240ms ease;
+}
+.atlas-tab-card-premium::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--atlas-accent, #00e5e5), transparent);
+	transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1), left 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-tab-card-premium:hover {
+	transform: translateY(-3px) scale(1.005);
+	box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10),
+	            0 0 0 1px rgba(0, 229, 229, 0.25);
+	border-color: rgba(0, 229, 229, 0.45);
+}
+.atlas-tab-card-premium:hover::before {
+	width: 80%;
+	left: 10%;
+}
+.atlas-tab-card-premium:active {
+	transform: translateY(-1px) scale(1);
+	transition-duration: 80ms;
+}
+
+/* Responsive grid auto-fill */
+.atlas-tab-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 10px;
+}
+.atlas-tab-grid-narrow {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 8px;
+}
+
+/* Stat card (4-card grid item — Health/Stats/Spend) */
+.atlas-tab-stat-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 12px 10px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	text-align: center;
+	transition: transform 200ms ease, border-color 200ms ease;
+}
+.atlas-tab-stat-card:hover {
+	transform: translateY(-2px);
+	border-color: rgba(0, 229, 229, 0.35);
+}
+.atlas-tab-stat-card-emoji {
+	font-size: 22px;
+}
+.atlas-tab-stat-card-value {
+	font-family: "SF Mono", Monaco, monospace;
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--atlas-accent, #00e5e5);
+	line-height: 1.1;
+}
+.atlas-tab-stat-card-label {
+	font-size: 10px;
+	opacity: 0.7;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+
+/* Smooth progress bar (RAM/budget/etc) */
+.atlas-progress-bar {
+	height: 8px;
+	background: var(--background-modifier-border);
+	border-radius: 4px;
+	overflow: hidden;
+}
+.atlas-progress-bar-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #00e5e5, #6366f1);
+	transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-progress-bar-fill.is-warn {
+	background: linear-gradient(90deg, #fbbf24, #f59e0b);
+}
+.atlas-progress-bar-fill.is-danger {
+	background: linear-gradient(90deg, #ef4444, #dc2626);
+	animation: atlas-pulse-soft 2s infinite;
+}
+
+/* Stagger entrance animation pra sections */
+.atlas-section-stagger > * {
+	animation: atlas-today-slidein 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.atlas-section-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.atlas-section-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.atlas-section-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.atlas-section-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.atlas-section-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.atlas-section-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.atlas-section-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.atlas-section-stagger > *:nth-child(n+8) { animation-delay: 420ms; }
+
+/* Health score card — cores via CSS classes (não hardcoded) */
+.atlas-health-score-card {
+	padding: 20px 16px;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 92%, var(--atlas-accent, #6366f1)));
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 12px;
+	text-align: center;
+	margin-bottom: 14px;
+	position: relative;
+	overflow: hidden;
+	animation: atlas-today-slidein 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.atlas-health-score-card::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, transparent, currentColor, transparent);
+}
+.atlas-health-score-card.is-good {
+	color: #22c55e;
+}
+.atlas-health-score-card.is-warn {
+	color: #f59e0b;
+}
+.atlas-health-score-card.is-bad {
+	color: #ef4444;
+	animation: atlas-today-slidein 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards,
+	           atlas-pulse-soft 3s ease-in-out infinite 380ms;
+}
+.atlas-health-score-num {
+	font-size: 36px;
+	font-weight: 800;
+	line-height: 1;
+	color: currentColor;
+	font-family: "SF Mono", Monaco, monospace;
+	letter-spacing: -1px;
+}
+.atlas-health-score-label {
+	font-size: 13px;
+	opacity: 0.85;
+	margin-top: 6px;
+	font-weight: 500;
+}
+
+.atlas-health-stats-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+@media (max-width: 580px) {
+	.atlas-health-stats-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Reports timeline cards */
+.atlas-reports-month-header {
+	font-size: 11px;
+	font-weight: 700;
+	opacity: 0.7;
+	text-transform: capitalize;
+	margin: 16px 0 8px 0;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	letter-spacing: 0.5px;
+}
+.atlas-reports-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 12px;
+	margin-bottom: 6px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: transform 200ms ease, border-color 200ms ease, background 200ms ease;
+}
+.atlas-reports-card:hover {
+	transform: translateX(3px);
+	border-color: rgba(0, 229, 229, 0.4);
+	background: var(--background-secondary-alt);
+}
+.atlas-reports-card-icon {
+	font-size: 18px;
+	flex-shrink: 0;
+}
+.atlas-reports-card-text {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-reports-card-title {
+	font-size: 12px;
+	font-weight: 500;
+}
+.atlas-reports-card-date {
+	font-size: 10px;
+	opacity: 0.6;
+	font-family: "SF Mono", Monaco, monospace;
+}
+.atlas-reports-card-type {
+	font-size: 9px;
+	padding: 3px 8px;
+	border-radius: 4px;
+	background: rgba(0, 229, 229, 0.12);
+	color: var(--atlas-accent, #00e5e5);
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+/* Tools IA cards — uses atlas-tab-card-premium base */
+.atlas-tools-category-head {
+	font-size: 10px;
+	font-weight: 700;
+	opacity: 0.7;
+	margin: 16px 0 8px 0;
+	letter-spacing: 0.6px;
+	text-transform: uppercase;
+	padding-left: 8px;
+	border-left: 2px solid var(--atlas-accent, #00e5e5);
+}
+.atlas-tools-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.atlas-tools-card-top {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.atlas-tools-card-icon {
+	font-size: 26px;
+	line-height: 1;
+	flex-shrink: 0;
+	transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.atlas-tools-card:hover .atlas-tools-card-icon {
+	transform: scale(1.15) rotate(-3deg);
+}
+.atlas-tools-card-text {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-tools-card-title {
+	font-size: 13px;
+	font-weight: 600;
+	margin-bottom: 2px;
+}
+.atlas-tools-card-tagline {
+	font-size: 11px;
+	opacity: 0.7;
+	line-height: 1.4;
+}
+.atlas-tools-card-cat {
+	font-size: 9px;
+	padding: 3px 8px;
+	border-radius: 4px;
+	align-self: flex-start;
+	color: white;
+	font-weight: 600;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+
+/* Hub list — scrollable container with smooth scroll */
+.atlas-hub-list {
+	max-height: calc(100vh - 280px);
+	overflow-y: auto;
+	scroll-behavior: smooth;
+	border-top: 1px solid var(--background-modifier-border);
+	padding-top: 12px;
+	margin-top: 8px;
+}
+.atlas-hub-list::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-hub-list::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+.atlas-hub-list::-webkit-scrollbar-thumb:hover {
+	background: rgba(0, 229, 229, 0.45);
+}

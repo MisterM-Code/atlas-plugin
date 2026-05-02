@@ -211,10 +211,7 @@ const CATEGORY_ORDER: ToolDef["category"][] = [
 export function renderLabToolsIa(container: HTMLElement, plugin: AtlasPlugin): void {
 	container.empty();
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
+	const intro = container.createDiv({ cls: "atlas-tab-section-subtitle" });
 
 	// Profile-aware filter
 	const profileIds = plugin.settings.profile?.ids ?? [];
@@ -261,11 +258,13 @@ export function renderLabToolsIa(container: HTMLElement, plugin: AtlasPlugin): v
 			: allTools;
 
 	if (tools.length === 0) {
-		const empty = container.createDiv();
-		empty.style.padding = "32px";
-		empty.style.textAlign = "center";
-		empty.style.opacity = "0.6";
-		empty.setText("Nenhuma ferramenta para o perfil atual. Click 'Mostrar todas' acima.");
+		const empty = container.createDiv({ cls: "atlas-tab-empty-state" });
+		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🔧" });
+		empty.createEl("div", { cls: "atlas-tab-empty-title", text: "Nenhuma ferramenta IA disponível" });
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-desc",
+			text: "Click 'Mostrar todas' acima ou ajuste seus perfis em Settings → Profile.",
+		});
 		return;
 	}
 
@@ -282,18 +281,13 @@ export function renderLabToolsIa(container: HTMLElement, plugin: AtlasPlugin): v
 		if (!list || list.length === 0) continue;
 
 		const meta = CATEGORY_LABELS[cat];
-		const catHead = container.createEl("div", { text: `${meta.emoji} ${meta.label}` });
-		catHead.style.fontSize = "10px";
-		catHead.style.fontWeight = "bold";
-		catHead.style.opacity = "0.7";
-		catHead.style.marginTop = "12px";
-		catHead.style.marginBottom = "6px";
-		catHead.style.letterSpacing = "0.5px";
+		const catHead = container.createEl("div", {
+			cls: "atlas-tools-category-head",
+			text: `${meta.emoji} ${meta.label}`,
+		});
+		catHead.dataset.category = cat;
 
-		const grid = container.createDiv();
-		grid.style.display = "grid";
-		grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(240px, 1fr))";
-		grid.style.gap = "10px";
+		const grid = container.createDiv({ cls: "atlas-tab-grid" });
 
 		for (const t of list) {
 			renderToolCard(grid, t);
@@ -302,51 +296,19 @@ export function renderLabToolsIa(container: HTMLElement, plugin: AtlasPlugin): v
 }
 
 function renderToolCard(parent: HTMLElement, t: ToolDef): void {
-	const card = parent.createDiv();
-	card.style.background = "var(--background-secondary)";
-	card.style.border = "1px solid var(--background-modifier-border)";
-	card.style.borderRadius = "8px";
-	card.style.padding = "12px";
-	card.style.display = "flex";
-	card.style.flexDirection = "column";
-	card.style.gap = "6px";
-	card.style.transition = "transform 120ms, border-color 120ms";
+	// v0.26: card premium com hover/transitions via CSS class
+	const card = parent.createDiv({ cls: "atlas-tab-card-premium atlas-tools-card" });
 
-	card.addEventListener("mouseenter", () => {
-		card.style.borderColor = "var(--interactive-accent)";
-		card.style.transform = "translateY(-1px)";
-	});
-	card.addEventListener("mouseleave", () => {
-		card.style.borderColor = "var(--background-modifier-border)";
-		card.style.transform = "none";
-	});
+	const top = card.createDiv({ cls: "atlas-tools-card-top" });
 
-	const top = card.createDiv();
-	top.style.display = "flex";
-	top.style.alignItems = "center";
-	top.style.gap = "10px";
+	top.createEl("span", { cls: "atlas-tools-card-icon", text: t.icon });
 
-	const iconEl = top.createEl("span", { text: t.icon });
-	iconEl.style.fontSize = "24px";
-	iconEl.style.lineHeight = "1";
+	const wrap = top.createDiv({ cls: "atlas-tools-card-text" });
+	wrap.createEl("div", { cls: "atlas-tools-card-title", text: t.title });
+	wrap.createEl("div", { cls: "atlas-tools-card-tagline", text: t.tagline });
 
-	const wrap = top.createDiv();
-	wrap.style.flexGrow = "1";
-	const titleEl = wrap.createEl("div", { text: t.title });
-	titleEl.style.fontSize = "13px";
-	titleEl.style.fontWeight = "bold";
-	const tagEl = wrap.createEl("div", { text: t.tagline });
-	tagEl.style.fontSize = "11px";
-	tagEl.style.opacity = "0.65";
-	tagEl.style.marginTop = "1px";
-
-	const cat = card.createEl("span", { text: t.category });
-	cat.style.fontSize = "9px";
-	cat.style.padding = "2px 6px";
-	cat.style.borderRadius = "3px";
-	cat.style.alignSelf = "flex-start";
+	const cat = card.createEl("span", { cls: "atlas-tools-card-cat", text: t.category });
 	cat.style.background = categoryColor(t.category);
-	cat.style.color = "white";
 	cat.style.fontWeight = "bold";
 	cat.style.letterSpacing = "0.5px";
 	cat.style.textTransform = "uppercase";

@@ -21,32 +21,17 @@ export async function renderHubTab(container: HTMLElement, plugin: AtlasPlugin):
 	let currentFilter: FilterMode = "today";
 	let tasks: VaultTask[] = [];
 
-	// Header
-	const header = container.createDiv();
-	header.style.display = "flex";
-	header.style.justifyContent = "space-between";
-	header.style.alignItems = "center";
-	header.style.marginBottom = "8px";
-	header.createEl("h3", { text: "✅ Action Items Hub" }).style.margin = "0";
-	const refreshBtn = header.createEl("button", { text: "↻" });
+	// v0.26: Header polished com gradient title + tab utility classes
+	const header = container.createDiv({ cls: "atlas-tab-section-header" });
+	header.createEl("h3", { cls: "atlas-tab-section-title", text: "✅ Action Items Hub" });
+	const refreshBtn = header.createEl("button", { text: "↻ Refresh" });
 	refreshBtn.style.fontSize = "11px";
 
-	const statsEl = container.createDiv();
-	statsEl.style.fontSize = "11px";
-	statsEl.style.opacity = "0.7";
-	statsEl.style.marginBottom = "8px";
+	const statsEl = container.createDiv({ cls: "atlas-tab-section-subtitle" });
 
-	const filterEl = container.createDiv();
-	filterEl.style.display = "flex";
-	filterEl.style.gap = "4px";
-	filterEl.style.flexWrap = "wrap";
-	filterEl.style.marginBottom = "8px";
+	const filterEl = container.createDiv({ cls: "atlas-analytics-period-bar" });
 
-	const listEl = container.createDiv();
-	listEl.style.maxHeight = "calc(100vh - 280px)";
-	listEl.style.overflowY = "auto";
-	listEl.style.borderTop = "1px solid var(--background-modifier-border)";
-	listEl.style.paddingTop = "8px";
+	const listEl = container.createDiv({ cls: "atlas-hub-list" });
 
 	const today = (): string => new Date().toISOString().split("T")[0];
 

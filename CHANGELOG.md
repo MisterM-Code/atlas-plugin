@@ -4,6 +4,68 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.26.0] — 2026-05-02 — "Polish remaining tabs (Hub + Lab Tools IA + Reports + Health)"
+
+### Added — Utility CSS classes (consistente entre tabs)
+Adicionado em styles.css:
+- `.atlas-tab-section-header` + `.atlas-tab-section-title` — gradient text cyan→indigo (uniforme)
+- `.atlas-tab-section-subtitle` — descrição abaixo do título
+- `.atlas-tab-section-divider` — linha cyan accent
+- `.atlas-tab-empty-state` + emoji bouncing + title + desc + CTA
+- `.atlas-tab-card-premium` — gradient bg + animated accent line top edge no hover (mesmo padrão Today widgets / CRUD cards)
+- `.atlas-tab-grid` (auto-fill 240px) + `.atlas-tab-grid-narrow` (180px)
+- `.atlas-tab-stat-card` — 4-card grid item para stats
+- `.atlas-progress-bar` + `.atlas-progress-bar-fill` (cubic transition + danger pulse)
+- `.atlas-section-stagger` — entrance animation 60ms staggered
+
+### Sprint A — Hub polish
+- Header com `atlas-tab-section-title` (gradient cyan→indigo)
+- Filter bar usa `atlas-analytics-period-bar` + `atlas-analytics-period-btn` (consistente com Trends)
+- List container `.atlas-hub-list` com smooth scroll + custom scrollbar cyan
+- Refresh button limpo
+
+### Sprint B — Lab Tools IA polish
+- 15+ tool cards com `.atlas-tab-card-premium` (gradient + accent line top hover)
+- Card icon scale 1.15 + rotate -3deg no hover
+- Category headers: left border cyan accent + uppercase letterspacing
+- Empty state graceful (emoji 🔧 + título + desc)
+- Card type label com pill cyan (era cor por categoria)
+
+### Sprint C — Reports timeline polish
+- Subtitle: stats count em `atlas-tab-section-subtitle`
+- Quick action buttons: `atlas-analytics-period-btn` (consistente)
+- Empty state premium (emoji 🎉 + copy)
+- Month headers: bottom border + uppercase letterspacing
+- Report cards: hover translateX +3px + cyan border + bg shift
+- Type labels: pill cyan accent
+- Command IDs corrigidos (sem prefixo `atlas-` legacy)
+
+### Sprint D — Health score card polished
+- Score number 32→36px font, font-mono, letter-spacing -1
+- Cores via CSS classes `.is-good/.is-warn/.is-bad` (não hardcoded `#2e7d32`)
+- Top accent line gradient (currentColor)
+- Pulse-soft animation se score < 60 (warning visual)
+- Stats grid responsivo 2-col → 1-col em mobile
+
+### Files modified (8)
+- `src/views/master/tab-hub.ts` (header + filter bar + list classes)
+- `src/views/master/lab-sub/tools-ia.ts` (cards + categories + empty state)
+- `src/views/master/reports-sub/timeline.ts` (cards + empty state + cmd ids fix)
+- `src/views/master/tab-simple.ts` (Health score card via CSS classes)
+- `styles.css` (~280 LOC novas: utility classes + tools-card + reports cards + health score)
+- CHANGELOG, manifest, package, versions → 0.26.0
+
+### Verification
+- [ ] Hub: header gradient text + filter pills consistentes com Trends
+- [ ] Lab → Tools IA: 15+ cards com accent line top hover + icon scale
+- [ ] Lab → Tools IA empty state: emoji 🔧 + copy graceful
+- [ ] Reports → Timeline: cards com hover translateX + pill type cyan
+- [ ] Reports → Timeline empty state: emoji 🎉 + copy graceful
+- [ ] Health: score 32px → 36px + cores via class (não hardcoded)
+- [ ] Health: score < 60 pulsa com warning subtle
+- [ ] Build TypeScript zero errors
+- [ ] Sem regressão em Today/Chat/Analytics/CRUD que já estavam polidos
+
 ## [0.25.0] — 2026-05-02 — "Polish across tabs: Analytics consistente + Chat refinado + Entity cards premium"
 
 ### Sprint A — Analytics polish (Trends + KG-Graph + Mood + Heatmap consistente)

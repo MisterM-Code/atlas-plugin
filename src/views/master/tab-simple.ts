@@ -252,36 +252,20 @@ export async function renderHealthTab(container: HTMLElement, plugin: AtlasPlugi
 		score -= (emptyNotes / Math.max(total, 1)) * 30;
 		score = Math.max(0, Math.min(100, Math.round(score)));
 
-		const scoreCard = body.createDiv();
-		scoreCard.style.padding = "16px";
-		scoreCard.style.background = "var(--background-secondary)";
-		scoreCard.style.borderRadius = "6px";
-		scoreCard.style.textAlign = "center";
-		scoreCard.style.marginBottom = "12px";
-		const scoreNum = scoreCard.createEl("div", { text: `${score}/100` });
-		scoreNum.style.fontSize = "32px";
-		scoreNum.style.fontWeight = "bold";
-		scoreNum.style.color =
-			score >= 80 ? "#2e7d32" : score >= 60 ? "#f57c00" : "#c62828";
-		const scoreLabel = scoreCard.createEl("div");
-		scoreLabel.style.fontSize = "12px";
-		scoreLabel.style.opacity = "0.7";
-		scoreLabel.setText(
-			score >= 90
-				? "🌟 Excelente"
-				: score >= 80
-					? "✅ Bom"
-					: score >= 60
-						? "⚠️ Médio"
-						: "🔴 Atenção"
-		);
+		// v0.26: score card via CSS class (cores via CSS vars, não hardcoded)
+		const scoreClass =
+			score >= 80 ? "is-good" : score >= 60 ? "is-warn" : "is-bad";
+		const scoreCard = body.createDiv({ cls: `atlas-health-score-card ${scoreClass}` });
+		scoreCard.createEl("div", { cls: "atlas-health-score-num", text: `${score}/100` });
+		const scoreLabelText =
+			score >= 90 ? "🌟 Excelente"
+			: score >= 80 ? "✅ Bom"
+			: score >= 60 ? "⚠️ Médio"
+			: "🔴 Atenção";
+		scoreCard.createEl("div", { cls: "atlas-health-score-label", text: scoreLabelText });
 
-		// Stats grid
-		const grid = body.createDiv();
-		grid.style.display = "grid";
-		grid.style.gridTemplateColumns = "1fr 1fr";
-		grid.style.gap = "6px";
-		grid.style.marginBottom = "12px";
+		// Stats grid — usa atlas-tab-grid pra responsividade
+		const grid = body.createDiv({ cls: "atlas-health-stats-grid" });
 
 		stat(grid, "Notas", String(total));
 		stat(grid, "Palavras", totalWords.toLocaleString("pt-BR"));

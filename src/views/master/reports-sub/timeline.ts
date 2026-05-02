@@ -27,24 +27,14 @@ export async function renderReportsTimeline(
 
 	const reports = await collectReports(plugin);
 
-	const stats = container.createDiv();
-	stats.style.fontSize = "11px";
-	stats.style.opacity = "0.6";
-	stats.style.marginBottom = "8px";
+	const stats = container.createDiv({ cls: "atlas-tab-section-subtitle" });
 	stats.setText(`${reports.length} artefatos gerados`);
 
-	// Quick action bar
-	const qaBar = container.createDiv();
-	qaBar.style.display = "flex";
-	qaBar.style.gap = "4px";
-	qaBar.style.flexWrap = "wrap";
-	qaBar.style.marginBottom = "10px";
+	// Quick action bar — usa atlas-analytics-period-bar pra consistência
+	const qaBar = container.createDiv({ cls: "atlas-analytics-period-bar" });
 
 	const quickAction = (icon: string, label: string, cmd: string) => {
-		const b = qaBar.createEl("button", { text: `${icon} ${label}` });
-		b.style.fontSize = "11px";
-		b.style.padding = "4px 8px";
-		b.style.cursor = "pointer";
+		const b = qaBar.createEl("button", { cls: "atlas-analytics-period-btn", text: `${icon} ${label}` });
 		b.addEventListener("click", () => {
 			const apiAny = plugin.app as unknown as {
 				commands?: { executeCommandById?: (id: string) => void };
@@ -53,23 +43,24 @@ export async function renderReportsTimeline(
 		});
 	};
 
-	quickAction("📊", "Gerar Weekly", "atlas-weekly-now");
-	quickAction("📔", "Decision Diary", "atlas-decision-diary");
-	quickAction("📋", "Manager README", "atlas-manager-readme");
-	quickAction("🎉", "Year in Review", "atlas-year-in-review");
-	quickAction("🔮", "Pre-mortem", "atlas-premortem-oracle");
-	quickAction("🎙️", "Podcast", "atlas-podcast-generator");
+	// v0.26: command IDs sem prefixo atlas- (post-v0.9.3)
+	quickAction("📊", "Gerar Weekly", "weekly-now");
+	quickAction("📔", "Decision Diary", "decision-diary");
+	quickAction("📋", "Manager README", "manager-readme");
+	quickAction("🎉", "Year in Review", "year-in-review");
+	quickAction("🔮", "Pre-mortem", "premortem-oracle");
+	quickAction("🎙️", "Podcast", "podcast-generator");
 
-	const timeline = container.createDiv();
-	timeline.style.maxHeight = "calc(100vh - 320px)";
-	timeline.style.overflowY = "auto";
+	const timeline = container.createDiv({ cls: "atlas-hub-list" });
 
 	if (reports.length === 0) {
-		const empty = timeline.createDiv();
-		empty.style.padding = "32px 16px";
-		empty.style.textAlign = "center";
-		empty.style.opacity = "0.6";
-		empty.setText("🎉 Nenhum report gerado ainda. Use os botões acima.");
+		const empty = timeline.createDiv({ cls: "atlas-tab-empty-state" });
+		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🎉" });
+		empty.createEl("div", { cls: "atlas-tab-empty-title", text: "Nenhum report gerado ainda" });
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-desc",
+			text: "Use os botões acima pra gerar weekly report, year-in-review, podcast, ou outros artefatos.",
+		});
 		return;
 	}
 
@@ -89,48 +80,18 @@ export async function renderReportsTimeline(
 			year: "numeric",
 		});
 
-		const monthHeader = timeline.createDiv();
-		monthHeader.style.fontSize = "11px";
-		monthHeader.style.fontWeight = "bold";
-		monthHeader.style.opacity = "0.7";
-		monthHeader.style.textTransform = "capitalize";
-		monthHeader.style.marginTop = "12px";
-		monthHeader.style.marginBottom = "6px";
-		monthHeader.style.paddingBottom = "4px";
-		monthHeader.style.borderBottom = "1px solid var(--background-modifier-border)";
-		monthHeader.setText(label);
+		timeline.createDiv({ cls: "atlas-reports-month-header", text: label });
 
 		const monthList = byMonth.get(month);
 		if (!monthList) continue;
 		const items = monthList.sort((a, b) => b.date.localeCompare(a.date));
 		for (const r of items) {
-			const card = timeline.createDiv();
-			card.style.display = "flex";
-			card.style.alignItems = "center";
-			card.style.gap = "10px";
-			card.style.padding = "8px";
-			card.style.marginBottom = "4px";
-			card.style.background = "var(--background-secondary)";
-			card.style.borderRadius = "4px";
-			card.style.cursor = "pointer";
-
-			card.createEl("span", { text: r.icon }).style.fontSize = "16px";
-
-			const wrap = card.createDiv();
-			wrap.style.flexGrow = "1";
-			const title = wrap.createEl("div", { text: r.title });
-			title.style.fontSize = "12px";
-			title.style.fontWeight = "500";
-			const sub = wrap.createEl("div", { text: r.date });
-			sub.style.fontSize = "10px";
-			sub.style.opacity = "0.6";
-
-			const typeLabel = card.createEl("span", { text: r.type });
-			typeLabel.style.fontSize = "9px";
-			typeLabel.style.padding = "2px 6px";
-			typeLabel.style.borderRadius = "3px";
-			typeLabel.style.background = "var(--background-modifier-hover)";
-			typeLabel.style.opacity = "0.7";
+			const card = timeline.createDiv({ cls: "atlas-reports-card" });
+			card.createEl("span", { cls: "atlas-reports-card-icon", text: r.icon });
+			const wrap = card.createDiv({ cls: "atlas-reports-card-text" });
+			wrap.createEl("div", { cls: "atlas-reports-card-title", text: r.title });
+			wrap.createEl("div", { cls: "atlas-reports-card-date", text: r.date });
+			card.createEl("span", { cls: "atlas-reports-card-type", text: r.type });
 
 			card.addEventListener("click", async () => {
 				const f = plugin.app.vault.getAbstractFileByPath(r.path);
