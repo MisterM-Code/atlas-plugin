@@ -214,60 +214,9 @@ export function tabSlideTransition(oldEl: HTMLElement, newEl: HTMLElement): void
 }
 
 /**
- * Inject CSS keyframes globais (uma vez). Chamar de main.ts no onload.
+ * v0.9.3: keyframes + selectors moved to styles.css per Obsidian guideline
+ * (no runtime <style> injection). Function kept as no-op for retro-compat.
  */
 export function injectGlobalAnimationStyles(): void {
-	if (document.getElementById("atlas-animations-css")) return;
-	const style = document.createElement("style");
-	style.id = "atlas-animations-css";
-	style.textContent = `
-		@keyframes atlas-cursor-blink {
-			0%, 50% { opacity: 0.6; }
-			51%, 100% { opacity: 0; }
-		}
-		@keyframes atlas-pulse-soft {
-			0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-			50% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
-		}
-		@keyframes atlas-shimmer {
-			0% { background-position: -200% 0; }
-			100% { background-position: 200% 0; }
-		}
-		@keyframes atlas-spin {
-			to { transform: rotate(360deg); }
-		}
-		.atlas-skeleton {
-			background: linear-gradient(
-				90deg,
-				var(--background-secondary) 0%,
-				var(--background-modifier-hover) 50%,
-				var(--background-secondary) 100%
-			);
-			background-size: 200% 100%;
-			animation: atlas-shimmer 1.5s infinite;
-			border-radius: 4px;
-		}
-		.atlas-fab-rotate-active {
-			transform: rotate(45deg) !important;
-		}
-		.atlas-card-interactive {
-			transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
-			            box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1),
-			            border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-		}
-		.atlas-card-interactive:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-		}
-		.atlas-spinner {
-			display: inline-block;
-			width: 14px;
-			height: 14px;
-			border: 2px solid var(--background-modifier-border);
-			border-top-color: var(--interactive-accent);
-			border-radius: 50%;
-			animation: atlas-spin 0.8s linear infinite;
-		}
-	`;
-	document.head.appendChild(style);
+	// styles.css handles all keyframes + .atlas-skeleton/.atlas-spinner/etc.
 }

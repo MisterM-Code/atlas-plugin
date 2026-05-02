@@ -139,26 +139,7 @@ export class SplashScreen {
 	}
 
 	private injectCss(): void {
-		if (document.getElementById("atlas-splash-css")) return;
-		const style = document.createElement("style");
-		style.id = "atlas-splash-css";
-		style.textContent = `
-			@keyframes atlas-splash-circle {
-				0% { opacity: 0; transform: scale(0.8); transform-origin: 50% 50%; }
-				100% { opacity: 1; transform: scale(1); }
-			}
-			@keyframes atlas-splash-line {
-				to { stroke-dashoffset: 0; }
-			}
-			@keyframes atlas-splash-fade {
-				to { opacity: 1; }
-			}
-			@keyframes atlas-splash-dot {
-				0%, 60%, 100% { opacity: 0.4; transform: scale(1); }
-				30% { opacity: 1; transform: scale(1.4); }
-			}
-		`;
-		document.head.appendChild(style);
+		// v0.9.3: keyframes moved to styles.css (Obsidian no-runtime-style guideline)
 	}
 
 	dismiss(): void {

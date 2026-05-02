@@ -4,6 +4,19 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.4] — 2026-05-02 — "No-runtime-style compliance"
+
+### Changed — Removed all `<style>` element creation at runtime
+Per Obsidian guideline ("Creating and attaching style elements is not allowed; use styles.css instead"), removed all 3 sites that injected `<style>` tags:
+
+- `src/ui/theme-applier.ts` — refactored to use `document.body.style.setProperty()` for CSS variables only. All static CSS class rules + `@keyframes` moved to `styles.css`.
+- `src/ui/splash.ts` — splash screen `@keyframes` moved to `styles.css`. `injectCss()` now no-op.
+- `src/ui/animations.ts` — `injectGlobalAnimationStyles()` keyframes + skeleton/spinner CSS moved to `styles.css`. Function kept as no-op for retro-compat.
+
+`styles.css` grew from ~9 KB to ~13 KB (still tiny for what it covers).
+
+`removeAtlasTheme()` now uses `document.body.style.removeProperty()` per CSS variable instead of removing a `<style>` element.
+
 ## [0.9.3] — 2026-05-02 — "Obsidian community-plugins compliance"
 
 ### Changed — Bot review fixes (PR #12473 Tier 1 + Tier 2)

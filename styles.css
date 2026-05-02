@@ -238,3 +238,153 @@
 	from { transform: rotate(0deg); }
 	to { transform: rotate(360deg); }
 }
+
+/* ───────────────────────────────────────────────────
+ * v0.9.3 — moved from theme-applier.ts (Obsidian no-style-runtime guideline)
+ */
+
+.atlas-master-sidebar .atlas-activity-tab-active {
+	background: var(--atlas-accent) !important;
+	color: white !important;
+	box-shadow: 0 0 12px var(--atlas-accent-glow);
+}
+
+.atlas-fab {
+	background: var(--atlas-accent) !important;
+	box-shadow: 0 4px 12px var(--atlas-accent-glow) !important;
+	transition: transform var(--atlas-transition-fast, 120ms),
+	            box-shadow var(--atlas-transition-fast, 120ms);
+}
+.atlas-fab:hover {
+	box-shadow: 0 6px 20px var(--atlas-accent-glow) !important;
+}
+
+.atlas-xp-progress-fill {
+	background: linear-gradient(90deg, var(--atlas-accent), var(--atlas-accent-strong)) !important;
+}
+
+.atlas-card-action-overdue  { border-left: 3px solid var(--color-red); }
+.atlas-card-action-today    { border-left: 3px solid var(--color-orange); }
+.atlas-card-action-future   { border-left: 3px solid var(--color-green); }
+.atlas-card-system-down     { border-left: 3px solid var(--color-red); animation: atlas-pulse-soft 2s infinite; }
+.atlas-card-system-degraded { border-left: 3px solid var(--color-orange); }
+.atlas-card-knowledge       { border-left: 3px solid var(--atlas-accent); }
+.atlas-card-report          { border-left: 3px solid var(--color-purple); }
+
+.atlas-badge-new {
+	animation: atlas-pulse-soft 2s infinite;
+}
+
+.atlas-header-logo {
+	animation: atlas-breathing 4s ease-in-out infinite;
+	transition: filter var(--atlas-transition-normal, 220ms);
+}
+.atlas-header-logo.atlas-thinking {
+	animation: atlas-glow-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes atlas-breathing {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.04); }
+}
+
+@keyframes atlas-glow-pulse {
+	0%, 100% {
+		filter: drop-shadow(0 0 4px var(--atlas-accent));
+		transform: scale(1);
+	}
+	50% {
+		filter: drop-shadow(0 0 16px var(--atlas-accent-glow));
+		transform: scale(1.06);
+	}
+}
+
+.atlas-hud {
+	background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary-alt) 100%);
+	border: 1px solid var(--atlas-accent-soft);
+	box-shadow: 0 0 0 1px var(--atlas-accent-soft), var(--atlas-shadow-lg, 0 10px 15px rgba(0,0,0,0.1));
+	border-radius: var(--atlas-radius-lg, 12px);
+}
+
+.atlas-statusbar-indicator {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 4px;
+	background: var(--color-green);
+}
+.atlas-statusbar-indicator.atlas-status-down {
+	background: var(--color-red);
+	animation: atlas-pulse-soft 1s infinite;
+}
+.atlas-statusbar-indicator.atlas-status-thinking {
+	background: var(--color-orange);
+	animation: atlas-pulse-soft 0.6s infinite;
+}
+
+/* ───────────────────────────────────────────────────
+ * v0.9.3 — moved from animations.ts injectGlobalAnimationStyles()
+ */
+
+@keyframes atlas-cursor-blink {
+	0%, 50% { opacity: 0.6; }
+	51%, 100% { opacity: 0; }
+}
+
+@keyframes atlas-shimmer {
+	0% { background-position: -200% 0; }
+	100% { background-position: 200% 0; }
+}
+
+@keyframes atlas-spin {
+	to { transform: rotate(360deg); }
+}
+
+.atlas-skeleton {
+	background: linear-gradient(
+		90deg,
+		var(--background-secondary) 0%,
+		var(--background-modifier-hover) 50%,
+		var(--background-secondary) 100%
+	);
+	background-size: 200% 100%;
+	animation: atlas-shimmer 1.5s infinite;
+	border-radius: 4px;
+}
+
+.atlas-fab-rotate-active {
+	transform: rotate(45deg) !important;
+}
+
+.atlas-spinner {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border: 2px solid var(--background-modifier-border);
+	border-top-color: var(--interactive-accent);
+	border-radius: 50%;
+	animation: atlas-spin 0.8s linear infinite;
+}
+
+/* ───────────────────────────────────────────────────
+ * v0.9.3 — moved from splash.ts injectCss()
+ */
+
+@keyframes atlas-splash-circle {
+	0% { opacity: 0; transform: scale(0.8); transform-origin: 50% 50%; }
+	100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes atlas-splash-line {
+	to { stroke-dashoffset: 0; }
+}
+
+@keyframes atlas-splash-fade {
+	to { opacity: 1; }
+}
+
+@keyframes atlas-splash-dot {
+	0%, 60%, 100% { opacity: 0.4; transform: scale(1); }
+	30% { opacity: 1; transform: scale(1.4); }
+}
