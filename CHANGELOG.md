@@ -4,6 +4,32 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.8.0] — 2026-05-02 — "Voice in Chat"
+
+Inicia roadmap v0.8. Foco em consolidação de Jarvis no fluxo principal (chat).
+
+### Added — Voice integrado no Chat tab
+
+Antes só tinha voice via HUD floating (Cmd+Shift+H). Agora o composer do chat (Master Sidebar → Chat) tem:
+
+- **Botão 🎙️ Falar** — click → grava → para → whisper transcreve → texto aparece no input (você revisa antes de enviar)
+- **Toggle 🔊 Ler respostas** — quando ON, cada resposta do assistant é falada via Piper TTS (pula se >500 chars)
+- Animação visual: botão fica vermelho durante recording
+
+### Restante do roadmap v0.8
+
+- Vosk hotword PT-BR offline (defer — complexity alta + 50MB modelo)
+- innerHTML refactor completo (DOM API)
+- Spotlight visual upgrade (Linear/Raycast style)
+- README com screenshots/GIF demo
+
+### Métricas
+
+| | v0.7.7 | v0.8.0 |
+|---|---|---|
+| main.js | 1.81 MB | **1.81 MB** |
+| Voice locations | HUD (1) | **HUD + Chat composer (2)** |
+
 ## [0.7.7] — 2026-05-02 — "Final v0.7 — Settings Profile + Templates + LGPD + Webhook"
 
 Fim do roadmap v0.7. v0.8 começa com Vosk hotword (que ficou de fora por complexidade).

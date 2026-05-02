@@ -50,11 +50,74 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	const inputActions = inputWrap.createDiv();
 	inputActions.style.display = "flex";
 	inputActions.style.justifyContent = "space-between";
+	inputActions.style.alignItems = "center";
 	inputActions.style.marginTop = "6px";
+	inputActions.style.gap = "8px";
 
 	const statusEl = inputActions.createEl("span") as HTMLSpanElement;
 	statusEl.style.fontSize = "10px";
 	statusEl.style.opacity = "0.5";
+	statusEl.style.flexGrow = "1";
+
+	// v0.8: Voice toggle 🔊 (lê respostas com Piper)
+	const ttsToggle = inputActions.createEl("button", { text: "🔇" }) as HTMLButtonElement;
+	ttsToggle.style.padding = "4px 8px";
+	ttsToggle.style.fontSize = "12px";
+	ttsToggle.title = "Ler respostas em voz alta (Piper TTS)";
+	let ttsEnabled = false;
+	ttsToggle.addEventListener("click", () => {
+		ttsEnabled = !ttsEnabled;
+		ttsToggle.setText(ttsEnabled ? "🔊" : "🔇");
+		ttsToggle.title = ttsEnabled
+			? "TTS ON — respostas serão faladas"
+			: "TTS OFF — click pra ativar";
+	});
+
+	// v0.8: Voice input 🎙️ (whisper.cpp)
+	const micBtn = inputActions.createEl("button", { text: "🎙️" }) as HTMLButtonElement;
+	micBtn.style.padding = "4px 8px";
+	micBtn.style.fontSize = "12px";
+	micBtn.title = "Falar (gravar voz → transcrever no input)";
+	let recording: { stop: () => Promise<{ tempFile: string } | null>; cancel: () => void } | null = null;
+	micBtn.addEventListener("click", async () => {
+		if (recording) {
+			micBtn.setText("⏳");
+			micBtn.disabled = true;
+			try {
+				const result = await recording.stop();
+				recording = null;
+				if (!result) {
+					micBtn.setText("🎙️");
+					micBtn.disabled = false;
+					return;
+				}
+				const { transcribeAudio } = await import("../../automation/voice-input");
+				const cfg = plugin.settings.voice;
+				const text = await transcribeAudio(result.tempFile, {
+					whisperBinaryPath: cfg.whisperBinaryPath,
+					whisperModelPath: cfg.whisperModelPath,
+					language: cfg.language ?? "pt",
+				});
+				inputEl.value = (inputEl.value ? inputEl.value + " " : "") + text;
+				inputEl.focus();
+			} catch (e) {
+				new Notice(`Atlas voice: ${String(e)}`, 8000);
+			} finally {
+				micBtn.setText("🎙️");
+				micBtn.disabled = false;
+				micBtn.style.background = "";
+			}
+		} else {
+			try {
+				const { startVoiceRecording } = await import("../../automation/voice-input");
+				recording = await startVoiceRecording();
+				micBtn.setText("⏸️");
+				micBtn.style.background = "var(--color-red)";
+			} catch (e) {
+				new Notice(`Atlas: mic não disponível — ${String(e)}`, 8000);
+			}
+		}
+	});
 
 	const sendBtn = inputActions.createEl("button", { text: "Enviar" }) as HTMLButtonElement;
 
@@ -198,6 +261,11 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 			document
 				.querySelectorAll(".atlas-header-logo")
 				.forEach((el) => el.classList.remove("atlas-thinking"));
+
+			// v0.8: TTS lê resposta (se toggle ativo + Piper configurado + resposta curta)
+			if (ttsEnabled && plugin.tts?.configured && r.answer.length > 0 && r.answer.length < 500) {
+				void plugin.tts.speakNow(r.answer).catch(() => undefined);
+			}
 
 			if (r.citations.length > 0 && wrap) {
 				const citWrap = wrap.createDiv();
