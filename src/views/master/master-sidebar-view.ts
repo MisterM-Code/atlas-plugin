@@ -52,31 +52,12 @@ export class AtlasMasterSidebarView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
-		const c = this.containerEl.children[1];
+		const c = this.containerEl.children[1] as HTMLElement;
 		c.empty();
 		c.addClass("atlas-master-sidebar");
-		(c as HTMLElement).style.display = "flex";
-		(c as HTMLElement).style.flexDirection = "row";
-		(c as HTMLElement).style.height = "100%";
-		(c as HTMLElement).style.padding = "0";
 
-		// Activity bar (vertical icons)
-		this.activityBarEl = c.createDiv() as HTMLDivElement;
-		this.activityBarEl.style.width = "44px";
-		this.activityBarEl.style.minWidth = "44px";
-		this.activityBarEl.style.borderRight = "1px solid var(--background-modifier-border)";
-		this.activityBarEl.style.padding = "8px 4px";
-		this.activityBarEl.style.display = "flex";
-		this.activityBarEl.style.flexDirection = "column";
-		this.activityBarEl.style.gap = "4px";
-		this.activityBarEl.style.overflow = "hidden";
-
-		// Content area
-		this.tabContentEl = c.createDiv() as HTMLDivElement;
-		this.tabContentEl.style.flexGrow = "1";
-		this.tabContentEl.style.overflow = "auto";
-		this.tabContentEl.style.padding = "12px";
-		this.tabContentEl.style.position = "relative";
+		this.activityBarEl = c.createDiv({ cls: "atlas-activity-bar" }) as HTMLDivElement;
+		this.tabContentEl = c.createDiv({ cls: "atlas-tab-content" }) as HTMLDivElement;
 
 		this.renderActivityBar();
 		// activateTab cuida de montar o FAB no tabContentEl atual
@@ -109,8 +90,7 @@ export class AtlasMasterSidebarView extends ItemView {
 		this.header = renderAtlasHeader(this.tabContentEl, this.plugin);
 
 		// Tab content vai num wrapper separado (header não é re-renderizado)
-		const tabBody = this.tabContentEl.createDiv();
-		tabBody.style.minHeight = "0";
+		const tabBody = this.tabContentEl.createDiv({ cls: "atlas-tab-body" });
 
 		try {
 			await tab.render(tabBody, this.plugin);
@@ -128,11 +108,10 @@ export class AtlasMasterSidebarView extends ItemView {
 			);
 		} catch (e) {
 			tabBody.empty();
-			const err = tabBody.createEl("div");
-			err.style.padding = "16px";
-			err.style.color = "var(--color-red)";
-			err.style.fontSize = "12px";
-			err.setText(`Atlas: erro ao renderizar tab "${tab.label}" — ${String(e)}`);
+			tabBody.createEl("div", {
+				cls: "atlas-tab-error",
+				text: `Atlas: erro ao renderizar tab "${tab.label}" — ${String(e)}`,
+			});
 		}
 
 		// Re-mount FAB no novo conteúdo (foi removido pelo empty)
@@ -149,42 +128,16 @@ export class AtlasMasterSidebarView extends ItemView {
 	private renderActivityBar(): void {
 		this.activityBarEl.empty();
 		for (const tab of this.tabs) {
-			const btn = this.activityBarEl.createDiv();
-			btn.style.width = "36px";
-			btn.style.height = "36px";
-			btn.style.display = "flex";
-			btn.style.alignItems = "center";
-			btn.style.justifyContent = "center";
-			btn.style.borderRadius = "6px";
-			btn.style.cursor = "pointer";
-			btn.style.fontSize = "16px";
-			btn.style.position = "relative";
+			const isActive = tab.id === this.currentTab;
+			const btn = this.activityBarEl.createDiv({
+				cls: isActive
+					? "atlas-activity-tab is-active atlas-activity-tab-active"
+					: "atlas-activity-tab",
+			});
 			btn.title = `${tab.label} — ${tab.description}`;
 
-			if (tab.id === this.currentTab) {
-				btn.style.background = "var(--atlas-accent, var(--interactive-accent))";
-				btn.style.color = "white";
-				btn.style.boxShadow = "0 0 12px var(--atlas-accent-glow, rgba(99,102,241,0.4))";
-				btn.addClass("atlas-activity-tab-active");
-			} else {
-				btn.style.background = "transparent";
-				btn.style.transition = "background var(--atlas-transition-fast, 120ms)";
-				btn.addEventListener("mouseenter", () => {
-					btn.style.background = "var(--background-modifier-hover)";
-				});
-				btn.addEventListener("mouseleave", () => {
-					btn.style.background = "transparent";
-				});
-			}
-
-			// v0.7.2: usa Lucide icon se disponível, senão emoji
 			if (tab.lucideIcon) {
-				const iconWrap = btn.createDiv();
-				iconWrap.style.width = "20px";
-				iconWrap.style.height = "20px";
-				iconWrap.style.display = "flex";
-				iconWrap.style.alignItems = "center";
-				iconWrap.style.justifyContent = "center";
+				const iconWrap = btn.createDiv({ cls: "atlas-activity-tab-icon" });
 				try {
 					setIcon(iconWrap, tab.lucideIcon);
 				} catch {
@@ -194,45 +147,17 @@ export class AtlasMasterSidebarView extends ItemView {
 				btn.setText(tab.icon);
 			}
 
-			// Badge — pulsa contínuo se há novidade
 			const badge = tab.badge?.();
 			if (badge) {
-				const b = btn.createDiv();
-				b.addClass("atlas-badge-new");
-				b.style.position = "absolute";
-				b.style.top = "0";
-				b.style.right = "0";
-				b.style.minWidth = "16px";
-				b.style.height = "16px";
-				b.style.background = "var(--color-red)";
-				b.style.color = "white";
-				b.style.borderRadius = "8px";
-				b.style.fontSize = "9px";
-				b.style.display = "flex";
-				b.style.alignItems = "center";
-				b.style.justifyContent = "center";
-				b.style.padding = "0 4px";
-				b.style.fontWeight = "bold";
-				b.setText(badge);
+				btn.createDiv({ cls: "atlas-activity-tab-badge atlas-badge-new", text: badge });
 			}
 
 			btn.addEventListener("click", () => void this.activateTab(tab.id));
 		}
 
-		// Spacer
-		const spacer = this.activityBarEl.createDiv();
-		spacer.style.flexGrow = "1";
+		this.activityBarEl.createDiv({ cls: "atlas-activity-spacer" });
 
-		// Settings icon at bottom
-		const settings = this.activityBarEl.createDiv();
-		settings.style.width = "36px";
-		settings.style.height = "36px";
-		settings.style.display = "flex";
-		settings.style.alignItems = "center";
-		settings.style.justifyContent = "center";
-		settings.style.borderRadius = "6px";
-		settings.style.cursor = "pointer";
-		settings.style.opacity = "0.6";
+		const settings = this.activityBarEl.createDiv({ cls: "atlas-activity-settings-icon" });
 		setIcon(settings, "settings");
 		settings.title = "Atlas Settings";
 		settings.addEventListener("click", () => {

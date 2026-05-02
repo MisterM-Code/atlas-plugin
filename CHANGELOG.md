@@ -4,6 +4,22 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.7] — 2026-05-02 — "Master Sidebar + Status panel + Settings to CSS classes"
+
+### Changed — 3 most-visible UI shells migrated
+
+| File | Before | After |
+|---|---|---|
+| `master-sidebar-view.ts` | ~64 inline | 0 |
+| `atlas-status.ts` | ~76 inline | 1 (dynamic % width via `setProperty`) |
+| `settings-tab.ts` profile section | ~37 inline | 0 |
+
+State changes via classes: `.is-active` (activity bar tab), `.is-low/.is-mid/.is-high` (RAM bar fill severity), `.is-configured` (model row), `.is-warning` (settings summary), `.is-selected` (profile card).
+
+styles.css: 25 KB → **30 KB** (added ~370 lines for sidebar + status + settings).
+
+These 3 files are the **most-visible UI surfaces** in Atlas — what every user sees on opening the plugin, opening status, or opening settings. With v0.9.7 they're fully CSS-class based.
+
 ## [0.9.6] — 2026-05-02 — "More CSS class migration: HUD, FAB, Reminders, Header"
 
 ### Changed — 5 more components migrated

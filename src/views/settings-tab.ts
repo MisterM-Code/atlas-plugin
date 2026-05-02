@@ -33,91 +33,60 @@ export class AtlasSettingTab extends PluginSettingTab {
 		containerEl.createEl("h3", { text: "🎯 Perfil profissional" });
 		containerEl.createEl("p", {
 			text: "Multi-perfil: Atlas adapta templates, tools IA, frameworks, métricas e schedules ao(s) perfil(is) escolhido(s).",
-		}).style.fontSize = "12px";
+			cls: "atlas-settings-section-desc",
+		});
 
 		const selected = new Set<ProfileId>(this.plugin.settings.profile?.ids ?? []);
 
-		// Summary live
-		const summary = containerEl.createDiv();
-		summary.style.padding = "10px";
-		summary.style.background = "var(--background-secondary)";
-		summary.style.borderRadius = "6px";
-		summary.style.marginBottom = "12px";
-		summary.style.fontSize = "11px";
+		const summary = containerEl.createDiv({ cls: "atlas-settings-profile-summary" });
 
 		const updateSummary = () => {
 			summary.empty();
+			summary.removeClass("is-warning");
 			if (selected.size === 0) {
 				summary.setText("⚠️ Nenhum perfil selecionado. Ative pelo menos 1 abaixo.");
-				summary.style.color = "var(--color-orange)";
+				summary.addClass("is-warning");
 				return;
 			}
-			summary.style.color = "";
 			try {
 				const merged = mergeProfiles(Array.from(selected));
 				summary.createEl("div", {
+					cls: "atlas-settings-profile-summary-main",
 					text: `✓ ${selected.size} perfil(is) ativos: ${Array.from(selected)
 						.map((id) => PROFILES.find((p) => p.id === id)?.emoji ?? "•")
 						.join(" ")}`,
-				}).style.fontWeight = "bold";
+				});
 				summary.createEl("div", {
+					cls: "atlas-settings-profile-summary-meta",
 					text: `Templates: ${merged.templates.length} · Tools IA: ${merged.tools.length} · Frameworks: ${merged.frameworks.length} · Métricas: ${merged.metrics.length}`,
-				}).style.opacity = "0.75";
+				});
 			} catch {
 				summary.setText("Erro ao mesclar perfis.");
 			}
 		};
 		updateSummary();
 
-		// Grid de perfis por categoria
 		for (const cat of PROFILE_CATEGORIES) {
-			const catHead = containerEl.createEl("div", { text: cat.label });
-			catHead.style.fontSize = "10px";
-			catHead.style.fontWeight = "bold";
-			catHead.style.opacity = "0.7";
-			catHead.style.marginTop = "12px";
-			catHead.style.marginBottom = "6px";
-			catHead.style.letterSpacing = "0.5px";
-
-			const grid = containerEl.createDiv();
-			grid.style.display = "grid";
-			grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
-			grid.style.gap = "6px";
+			containerEl.createEl("div", { cls: "atlas-settings-profile-cat-head", text: cat.label });
+			const grid = containerEl.createDiv({ cls: "atlas-settings-profile-grid" });
 
 			for (const id of cat.ids) {
 				const profile = PROFILES.find((p) => p.id === id);
 				if (!profile) continue;
 
-				const card = grid.createDiv();
-				card.style.padding = "8px 10px";
-				card.style.background = "var(--background-secondary)";
-				card.style.borderRadius = "6px";
-				card.style.cursor = "pointer";
-				card.style.border = "2px solid transparent";
-				card.style.transition = "border-color 120ms";
+				const card = grid.createDiv({ cls: "atlas-settings-profile-card" });
 
 				const updateStyle = () => {
-					if (selected.has(id)) {
-						card.style.borderColor = "var(--atlas-accent, var(--interactive-accent))";
-						card.style.background = "var(--background-modifier-hover)";
-					} else {
-						card.style.borderColor = "transparent";
-						card.style.background = "var(--background-secondary)";
-					}
+					if (selected.has(id)) card.addClass("is-selected");
+					else card.removeClass("is-selected");
 				};
 				updateStyle();
 
-				const top = card.createDiv();
-				top.style.display = "flex";
-				top.style.alignItems = "center";
-				top.style.gap = "8px";
-				top.createEl("span", { text: profile.emoji }).style.fontSize = "16px";
-				top.createEl("div", { text: profile.name }).style.fontSize = "12px";
+				const top = card.createDiv({ cls: "atlas-settings-profile-card-top" });
+				top.createEl("span", { cls: "atlas-settings-profile-card-emoji", text: profile.emoji });
+				top.createEl("div", { cls: "atlas-settings-profile-card-name", text: profile.name });
 
-				const tag = card.createEl("div", { text: profile.tagline });
-				tag.style.fontSize = "10px";
-				tag.style.opacity = "0.7";
-				tag.style.marginTop = "2px";
+				card.createEl("div", { cls: "atlas-settings-profile-card-tag", text: profile.tagline });
 
 				card.addEventListener("click", () => {
 					if (selected.has(id)) selected.delete(id);

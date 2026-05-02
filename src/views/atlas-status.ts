@@ -39,10 +39,9 @@ export class AtlasStatusView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
-		const c = this.containerEl.children[1];
+		const c = this.containerEl.children[1] as HTMLElement;
 		c.empty();
-		(c as HTMLElement).style.padding = "16px";
-		(c as HTMLElement).style.overflow = "auto";
+		c.addClass("atlas-status-host");
 
 		this.container = c.createDiv() as HTMLDivElement;
 		await this.refresh();
@@ -57,19 +56,15 @@ export class AtlasStatusView extends ItemView {
 	async refresh(): Promise<void> {
 		this.container.empty();
 
-		const header = this.container.createDiv();
-		header.style.display = "flex";
-		header.style.justifyContent = "space-between";
-		header.style.alignItems = "center";
-		header.style.marginBottom = "12px";
-
-		header.createEl("h3", { text: "🩺 Atlas Status" }).style.margin = "0";
-		const refreshBtn = header.createEl("button", { text: "↻" });
-		refreshBtn.style.fontSize = "11px";
+		const header = this.container.createDiv({ cls: "atlas-status-header" });
+		header.createEl("h3", { text: "🩺 Atlas Status", cls: "atlas-status-title" });
+		const refreshBtn = header.createEl("button", { text: "↻", cls: "atlas-status-refresh" });
 		refreshBtn.addEventListener("click", () => void this.refresh());
 
-		const loading = this.container.createEl("div", { text: "Verificando..." });
-		loading.style.opacity = "0.6";
+		const loading = this.container.createEl("div", {
+			text: "Verificando...",
+			cls: "atlas-status-loading",
+		});
 
 		const h = await this.health.run(this.plugin.settings.ollama.generationModel);
 		loading.remove();
@@ -88,112 +83,79 @@ export class AtlasStatusView extends ItemView {
 		const text = h.ollamaUp
 			? `${dot} Ollama daemon — UP (ping ${h.pingMs}ms)`
 			: `${dot} Ollama daemon — OFFLINE`;
-		const row = sec.createEl("div");
-		row.style.fontWeight = "bold";
-		row.style.fontSize = "13px";
-		row.setText(text);
+		sec.createEl("div", { cls: "atlas-status-ollama-row", text });
 
 		if (!h.ollamaUp) {
-			const hint = sec.createEl("div");
-			hint.style.fontSize = "11px";
-			hint.style.opacity = "0.7";
-			hint.style.marginTop = "4px";
-			hint.setText("Inicie o app Ollama (ou rode `ollama serve`) e clique ↻ para verificar.");
+			sec.createEl("div", {
+				cls: "atlas-status-ollama-hint",
+				text: "Inicie o app Ollama (ou rode `ollama serve`) e clique ↻ para verificar.",
+			});
 		}
 	}
 
 	private renderRamSection(h: SystemHealth): void {
 		const sec = this.section("💾 RAM");
 		const usedPct = Math.round((h.usedRamGB / h.totalRamGB) * 100);
-		const free = sec.createEl("div");
-		free.style.fontSize = "12px";
-		free.setText(
-			`Total: ${h.totalRamGB} GB · Usada: ${h.usedRamGB} GB (${usedPct}%) · Livre: ${h.freeRamGB} GB`
-		);
+		sec.createEl("div", {
+			cls: "atlas-status-ram-text",
+			text: `Total: ${h.totalRamGB} GB · Usada: ${h.usedRamGB} GB (${usedPct}%) · Livre: ${h.freeRamGB} GB`,
+		});
 
-		// Bar
-		const bar = sec.createEl("div");
-		bar.style.height = "8px";
-		bar.style.background = "var(--background-modifier-border)";
-		bar.style.borderRadius = "4px";
-		bar.style.marginTop = "6px";
-		bar.style.overflow = "hidden";
-		const fill = bar.createEl("div");
-		fill.style.height = "100%";
-		fill.style.width = `${usedPct}%`;
-		fill.style.background =
-			usedPct > 85 ? "var(--color-red)" : usedPct > 65 ? "var(--color-orange)" : "var(--color-green)";
+		const sevClass = usedPct > 85 ? "is-high" : usedPct > 65 ? "is-mid" : "is-low";
+		const bar = sec.createEl("div", { cls: "atlas-status-ram-bar" });
+		const fill = bar.createEl("div", { cls: `atlas-status-ram-fill ${sevClass}` });
+		fill.style.setProperty("width", `${usedPct}%`);
 
-		const cpu = sec.createEl("div");
-		cpu.style.fontSize = "10px";
-		cpu.style.opacity = "0.6";
-		cpu.style.marginTop = "4px";
-		cpu.setText(`CPU: ${h.cpuModel} · ${h.cpuCount} cores · ${h.platform}`);
+		sec.createEl("div", {
+			cls: "atlas-status-ram-cpu",
+			text: `CPU: ${h.cpuModel} · ${h.cpuCount} cores · ${h.platform}`,
+		});
 	}
 
 	private renderModelSection(h: SystemHealth): void {
 		const sec = this.section("🤖 Modelos");
 		if (h.models.length === 0) {
-			sec.createEl("div", { text: "(nenhum modelo encontrado)" }).style.opacity = "0.6";
+			sec.createEl("div", { text: "(nenhum modelo encontrado)", cls: "atlas-status-empty-model" });
 			return;
 		}
 
 		for (const m of h.models) {
-			const row = sec.createEl("div");
-			row.style.padding = "6px 8px";
-			row.style.marginBottom = "4px";
-			row.style.background = "var(--background-secondary)";
-			row.style.borderRadius = "4px";
-			row.style.fontSize = "11px";
+			const row = sec.createEl("div", { cls: "atlas-status-model-row" });
 
 			const isConfigured = m.name === h.configuredModel;
 			const fits = m.estimatedRamGB <= h.freeRamGB;
 			const indicator = isConfigured ? "⭐ " : "";
 			const fitsLabel = fits ? "✅ cabe" : "⚠️ pode dar OOM";
 
-			const main = row.createEl("div");
-			main.style.fontWeight = isConfigured ? "bold" : "normal";
-			main.setText(`${indicator}${m.name}`);
-
-			const meta = row.createEl("div");
-			meta.style.fontSize = "10px";
-			meta.style.opacity = "0.7";
-			meta.setText(
-				`${m.parameterSize} · ${m.quantization} · ~${m.estimatedRamGB} GB · ${fitsLabel}`
-			);
+			row.createEl("div", {
+				cls: isConfigured ? "atlas-status-model-main is-configured" : "atlas-status-model-main",
+				text: `${indicator}${m.name}`,
+			});
+			row.createEl("div", {
+				cls: "atlas-status-model-meta",
+				text: `${m.parameterSize} · ${m.quantization} · ~${m.estimatedRamGB} GB · ${fitsLabel}`,
+			});
 		}
 	}
 
 	private renderRecommendations(h: SystemHealth): void {
 		if (h.recommendations.length === 0) {
 			const sec = this.section("✨ Recomendações");
-			sec.createEl("div", { text: "🎉 Tudo OK!" }).style.opacity = "0.7";
+			sec.createEl("div", { text: "🎉 Tudo OK!", cls: "atlas-status-recs-ok" });
 			return;
 		}
 		const sec = this.section("⚠️ Recomendações");
 		for (const r of h.recommendations) {
-			const row = sec.createEl("div");
-			row.style.padding = "6px 8px";
-			row.style.marginBottom = "4px";
-			row.style.background = "var(--background-secondary-alt)";
-			row.style.borderLeft = "3px solid var(--color-orange)";
-			row.style.fontSize = "11px";
-			row.setText(r);
+			sec.createEl("div", { cls: "atlas-status-rec-row", text: r });
 		}
 	}
 
 	private renderActions(h: SystemHealth): void {
 		const sec = this.section("⚡ Ações");
-		const grid = sec.createDiv();
-		grid.style.display = "grid";
-		grid.style.gridTemplateColumns = "1fr 1fr";
-		grid.style.gap = "6px";
+		const grid = sec.createDiv({ cls: "atlas-status-actions-grid" });
 
 		const action = (label: string, fn: () => void | Promise<void>) => {
-			const btn = grid.createEl("button", { text: label });
-			btn.style.padding = "6px";
-			btn.style.fontSize = "11px";
-			btn.style.cursor = "pointer";
+			const btn = grid.createEl("button", { cls: "atlas-status-action-btn", text: label });
 			btn.addEventListener("click", () => void fn());
 		};
 
@@ -242,33 +204,16 @@ export class AtlasStatusView extends ItemView {
 	private renderLastError(h: SystemHealth): void {
 		if (!h.lastError) return;
 		const sec = this.section("🚨 Último erro");
-		const row = sec.createEl("div");
-		row.style.padding = "8px";
-		row.style.background = "var(--background-secondary)";
-		row.style.borderLeft = "3px solid var(--color-red)";
-		row.style.fontSize = "11px";
-
-		const code = row.createEl("div", { text: h.lastError.code });
-		code.style.fontWeight = "bold";
-		const msg = row.createEl("div", { text: h.lastError.message });
-		msg.style.opacity = "0.8";
-		msg.style.marginTop = "4px";
-		const at = row.createEl("div", { text: h.lastError.at });
-		at.style.fontSize = "10px";
-		at.style.opacity = "0.5";
-		at.style.marginTop = "4px";
+		const row = sec.createEl("div", { cls: "atlas-status-error-row" });
+		row.createEl("div", { cls: "atlas-status-error-code", text: h.lastError.code });
+		row.createEl("div", { cls: "atlas-status-error-msg", text: h.lastError.message });
+		row.createEl("div", { cls: "atlas-status-error-at", text: h.lastError.at });
 	}
 
 	private section(title?: string): HTMLDivElement {
-		const wrap = this.container.createDiv();
-		wrap.style.marginBottom = "16px";
+		const wrap = this.container.createDiv({ cls: "atlas-status-section" });
 		if (title) {
-			const h = wrap.createEl("div", { text: title });
-			h.style.fontSize = "11px";
-			h.style.fontWeight = "bold";
-			h.style.opacity = "0.7";
-			h.style.marginBottom = "6px";
-			h.style.letterSpacing = "0.5px";
+			wrap.createEl("div", { cls: "atlas-status-section-title", text: title });
 		}
 		return wrap.createDiv() as HTMLDivElement;
 	}
@@ -321,23 +266,17 @@ export class OllamaErrorModal extends Modal {
 		applyResponsiveModal(contentEl, { preferredWidth: 560 });
 		contentEl.createEl("h3", { text: "⚠️ Atlas precisa de ajuda" });
 
-		const msg = contentEl.createEl("div", { text: this.err.humanMessage });
-		msg.style.padding = "12px";
-		msg.style.background = "var(--background-secondary)";
-		msg.style.borderRadius = "6px";
-		msg.style.marginBottom = "12px";
-		msg.style.fontSize = "13px";
+		contentEl.createEl("div", {
+			text: this.err.humanMessage,
+			cls: "atlas-error-modal-msg",
+		});
 
 		const techCol = contentEl.createEl("details");
-		techCol.createEl("summary", { text: "Detalhes técnicos" }).style.fontSize = "11px";
-		const techBody = techCol.createEl("pre");
-		techBody.style.fontSize = "10px";
-		techBody.style.opacity = "0.7";
-		techBody.style.padding = "8px";
-		techBody.style.background = "var(--background-secondary-alt)";
-		techBody.style.borderRadius = "4px";
-		techBody.style.maxHeight = "120px";
-		techBody.style.overflow = "auto";
+		techCol.createEl("summary", {
+			text: "Detalhes técnicos",
+			cls: "atlas-error-modal-summary",
+		});
+		const techBody = techCol.createEl("pre", { cls: "atlas-error-modal-tech" });
 		techBody.textContent = `${this.err.code}: ${this.err.message}`;
 
 		const setting = new Setting(contentEl);
