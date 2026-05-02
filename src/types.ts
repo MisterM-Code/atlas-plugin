@@ -31,6 +31,43 @@ export interface AtlasSettings {
 		timeout_ms: number;
 	};
 
+	// v0.17 — Cloud AI providers (paid APIs, optional)
+	providers?: {
+		// API keys are encrypted at rest using same decryptLight as SMTP
+		apiKeys?: {
+			openaiEncrypted?: string;
+			anthropicEncrypted?: string;
+			googleEncrypted?: string;
+			mistralEncrypted?: string;
+			xaiEncrypted?: string;
+			openrouterEncrypted?: string;
+			groqEncrypted?: string;
+			deepseekEncrypted?: string;
+			cohereEncrypted?: string;
+		};
+		// Per-task routing — which provider+model to use for each task kind
+		routing?: {
+			chat?: { provider: string; model: string };
+			extraction?: { provider: string; model: string };
+			embedding?: { provider: string; model: string };
+			vision?: { provider: string; model: string };
+			reasoning?: { provider: string; model: string };
+			summarization?: { provider: string; model: string };
+		};
+		// Failover order if primary provider fails
+		failoverChain?: string[];
+		preferLocalForCheap?: boolean;
+		// Budget controls
+		budget?: {
+			enabled: boolean;
+			monthlyUSD?: number;
+			dailyUSD?: number;
+			perFeatureUSD?: Record<string, number>;
+			hardCutoff: boolean; // true = throw on exceed; false = warn-only
+			warnAtPct: number; // 0.8 = warn at 80%
+		};
+	};
+
 	// Coach mode
 	coachMode: {
 		enabled: boolean;
@@ -177,6 +214,23 @@ export const DEFAULT_SETTINGS: AtlasSettings = {
 		embeddingModel: "bge-m3",
 		rerankerModel: "bge-reranker-v2-m3",
 		timeout_ms: 180000,
+	},
+	// v0.17 — Cloud AI providers (default: all empty, all local)
+	providers: {
+		apiKeys: {},
+		routing: {
+			chat: { provider: "ollama", model: "qwen2.5:7b-instruct" },
+			embedding: { provider: "ollama", model: "bge-m3" },
+		},
+		failoverChain: ["ollama"],
+		preferLocalForCheap: true,
+		budget: {
+			enabled: false,
+			monthlyUSD: 20,
+			dailyUSD: 2,
+			hardCutoff: false,
+			warnAtPct: 0.8,
+		},
 	},
 	coachMode: {
 		enabled: false,

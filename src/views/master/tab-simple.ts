@@ -322,6 +322,7 @@ export async function renderStatusTab(container: HTMLElement, plugin: AtlasPlugi
 
 	const { renderSubTabBar } = await import("../../ui/sub-tab-bar");
 	const { renderModelCatalogSub } = await import("./status-sub/model-catalog");
+	const { renderSpendDashboard } = await import("./status-sub/spend-dashboard");
 
 	renderSubTabBar(
 		container,
@@ -339,6 +340,13 @@ export async function renderStatusTab(container: HTMLElement, plugin: AtlasPlugi
 				label: "Catálogo",
 				description: "12+ modelos curados — pull com 1 click, recomendação por RAM",
 				render: (c) => renderModelCatalogSub(c, plugin),
+			},
+			{
+				id: "spend",
+				icon: "💰",
+				label: "Spend",
+				description: "Cost tracking dos cloud providers (OpenAI, Anthropic, etc) com budget e gráficos",
+				render: (c) => renderSpendDashboard(c, plugin),
 			},
 		],
 		{ storageKey: "atlas-status-subtab", defaultId: "diagnostics" }

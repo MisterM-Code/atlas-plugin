@@ -20,11 +20,239 @@ export class AtlasSettingTab extends PluginSettingTab {
 		this.section_user();
 		this.section_profile();
 		this.section_ollama();
+		this.section_providers();
 		this.section_schedules();
 		this.section_email();
 		this.section_notifications();
 		this.section_voice();
 		this.section_advanced();
+	}
+
+	// v0.17 — Cloud AI providers + cost control
+	private section_providers(): void {
+		const { containerEl } = this;
+		containerEl.createEl("h3", { text: "☁️ Cloud AI Providers (opcional, paid)" });
+		containerEl.createEl("p", {
+			cls: "atlas-settings-section-desc",
+			text: "Atlas funciona 100% local com Ollama. Adicione API keys aqui para usar GPT-4o, Claude Opus 4.7, Gemini 2.0, etc — Atlas controla o gasto e mostra dashboard de spend.",
+		});
+
+		const providers: { id: string; name: string; field: string; signupUrl: string }[] = [
+			{ id: "openai", name: "OpenAI", field: "openaiEncrypted", signupUrl: "https://platform.openai.com/api-keys" },
+			{ id: "anthropic", name: "Anthropic (Claude)", field: "anthropicEncrypted", signupUrl: "https://console.anthropic.com/settings/keys" },
+			{ id: "google", name: "Google Gemini", field: "googleEncrypted", signupUrl: "https://aistudio.google.com/app/apikey" },
+			{ id: "mistral", name: "Mistral", field: "mistralEncrypted", signupUrl: "https://console.mistral.ai/api-keys" },
+			{ id: "xai", name: "xAI Grok", field: "xaiEncrypted", signupUrl: "https://console.x.ai" },
+			{ id: "openrouter", name: "OpenRouter (300+ models)", field: "openrouterEncrypted", signupUrl: "https://openrouter.ai/keys" },
+			{ id: "groq", name: "Groq (fast LPU)", field: "groqEncrypted", signupUrl: "https://console.groq.com/keys" },
+			{ id: "deepseek", name: "DeepSeek (R1 reasoning)", field: "deepseekEncrypted", signupUrl: "https://platform.deepseek.com/api_keys" },
+		];
+
+		const ensureProvidersConfig = () => {
+			if (!this.plugin.settings.providers) {
+				this.plugin.settings.providers = {
+					apiKeys: {},
+					routing: {},
+					failoverChain: ["ollama"],
+					budget: { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 },
+				};
+			}
+			if (!this.plugin.settings.providers.apiKeys) this.plugin.settings.providers.apiKeys = {};
+			return this.plugin.settings.providers;
+		};
+
+		for (const p of providers) {
+			new Setting(containerEl)
+				.setName(p.name)
+				.setDesc(`API key (criptografada at rest). Pegue em ${p.signupUrl}`)
+				.addText((t) => {
+					const cfg = ensureProvidersConfig();
+					const keys = cfg.apiKeys as Record<string, string | undefined>;
+					t.setPlaceholder("sk-...").setValue(keys[p.field] ? "•••••••••••" : "");
+					t.inputEl.type = "password";
+					t.onChange(async (v) => {
+						const keysNow = ensureProvidersConfig().apiKeys as Record<string, string | undefined>;
+						if (v && v !== "•••••••••••") {
+							keysNow[p.field] = v.trim();
+						} else if (!v) {
+							delete keysNow[p.field];
+						}
+						await this.plugin.saveSettings();
+						this.plugin.providerRouter?.updateConfig({
+							apiKeys: this.collectApiKeysPlain(),
+						});
+					});
+				});
+		}
+
+		// Test connection
+		new Setting(containerEl)
+			.setName("🔌 Testar conexão dos providers")
+			.setDesc("Lista quais providers estão configurados e respondendo.")
+			.addButton((b) => {
+				b.setButtonText("Testar").onClick(async () => {
+					const router = this.plugin.providerRouter;
+					if (!router) {
+						new Notice("Atlas: router não inicializado.");
+						return;
+					}
+					const ids = router.listConfiguredProviders();
+					new Notice(`Atlas: ${ids.length} providers configurados — ${ids.join(", ") || "nenhum"}`);
+				});
+			});
+
+		// Routing
+		containerEl.createEl("h4", { text: "🎯 Roteamento por tarefa" });
+		containerEl.createEl("p", {
+			cls: "atlas-settings-section-desc",
+			text: "Escolha qual provider+model usar para cada tipo de tarefa. Cada combinação tem preço diferente — veja Spend dashboard pra acompanhar custos.",
+		});
+
+		const routingTasks: { id: "chat" | "embedding" | "vision" | "reasoning" | "extraction" | "summarization"; label: string; help: string }[] = [
+			{ id: "chat", label: "Chat geral", help: "Atlas Chat tab + Jarvis. Default Anthropic Sonnet ou Ollama." },
+			{ id: "extraction", label: "Extração de KG", help: "Pessoas/sistemas/temas extraídos das notas. Modelo barato é OK (Haiku)." },
+			{ id: "embedding", label: "Embeddings", help: "Vetorização para search semântica. Default OpenAI 3-small ou Ollama bge-m3." },
+			{ id: "vision", label: "Vision (OCR/análise imagem)", help: "Whiteboards, screenshots, PDFs. Default GPT-4o ou Claude Sonnet." },
+			{ id: "reasoning", label: "Reasoning (CoT)", help: "Pre-mortem, decisão complexa. Default Claude Opus ou DeepSeek R1." },
+			{ id: "summarization", label: "Summarização", help: "Weekly reports, resumos de longa duração. Modelo barato (Haiku/4o-mini)." },
+		];
+
+		const router = this.plugin.providerRouter;
+		const allConfigured = router?.listConfiguredProviders() ?? ["ollama"];
+
+		for (const task of routingTasks) {
+			new Setting(containerEl)
+				.setName(task.label)
+				.setDesc(task.help)
+				.addDropdown((d) => {
+					// Format: "provider:model"
+					d.addOption("", "(use default)");
+					import("../providers/registry").then(({ PROVIDER_MODELS }) => {
+						for (const m of PROVIDER_MODELS) {
+							if (!allConfigured.includes(m.provider)) continue;
+							const compatible =
+								task.id === "embedding" ? m.capabilities.embed :
+								task.id === "vision" ? m.capabilities.vision :
+								m.capabilities.chat;
+							if (!compatible) continue;
+							const priceLabel = m.pricePer1M.input === 0 ? "FREE" : `$${m.pricePer1M.input}/$${m.pricePer1M.output} per 1M`;
+							d.addOption(`${m.provider}:${m.id}`, `${m.name} — ${priceLabel}`);
+						}
+					});
+					const cfg = ensureProvidersConfig();
+					const cur = cfg.routing?.[task.id];
+					if (cur) d.setValue(`${cur.provider}:${cur.model}`);
+					d.onChange(async (v) => {
+						const cur = ensureProvidersConfig();
+						if (!cur.routing) cur.routing = {};
+						if (!v) {
+							delete (cur.routing as Record<string, unknown>)[task.id];
+						} else {
+							const [provider, model] = v.split(":");
+							(cur.routing as Record<string, { provider: string; model: string }>)[task.id] = { provider, model };
+						}
+						await this.plugin.saveSettings();
+						this.plugin.providerRouter?.updateConfig({ routing: cur.routing as never });
+					});
+				});
+		}
+
+		// Budget controls
+		containerEl.createEl("h4", { text: "💰 Controle de gastos" });
+		containerEl.createEl("p", {
+			cls: "atlas-settings-section-desc",
+			text: "Atlas rastreia tokens consumidos × preço por modelo. Defina limites diário/mensal — Atlas avisa em 80% e (opcional) bloqueia chamadas além do limite.",
+		});
+
+		new Setting(containerEl)
+			.setName("Budget enabled")
+			.setDesc("Liga rastreamento + alertas + (opcional) hard cutoff.")
+			.addToggle((t) => {
+				const cfg = ensureProvidersConfig();
+				if (!cfg.budget) cfg.budget = { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 };
+				t.setValue(cfg.budget.enabled).onChange(async (v) => {
+					const c = ensureProvidersConfig();
+					if (!c.budget) c.budget = { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 };
+					c.budget.enabled = v;
+					await this.plugin.saveSettings();
+					this.plugin.providerRouter?.getCostTracker().updateBudget(c.budget);
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Budget mensal (USD)")
+			.setDesc("Limite total no mês. Default $20. 0 = sem limite.")
+			.addText((t) => {
+				const cfg = ensureProvidersConfig();
+				t.setPlaceholder("20").setValue(String(cfg.budget?.monthlyUSD ?? 20));
+				t.onChange(async (v) => {
+					const c = ensureProvidersConfig();
+					if (!c.budget) c.budget = { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 };
+					c.budget.monthlyUSD = parseFloat(v) || 0;
+					await this.plugin.saveSettings();
+					this.plugin.providerRouter?.getCostTracker().updateBudget(c.budget);
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Budget diário (USD)")
+			.setDesc("Limite por dia. Default $2. 0 = sem limite.")
+			.addText((t) => {
+				const cfg = ensureProvidersConfig();
+				t.setPlaceholder("2").setValue(String(cfg.budget?.dailyUSD ?? 2));
+				t.onChange(async (v) => {
+					const c = ensureProvidersConfig();
+					if (!c.budget) c.budget = { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 };
+					c.budget.dailyUSD = parseFloat(v) || 0;
+					await this.plugin.saveSettings();
+					this.plugin.providerRouter?.getCostTracker().updateBudget(c.budget);
+				});
+			});
+
+		new Setting(containerEl)
+			.setName("Hard cutoff")
+			.setDesc("Se ON, Atlas BLOQUEIA chamadas além do budget (recusa o request). Se OFF, só avisa.")
+			.addToggle((t) => {
+				const cfg = ensureProvidersConfig();
+				t.setValue(cfg.budget?.hardCutoff ?? false).onChange(async (v) => {
+					const c = ensureProvidersConfig();
+					if (!c.budget) c.budget = { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 };
+					c.budget.hardCutoff = v;
+					await this.plugin.saveSettings();
+					this.plugin.providerRouter?.getCostTracker().updateBudget(c.budget);
+				});
+			});
+
+		// Quick link to Spend dashboard
+		new Setting(containerEl)
+			.setName("📊 Spend dashboard")
+			.setDesc("Abre Status → Spend pra ver gastos por dia/provider/feature com gráficos.")
+			.addButton((b) => {
+				b.setButtonText("Abrir dashboard").setCta().onClick(async () => {
+					await this.plugin.activateMasterTab("status");
+				});
+			});
+	}
+
+	private collectApiKeysPlain(): Record<string, string> {
+		const keys: Record<string, string> = {};
+		const stored = (this.plugin.settings.providers?.apiKeys ?? {}) as Record<string, string | undefined>;
+		const map: Record<string, string> = {
+			openaiEncrypted: "openai",
+			anthropicEncrypted: "anthropic",
+			googleEncrypted: "google",
+			mistralEncrypted: "mistral",
+			xaiEncrypted: "xai",
+			openrouterEncrypted: "openrouter",
+			groqEncrypted: "groq",
+			deepseekEncrypted: "deepseek",
+			cohereEncrypted: "cohere",
+		};
+		for (const [field, providerId] of Object.entries(map)) {
+			const v = stored[field];
+			if (v) keys[providerId] = v;
+		}
+		return keys;
 	}
 
 	// v0.7.6: Profile section — mudar perfil sem refazer onboarding

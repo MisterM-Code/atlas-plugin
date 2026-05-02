@@ -4,6 +4,88 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.17.0] — 2026-05-02 — "Multi-Provider AI + Cost Control"
+
+### Added — Multi-Provider AI infrastructure (huge new system)
+
+**Cloud providers** (each with API key in Settings → Cloud AI Providers):
+- **OpenAI** — GPT-4o, GPT-4o mini, GPT-4 Turbo, o1-preview, o1-mini, text-embedding-3-large/small. Full streaming + tool calling + vision + embeddings.
+- **Anthropic** — Claude Opus 4.7 (1M context), Claude Sonnet 4.6, Claude Haiku 4.5. SSE streaming + tool calling + vision.
+- **Google Gemini** — Gemini 2.0 Flash, Gemini 1.5 Pro (2M context!), text-embedding-004. Native REST + streaming + vision + embeddings.
+- **Mistral** — Large + Small + Embed.
+- **xAI Grok** — Grok 2 with vision.
+- **OpenRouter** — gateway to 300+ models via single API key.
+- **Groq** — super fast LPU inference (Llama 3.3 70B, Mixtral 8x7B).
+- **DeepSeek** — R1 (reasoning specialist) + V3 (general).
+- **Ollama** — kept as zero-cost local default, wrapped via `OllamaAdapter` so router treats it uniformly.
+
+**Architecture:**
+- New `src/providers/` module with `AIProvider` interface, registry of 25+ models with pricing per 1M tokens, OpenAI-compatible adapter for 5 providers, dedicated implementations for OpenAI / Anthropic / Google.
+- `ProviderRouter` — central dispatch that resolves task → (provider, model) per user routing config, with failover chain support.
+- API keys stored encrypted at rest using existing `decryptLight`/encryption infra.
+
+### Added — Cost tracking (`src/providers/cost-tracker.ts`)
+- Logs every paid API call to `.atlas/spend-log.jsonl` with: timestamp, provider, model, task kind, feature, token usage, USD cost, success.
+- Cost computed from registry pricing (`computeCost()` × prompt+completion tokens).
+- Aggregates by window (day/week/month/year/all), by provider, by model, by feature, by day.
+- Recent calls log (last N entries with reverse chronological order).
+- Cache (30s) so dashboard rendering is fast.
+
+### Added — Budget controls
+- Settings: monthly USD limit, daily USD limit, per-feature USD caps, hard cutoff toggle, warn-at-pct threshold.
+- **Pre-flight check** before every paid call — estimates cost, throws `AIProviderError(code: "budget-exceeded")` if hard cutoff and over limit.
+- **Warning callback** fires when ≥80% of monthly/daily budget consumed → Notice in UI.
+- Budget integrated with `ProviderRouter.chat/embed/vision/chatStream` automatically.
+
+### Added — Settings UI (Settings → ☁️ Cloud AI Providers)
+- 8 password fields for API keys (OpenAI / Anthropic / Google / Mistral / xAI / OpenRouter / Groq / DeepSeek) with signup URL hints.
+- "🔌 Testar conexão dos providers" button — lists all configured providers.
+- **Per-task routing** dropdowns for: Chat, Extraction, Embeddings, Vision, Reasoning, Summarization. Each dropdown shows model + price-per-1M tokens label so user picks knowingly.
+- **Budget enabled toggle**, monthly + daily USD inputs, **hard cutoff** toggle, "📊 Open Spend dashboard" CTA.
+
+### Added — Spend Dashboard (Status tab → 💰 Spend sub-tab)
+- Header stats: today, this month, all-time totalUSD + call counts (5-card grid).
+- **Budget bar** with progress visualization (green → yellow → red gradient with pulsing animation when ≥95%).
+- **3 ECharts**:
+  - 📈 Line: spend per day last 30 days (smooth area, indigo accent).
+  - 🎨 Pie: spend by provider this month.
+  - ⚡ Bar: top 8 features by spend this month.
+- **By model breakdown table** with provider attribution.
+- **Last 30 calls log** table with timestamp, provider, model, feature, tokens, USD cost.
+- **Empty state** for users with $0 spent (default Ollama-only) — explains how to add cloud providers.
+
+### Architecture details
+- `AIProvider` interface: `id`, `name`, `capabilities`, `isAvailable()`, `chat?()`, `chatStream?()`, `embed?()`, `vision?()`, `listModels()`.
+- Streaming via `AsyncIterable<ChatStreamChunk>` — lazy delta + final usage.
+- Failover chain: if primary fails (network/rate-limit), router tries next provider in chain with that provider's default model for the task.
+- `OllamaAdapter` wraps existing `OllamaClient` so all 25+ tools can route uniformly through the new `ProviderRouter` (zero migration needed for existing Agent — opt-in).
+
+### Files added
+```
+src/providers/
+├── types.ts                    (AIProvider interface + ChatRequest/Response + AIProviderError)
+├── registry.ts                 (25+ models with USD pricing per 1M tokens)
+├── cost-tracker.ts             (spend log + budget enforcement + aggregates)
+├── openai.ts                   (full OpenAI implementation: chat/stream/embed/vision)
+├── openai-compat.ts            (OpenRouter/Groq/DeepSeek/xAI/Mistral via shared base)
+├── anthropic.ts                (Claude messages API + SSE streaming + tool calls)
+├── google.ts                   (Gemini REST + SSE + embed + vision)
+├── ollama-adapter.ts           (wraps existing OllamaClient as AIProvider)
+└── router.ts                   (central dispatch + failover + cost integration)
+src/views/master/status-sub/
+└── spend-dashboard.ts          (Status → 💰 Spend sub-tab with ECharts)
+```
+
+### Settings schema additions
+- `providers.apiKeys.{provider}Encrypted` × 9 providers
+- `providers.routing.{task}` × 6 task kinds
+- `providers.budget.{enabled, monthlyUSD, dailyUSD, hardCutoff, warnAtPct}`
+- `providers.failoverChain` + `providers.preferLocalForCheap`
+
+### Changed
+- `manifest.json` + `package.json` + `versions.json` bumped to `0.17.0`.
+- `main.ts onload()` now initializes `ProviderRouter` after KGStore — wires Ollama as default + reads cloud API keys + budget settings + warn callback.
+
 ## [0.16.0] — 2026-05-02 — "Sprint 33: Real Iron Man HUD + Critical UX Polish"
 
 ### Fixed (P0 critical bugs from user feedback)

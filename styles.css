@@ -3354,3 +3354,138 @@ button.atlas-btn:active::after,
 .atlas-status-bar-dot.is-up {
 	animation: atlas-pulse-soft 2.5s infinite;
 }
+
+/* ──────────────────────────────────────────────────────────────────
+ * v0.17 — SPEND DASHBOARD (cost tracking UI)
+ * ────────────────────────────────────────────────────────────────── */
+
+.atlas-spend-header {
+	margin-bottom: 16px;
+}
+.atlas-spend-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	gap: 8px;
+}
+.atlas-spend-stat {
+	padding: 12px 14px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	text-align: center;
+}
+.atlas-spend-stat.is-accent {
+	background: linear-gradient(135deg, var(--atlas-accent-soft, rgba(99,102,241,0.18)), var(--background-secondary-alt));
+	border-color: var(--atlas-accent, var(--interactive-accent));
+}
+.atlas-spend-stat-value {
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--atlas-accent, var(--interactive-accent));
+	letter-spacing: -0.5px;
+}
+.atlas-spend-stat-label {
+	font-size: 10px;
+	opacity: 0.6;
+	margin-top: 2px;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+.atlas-spend-budget-bar {
+	margin: 16px 0;
+	padding: 12px 14px;
+	background: var(--background-secondary);
+	border-radius: 10px;
+}
+.atlas-spend-budget-label {
+	font-size: 11px;
+	margin-bottom: 6px;
+	opacity: 0.85;
+}
+.atlas-spend-budget-track {
+	height: 8px;
+	background: var(--background-modifier-border);
+	border-radius: 4px;
+	overflow: hidden;
+}
+.atlas-spend-budget-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #10b981, #059669);
+	transition: width 400ms ease;
+}
+.atlas-spend-budget-fill.is-warn {
+	background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+.atlas-spend-budget-fill.is-danger {
+	background: linear-gradient(90deg, #ef4444, #dc2626);
+	animation: atlas-pulse-soft 2s infinite;
+}
+.atlas-spend-charts-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 12px;
+	margin: 16px 0;
+}
+.atlas-spend-chart {
+	padding: 12px;
+	background: var(--background-secondary);
+	border-radius: 10px;
+}
+.atlas-spend-chart h5 {
+	margin: 0 0 8px 0;
+	font-size: 12px;
+	opacity: 0.85;
+}
+.atlas-spend-chart-canvas {
+	width: 100%;
+	height: 200px;
+}
+.atlas-spend-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 11px;
+	margin: 8px 0;
+}
+.atlas-spend-table thead th {
+	text-align: left;
+	padding: 8px 10px;
+	background: var(--background-secondary-alt);
+	font-weight: 600;
+	font-size: 10px;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	opacity: 0.7;
+}
+.atlas-spend-table tbody td {
+	padding: 6px 10px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+.atlas-spend-table tbody tr:hover {
+	background: var(--background-modifier-hover);
+}
+.atlas-spend-empty {
+	text-align: center;
+	padding: 60px 20px;
+	opacity: 0.85;
+}
+.atlas-spend-empty-emoji {
+	font-size: 42px;
+	margin-bottom: 8px;
+}
+.atlas-spend-empty h4 {
+	margin: 0 0 8px 0;
+}
+.atlas-spend-empty p {
+	margin: 0;
+	font-size: 13px;
+	opacity: 0.7;
+	max-width: 480px;
+	margin-left: auto;
+	margin-right: auto;
+	line-height: 1.5;
+}
+.atlas-empty-state-text {
+	padding: 24px;
+	text-align: center;
+	opacity: 0.7;
+}

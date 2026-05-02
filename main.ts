@@ -212,6 +212,8 @@ export default class AtlasPlugin extends Plugin {
 	systemDetectorWatcher!: SystemDetectorWatcher;
 	templateStore!: TemplateStore;
 	hud!: AtlasHUD;
+	// v0.17 — Cloud AI providers + cost tracking
+	providerRouter: import("./src/providers/router").ProviderRouter | null = null;
 	lastAtlasError: AtlasError | null = null;
 	private capsuleWatcher!: CapsuleWatcher;
 	private audit!: AuditLog;
@@ -267,6 +269,49 @@ export default class AtlasPlugin extends Plugin {
 
 		this.kg = new KGStore(this.app, this.settings.folders.atlas);
 		await this.kg.load();
+
+		// v0.17 — initialize provider router with cloud API keys + budget
+		try {
+			const { ProviderRouter } = await import("./src/providers/router");
+			const { CostTracker } = await import("./src/providers/cost-tracker");
+			const apiKeys: Record<string, string> = {};
+			const stored = (this.settings.providers?.apiKeys ?? {}) as Record<string, string | undefined>;
+			const map: Record<string, string> = {
+				openaiEncrypted: "openai",
+				anthropicEncrypted: "anthropic",
+				googleEncrypted: "google",
+				mistralEncrypted: "mistral",
+				xaiEncrypted: "xai",
+				openrouterEncrypted: "openrouter",
+				groqEncrypted: "groq",
+				deepseekEncrypted: "deepseek",
+			};
+			for (const [field, providerId] of Object.entries(map)) {
+				const v = stored[field];
+				if (v) apiKeys[providerId] = v;
+			}
+			const budget = this.settings.providers?.budget ?? { enabled: false, hardCutoff: false, warnAtPct: 0.8 };
+			const costTracker = new CostTracker(this.app, budget);
+			costTracker.onWarn((pct, kind) => {
+				new Notice(`⚠️ Atlas budget ${kind}: ${(pct * 100).toFixed(0)}% consumido.`, 8000);
+			});
+			this.providerRouter = new ProviderRouter(
+				this.app,
+				{
+					apiKeys: apiKeys as never,
+					routing: (this.settings.providers?.routing ?? {}) as never,
+					failoverChain: (this.settings.providers?.failoverChain ?? ["ollama"]) as never,
+					preferLocalForCheap: this.settings.providers?.preferLocalForCheap ?? true,
+				},
+				costTracker
+			);
+			this.providerRouter.attachOllama(this.ollama);
+			logger.info("Atlas v0.17: provider router attached", {
+				configured: this.providerRouter.listConfiguredProviders(),
+			});
+		} catch (e) {
+			logger.warn("Atlas: provider router falhou ao iniciar", { error: String(e) });
+		}
 
 		this.embedder = new Embedder(
 			this.app,
