@@ -4,6 +4,61 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.25.0] — 2026-05-02 — "Polish across tabs: Analytics consistente + Chat refinado + Entity cards premium"
+
+### Sprint A — Analytics polish (Trends + KG-Graph + Mood + Heatmap consistente)
+**CSS migration**: ~30 inline styles → classes em [analytics-sub/heatmap.ts](src/views/master/analytics-sub/heatmap.ts), [trends.ts](src/views/master/analytics-sub/trends.ts), [kg-graph.ts](src/views/master/analytics-sub/kg-graph.ts), [mood.ts](src/views/master/analytics-sub/mood.ts).
+
+**Novas classes consistentes:**
+- `.atlas-analytics-intro` — banner com left border accent + bg gradient subtil
+- `.atlas-analytics-period-bar` + `.atlas-analytics-period-btn` — botão "30d/90d/1y" com hover transform + active state gradient cyan/indigo
+- `.atlas-analytics-charts-grid` — grid responsivo 2-col → 1-col em <900px
+- `.atlas-analytics-chart` — card com gradient subtil + hover border accent
+- `.atlas-analytics-filter-pill` — pills coloridas com `--pill-color` CSS var (cada provider type tem cor própria)
+- `.atlas-analytics-kg-chart` — full-height KG chart com gradient bg
+- `.atlas-mood-empty-radar` — empty state graceful
+
+**Polish visual:**
+- Active period button: `linear-gradient(135deg, #00e5e5, #6366f1)` + box-shadow
+- Cards com gradient `color-mix()` accent subtle
+- Hover: border-color → cyan + box-shadow ring
+- Transitions cubic-bezier(0.22, 1, 0.36, 1) em 220ms
+
+### Sprint B — Chat polish v2
+- Message bubbles: padding 12→14, border-radius 12→14, font-size 13 (line-height 1.55)
+- User message: gradient cyan/indigo (era só indigo)
+- User message: shadow esquerda subtil (-8px 0 20px rgba cyan) — sensação "vinda da direita"
+- Assistant message: gradient secondary com mix accent
+- Entrance animation 240→320ms cubic-bezier suave + 3-keyframe
+- Hover: shadow elevation 6px
+
+### Sprint C — Entity grids polish (Knowledge / Systems / Products / Roles)
+- `.atlas-crud-title`: gradient text cyan→indigo (era plain)
+- `.atlas-crud-search`: focus state com cyan border + ring 2px
+- `.atlas-crud-grid` minmax 220px → 240px
+- `.atlas-crud-card`:
+  - Gradient bg (color-mix accent subtle)
+  - Border-radius 8 → 10px
+  - Animated accent line top edge (0→80% on hover, mesmo padrão Today widgets)
+  - Hover: translateY -3px + scale 1.005 + cyan box-shadow
+  - Active: spring back 80ms
+  - Entrance: slide-in 320ms
+
+### Files modified
+- `src/views/master/analytics-sub/heatmap.ts` (intro CSS class)
+- `src/views/master/analytics-sub/trends.ts` (period buttons + charts grid CSS classes)
+- `src/views/master/analytics-sub/kg-graph.ts` (filter pills + chart CSS classes)
+- `src/views/master/analytics-sub/mood.ts` (intro CSS class)
+- `styles.css` (Analytics polish ~140 LOC + Chat polish + CRUD card polish)
+
+### Verification
+- [ ] Analytics → Trends: period buttons "30d/90d/1y" com gradient cyan no active + hover lift
+- [ ] Analytics → KG Graph: filter pills coloridos por type + intro banner com left border
+- [ ] Analytics → Mood: empty state graceful se vault sem mood data
+- [ ] Chat: mensagens user com shadow esquerda + gradient cyan/indigo
+- [ ] Knowledge/Systems/Products: cards com gradient + accent line top hover + cyan glow
+- [ ] Mobile <900px: Analytics charts 1-col + KG chart 420px min-height
+
 ## [0.24.0] — 2026-05-02 — "Bug fixes + Visual polish: Mood crash + Whisper detect + Jarvis particles + Heatmap redesign + Today refinement"
 
 ### Fixed (P0 critical bugs)

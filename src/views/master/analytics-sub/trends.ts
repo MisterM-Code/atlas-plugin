@@ -14,20 +14,15 @@ export async function renderAnalyticsTrends(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-analytics-trends");
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
+	const intro = container.createDiv({ cls: "atlas-analytics-intro" });
 	intro.setText(
 		"Tendências temporais: KG growth, sessões por semana, top temas, commitments. Toggle período abaixo."
 	);
 
 	// Period selector
-	const periodBar = container.createDiv();
-	periodBar.style.display = "flex";
-	periodBar.style.gap = "4px";
-	periodBar.style.marginBottom = "12px";
+	const periodBar = container.createDiv({ cls: "atlas-analytics-period-bar" });
 
 	type PeriodId = "30d" | "90d" | "1y";
 	// v0.22 Sprint G: persist period selector entre sessions via localStorage
@@ -50,9 +45,7 @@ export async function renderAnalyticsTrends(
 
 	const periodButtons: { btn: HTMLButtonElement; id: PeriodId }[] = [];
 	for (const p of periods) {
-		const btn = periodBar.createEl("button", { text: p.label });
-		btn.style.fontSize = "11px";
-		btn.style.padding = "4px 12px";
+		const btn = periodBar.createEl("button", { cls: "atlas-analytics-period-btn", text: p.label });
 		periodButtons.push({ btn, id: p.id });
 		btn.addEventListener("click", () => {
 			activePeriod = p.id;
@@ -75,35 +68,12 @@ export async function renderAnalyticsTrends(
 	updateButtons();
 
 	// Charts grid
-	const grid = container.createDiv();
-	grid.style.display = "grid";
-	grid.style.gridTemplateColumns = "1fr 1fr";
-	grid.style.gap = "12px";
-	grid.style.minHeight = "400px";
+	const grid = container.createDiv({ cls: "atlas-analytics-charts-grid" });
 
-	const chart1 = grid.createDiv();
-	chart1.style.height = "280px";
-	chart1.style.background = "var(--background-secondary)";
-	chart1.style.borderRadius = "6px";
-	chart1.style.padding = "8px";
-
-	const chart2 = grid.createDiv();
-	chart2.style.height = "280px";
-	chart2.style.background = "var(--background-secondary)";
-	chart2.style.borderRadius = "6px";
-	chart2.style.padding = "8px";
-
-	const chart3 = grid.createDiv();
-	chart3.style.height = "280px";
-	chart3.style.background = "var(--background-secondary)";
-	chart3.style.borderRadius = "6px";
-	chart3.style.padding = "8px";
-
-	const chart4 = grid.createDiv();
-	chart4.style.height = "280px";
-	chart4.style.background = "var(--background-secondary)";
-	chart4.style.borderRadius = "6px";
-	chart4.style.padding = "8px";
+	const chart1 = grid.createDiv({ cls: "atlas-analytics-chart" });
+	const chart2 = grid.createDiv({ cls: "atlas-analytics-chart" });
+	const chart3 = grid.createDiv({ cls: "atlas-analytics-chart" });
+	const chart4 = grid.createDiv({ cls: "atlas-analytics-chart" });
 
 	const renderCharts = async () => {
 		const days = periods.find((p) => p.id === activePeriod)?.days ?? 90;

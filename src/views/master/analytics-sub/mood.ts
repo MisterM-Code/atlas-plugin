@@ -10,11 +10,9 @@ export async function renderAnalyticsMood(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-analytics-mood");
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
+	const intro = container.createDiv({ cls: "atlas-analytics-intro" });
 	intro.setText(
 		"Bem-estar ao longo do tempo. Lê frontmatter mood + energy (1-5) dos daily logs."
 	);

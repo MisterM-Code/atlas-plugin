@@ -11,11 +11,9 @@ export async function renderAnalyticsHeatmap(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-analytics-heatmap");
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
+	const intro = container.createDiv({ cls: "atlas-analytics-intro" });
 	intro.setText(
 		"Atividade do vault no último ano. Cada célula = 1 dia. Cor = intensidade (notas modificadas)."
 	);

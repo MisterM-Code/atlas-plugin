@@ -20,20 +20,15 @@ export async function renderAnalyticsKgGraph(
 		prevRO.disconnect();
 	}
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
+	container.addClass("atlas-analytics-kg-graph");
+
+	const intro = container.createDiv({ cls: "atlas-analytics-intro" });
 	intro.setText(
 		"Knowledge Graph force-directed. Nodes: 👤 pessoas (azul), 🚀 projetos (verde), 🏷️ temas (laranja), 🖥️ sistemas (roxo). Click pra abrir nota."
 	);
 
 	// Filter bar
-	const filters = container.createDiv();
-	filters.style.display = "flex";
-	filters.style.gap = "6px";
-	filters.style.marginBottom = "12px";
-	filters.style.flexWrap = "wrap";
+	const filters = container.createDiv({ cls: "atlas-analytics-filter-bar" });
 
 	const types = [
 		{ id: "people", label: "👤 Pessoas", color: "#3b82f6" },
@@ -45,18 +40,15 @@ export async function renderAnalyticsKgGraph(
 
 	const typeButtons: HTMLButtonElement[] = [];
 	for (const t of types) {
-		const btn = filters.createEl("button", { text: t.label });
-		btn.style.fontSize = "11px";
-		btn.style.padding = "4px 10px";
-		btn.style.border = `2px solid ${t.color}`;
-		btn.style.background = t.color + "33";
+		const btn = filters.createEl("button", { cls: "atlas-analytics-filter-pill", text: t.label });
+		btn.style.setProperty("--pill-color", t.color);
 		btn.addEventListener("click", () => {
 			if (enabled.has(t.id)) {
 				enabled.delete(t.id);
-				btn.style.opacity = "0.4";
+				btn.addClass("is-disabled");
 			} else {
 				enabled.add(t.id);
-				btn.style.opacity = "1";
+				btn.removeClass("is-disabled");
 			}
 			void renderGraph();
 		});
@@ -64,18 +56,10 @@ export async function renderAnalyticsKgGraph(
 	}
 
 	// Stats
-	const stats = container.createDiv();
-	stats.style.fontSize = "11px";
-	stats.style.opacity = "0.65";
-	stats.style.marginBottom = "8px";
+	const stats = container.createDiv({ cls: "atlas-analytics-stats-row" });
 
 	// Chart
-	const chartEl = container.createDiv();
-	chartEl.style.width = "100%";
-	chartEl.style.height = "calc(100vh - 320px)";
-	chartEl.style.minHeight = "500px";
-	chartEl.style.background = "var(--background-secondary)";
-	chartEl.style.borderRadius = "6px";
+	const chartEl = container.createDiv({ cls: "atlas-analytics-kg-chart" });
 
 	const renderGraph = async () => {
 		try {
