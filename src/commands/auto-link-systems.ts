@@ -105,7 +105,7 @@ export class AutoLinkSystemsModal extends Modal {
 				const text = row.createDiv();
 				text.style.flexGrow = "1";
 				text.style.lineHeight = "1.4";
-				text.innerHTML = this.highlightMatch(m.contextSnippet, m.matchedText);
+				this.renderHighlight(text, m.contextSnippet, m.matchedText);
 			}
 		}
 
@@ -123,17 +123,25 @@ export class AutoLinkSystemsModal extends Modal {
 		this.contentEl.empty();
 	}
 
-	private highlightMatch(snippet: string, match: string): string {
-		const escaped = snippet
-			.replace(/&/g, "&amp;")
-			.replace(/</g, "&lt;")
-			.replace(/>/g, "&gt;");
-		const matchEsc = match.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-		return escaped.replace(
-			new RegExp(matchEsc, "i"),
-			(m) =>
-				`<mark style="background:var(--interactive-accent);color:var(--text-on-accent);padding:0 3px;border-radius:2px;">${m}</mark>`
-		);
+	/** DOM-safe highlight (no innerHTML) — splits snippet around match. */
+	private renderHighlight(parent: HTMLElement, snippet: string, match: string): void {
+		const lower = snippet.toLowerCase();
+		const lowerMatch = match.toLowerCase();
+		const idx = lower.indexOf(lowerMatch);
+		if (idx < 0) {
+			parent.appendText(snippet);
+			return;
+		}
+		const before = snippet.substring(0, idx);
+		const matched = snippet.substring(idx, idx + match.length);
+		const after = snippet.substring(idx + match.length);
+		if (before) parent.appendText(before);
+		const mark = parent.createEl("mark", { text: matched });
+		mark.style.background = "var(--interactive-accent)";
+		mark.style.color = "var(--text-on-accent)";
+		mark.style.padding = "0 3px";
+		mark.style.borderRadius = "2px";
+		if (after) parent.appendText(after);
 	}
 
 	private async apply(): Promise<void> {

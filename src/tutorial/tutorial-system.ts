@@ -5,8 +5,18 @@
  * própria com SVG cutout overlay + popover posicionado.
  */
 
-import { App, Notice } from "obsidian";
+import { App, Component, MarkdownRenderer, Notice } from "obsidian";
 import type AtlasPlugin from "../../main";
+
+async function renderMarkdownSafe(app: App, parent: HTMLElement, md: string): Promise<void> {
+	parent.empty();
+	const cmp = new Component();
+	try {
+		await MarkdownRenderer.render(app, md, parent, "", cmp);
+	} catch {
+		parent.setText(md);
+	}
+}
 
 export interface TutorialStep {
 	/** CSS selector OU função que retorna elemento alvo. Se null, popup centralizado. */
@@ -223,11 +233,11 @@ export class TutorialSystem {
 		progress.style.opacity = "0.6";
 		progress.setText(`${this.currentStepIdx + 1}/${this.currentTutorial.steps.length}`);
 
-		// Body
+		// Body — uses Obsidian MarkdownRenderer (no innerHTML)
 		const body = this.popoverEl.createDiv();
 		body.style.marginBottom = "12px";
 		body.style.lineHeight = "1.5";
-		body.innerHTML = renderInline(step.body);
+		void renderMarkdownSafe(this.app, body, step.body);
 
 		// Footer
 		const footer = this.popoverEl.createDiv();
@@ -418,18 +428,6 @@ export class TutorialSystem {
 	}
 }
 
-function renderInline(text: string): string {
-	const escape = (s: string) =>
-		s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-	let html = escape(text);
-	html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-	html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-	html = html.replace(/`([^`]+)`/g, "<code style='background:var(--background-secondary);padding:1px 4px;border-radius:3px;'>$1</code>");
-	html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-	html = html.replace(/\n\n+/g, "<br/><br/>");
-	html = html.replace(/\n/g, "<br/>");
-	return html;
-}
 
 // ─── Tutorial library (importado por main.ts) ───
 // (definido em tours.ts pra evitar circular)

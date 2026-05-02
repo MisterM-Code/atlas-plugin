@@ -81,7 +81,12 @@ export class AtlasHUD {
 		this.logoEl.addClass("atlas-header-logo");
 		this.logoEl.style.width = "32px";
 		this.logoEl.style.height = "32px";
-		this.logoEl.innerHTML = HUD_LOGO_SVG;
+		// DOM API for SVG (Obsidian no-innerHTML guideline)
+		const parser = new DOMParser();
+		const svgDoc = parser.parseFromString(HUD_LOGO_SVG, "image/svg+xml");
+		if (svgDoc.documentElement && svgDoc.documentElement.nodeName.toLowerCase() === "svg") {
+			this.logoEl.appendChild(document.importNode(svgDoc.documentElement, true));
+		}
 
 		const titleWrap = header.createDiv();
 		titleWrap.style.flexGrow = "1";

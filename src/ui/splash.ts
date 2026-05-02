@@ -27,20 +27,42 @@ export class SplashScreen {
 			overlay.style.opacity = "0";
 			overlay.style.transition = "opacity 600ms ease-out";
 
-			// Logo SVG (Atlas: círculo com cruz)
+			// Logo SVG (Atlas: círculo com cruz) — DOM API to comply with Obsidian no-innerHTML guideline
 			const logo = document.createElement("div");
 			logo.style.width = "120px";
 			logo.style.height = "120px";
 			logo.style.position = "relative";
-			logo.innerHTML = `
-				<svg viewBox="0 0 100 100" fill="none" stroke="#a5b4fc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:100%;filter:drop-shadow(0 0 20px rgba(165,180,252,0.6))">
-					<circle cx="50" cy="50" r="38" style="opacity:0;animation: atlas-splash-circle 800ms 200ms ease-out forwards"/>
-					<path d="M50 12 L50 88" style="stroke-dasharray:80;stroke-dashoffset:80;animation: atlas-splash-line 600ms 600ms ease-out forwards"/>
-					<path d="M12 50 L88 50" style="stroke-dasharray:80;stroke-dashoffset:80;animation: atlas-splash-line 600ms 800ms ease-out forwards"/>
-					<path d="M22 22 L78 78" style="stroke-dasharray:80;stroke-dashoffset:80;animation: atlas-splash-line 600ms 1000ms ease-out forwards"/>
-					<path d="M78 22 L22 78" style="stroke-dasharray:80;stroke-dashoffset:80;animation: atlas-splash-line 600ms 1200ms ease-out forwards"/>
-				</svg>
-			`;
+			const NS = "http://www.w3.org/2000/svg";
+			const svg = document.createElementNS(NS, "svg");
+			svg.setAttribute("viewBox", "0 0 100 100");
+			svg.setAttribute("fill", "none");
+			svg.setAttribute("stroke", "#a5b4fc");
+			svg.setAttribute("stroke-width", "3");
+			svg.setAttribute("stroke-linecap", "round");
+			svg.setAttribute("stroke-linejoin", "round");
+			svg.setAttribute("style", "width:100%;height:100%;filter:drop-shadow(0 0 20px rgba(165,180,252,0.6))");
+			const circle = document.createElementNS(NS, "circle");
+			circle.setAttribute("cx", "50");
+			circle.setAttribute("cy", "50");
+			circle.setAttribute("r", "38");
+			circle.setAttribute("style", "opacity:0;animation: atlas-splash-circle 800ms 200ms ease-out forwards");
+			svg.appendChild(circle);
+			const lines = [
+				{ d: "M50 12 L50 88", delay: 600 },
+				{ d: "M12 50 L88 50", delay: 800 },
+				{ d: "M22 22 L78 78", delay: 1000 },
+				{ d: "M78 22 L22 78", delay: 1200 },
+			];
+			for (const ln of lines) {
+				const path = document.createElementNS(NS, "path");
+				path.setAttribute("d", ln.d);
+				path.setAttribute(
+					"style",
+					`stroke-dasharray:80;stroke-dashoffset:80;animation: atlas-splash-line 600ms ${ln.delay}ms ease-out forwards`
+				);
+				svg.appendChild(path);
+			}
+			logo.appendChild(svg);
 			overlay.appendChild(logo);
 
 			// Nome

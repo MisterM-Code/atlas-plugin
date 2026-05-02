@@ -525,11 +525,16 @@ export class OnboardingWizard extends Modal {
 		helpBody.style.fontSize = "11px";
 		helpBody.style.padding = "8px";
 		helpBody.style.opacity = "0.85";
-		helpBody.innerHTML = `
-			<strong>Google Calendar:</strong> Settings → Integrate calendar → "Secret address in iCal format"<br>
-			<strong>Outlook:</strong> Calendar → Share → Publish → ICS link<br>
-			<strong>Apple Calendar:</strong> Calendar → Share Calendar → Public Calendar
-		`;
+		const lines: { strong: string; rest: string }[] = [
+			{ strong: "Google Calendar:", rest: ' Settings → Integrate calendar → "Secret address in iCal format"' },
+			{ strong: "Outlook:", rest: " Calendar → Share → Publish → ICS link" },
+			{ strong: "Apple Calendar:", rest: " Calendar → Share Calendar → Public Calendar" },
+		];
+		for (const ln of lines) {
+			const row = helpBody.createDiv();
+			row.createEl("strong", { text: ln.strong });
+			row.appendText(ln.rest);
+		}
 
 		new Setting(c)
 			.setName("URL iCal")

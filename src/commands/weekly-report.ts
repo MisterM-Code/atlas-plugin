@@ -128,14 +128,15 @@ export class SendWeeklyReportModal extends Modal {
 
 	private async fillPreview(el: HTMLElement): Promise<void> {
 		const md = await this.app.vault.read(this.file);
-		const html = markdownToHtmlEmail(md, {
-			title: this.subject,
-			signatureName: this.plugin.settings.user.displayName,
-			signatureRole: this.plugin.settings.user.role,
-		});
-		// Render only the body fragment (strip <html><head>)
-		const m = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-		el.innerHTML = m ? m[1] : html;
+		// Render preview via Obsidian MarkdownRenderer (no innerHTML)
+		el.empty();
+		const cmp = new (await import("obsidian")).Component();
+		try {
+			const { MarkdownRenderer } = await import("obsidian");
+			await MarkdownRenderer.render(this.app, md, el, "", cmp);
+		} catch {
+			el.setText(md.substring(0, 5000));
+		}
 	}
 
 	private async send(): Promise<void> {

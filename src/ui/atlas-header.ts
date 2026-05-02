@@ -43,7 +43,12 @@ export function renderAtlasHeader(parent: HTMLElement, plugin: AtlasPlugin): Atl
 	logoWrap.style.height = "32px";
 	logoWrap.style.flexShrink = "0";
 	logoWrap.addClass("atlas-header-logo");
-	logoWrap.innerHTML = ATLAS_LOGO_SVG;
+	// DOM API for SVG (Obsidian no-innerHTML guideline)
+	const parser = new DOMParser();
+	const svgDoc = parser.parseFromString(ATLAS_LOGO_SVG, "image/svg+xml");
+	if (svgDoc.documentElement && svgDoc.documentElement.nodeName.toLowerCase() === "svg") {
+		logoWrap.appendChild(document.importNode(svgDoc.documentElement, true));
+	}
 
 	// Text content
 	const textWrap = el.createDiv();
