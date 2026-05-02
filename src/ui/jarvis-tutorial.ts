@@ -67,40 +67,27 @@ export class JarvisTutorial extends Modal {
 		const { contentEl } = this;
 		applyResponsiveModal(contentEl, { preferredWidth: 560 });
 		contentEl.empty();
-		contentEl.style.padding = "24px";
+		contentEl.addClass("atlas-tutorial-modal");
 
-		// Progress dots
-		this.progressEl = contentEl.createDiv();
-		this.progressEl.style.display = "flex";
-		this.progressEl.style.gap = "6px";
-		this.progressEl.style.justifyContent = "center";
-		this.progressEl.style.marginBottom = "16px";
+		this.progressEl = contentEl.createDiv({ cls: "atlas-tutorial-progress" });
 		this.renderProgress();
 
-		// Body
-		this.bodyEl = contentEl.createDiv();
-		this.bodyEl.style.minHeight = "200px";
+		this.bodyEl = contentEl.createDiv({ cls: "atlas-tutorial-body" });
 		this.renderStep();
 
-		// Footer
-		const footer = contentEl.createDiv();
-		footer.style.display = "flex";
-		footer.style.justifyContent = "space-between";
-		footer.style.gap = "8px";
-		footer.style.marginTop = "20px";
-
+		const footer = contentEl.createDiv({ cls: "atlas-tutorial-footer" });
 		const left = footer.createDiv();
 		this.prevBtn = left.createEl("button", { text: "← Anterior" });
 		this.prevBtn.addEventListener("click", () => this.go(-1));
 
-		const right = footer.createDiv();
-		right.style.display = "flex";
-		right.style.gap = "8px";
-
+		const right = footer.createDiv({ cls: "atlas-tutorial-footer-right" });
 		const skip = right.createEl("button", { text: "Pular" });
 		skip.addEventListener("click", () => void this.finish());
 
-		this.nextBtn = right.createEl("button", { text: "Próximo →", cls: "mod-cta" }) as HTMLButtonElement;
+		this.nextBtn = right.createEl("button", {
+			text: "Próximo →",
+			cls: "mod-cta",
+		}) as HTMLButtonElement;
 		this.nextBtn.addEventListener("click", () => {
 			if (this.currentStep === STEPS.length - 1) {
 				void this.finish();
@@ -115,71 +102,35 @@ export class JarvisTutorial extends Modal {
 	private renderProgress(): void {
 		this.progressEl.empty();
 		for (let i = 0; i < STEPS.length; i++) {
-			const dot = this.progressEl.createDiv();
-			dot.style.width = "8px";
-			dot.style.height = "8px";
-			dot.style.borderRadius = "50%";
-			dot.style.transition = "all 220ms ease";
-			dot.style.background = i === this.currentStep ? "var(--atlas-accent, #818cf8)" : "var(--background-modifier-border)";
-			dot.style.transform = i === this.currentStep ? "scale(1.3)" : "scale(1)";
+			this.progressEl.createDiv({
+				cls: i === this.currentStep
+					? "atlas-tutorial-progress-dot is-active"
+					: "atlas-tutorial-progress-dot",
+			});
 		}
 	}
 
 	private renderStep(): void {
 		const step = STEPS[this.currentStep];
 		this.bodyEl.empty();
-		this.bodyEl.style.opacity = "0";
-		this.bodyEl.style.transform = "translateX(12px)";
-		this.bodyEl.style.transition = "opacity 220ms ease, transform 220ms ease";
+		this.bodyEl.removeClass("is-shown");
 
-		const emoji = this.bodyEl.createDiv();
-		emoji.setText(step.emoji);
-		emoji.style.fontSize = "44px";
-		emoji.style.textAlign = "center";
-		emoji.style.marginBottom = "12px";
-
-		const title = this.bodyEl.createEl("h2");
-		title.setText(step.title);
-		title.style.margin = "0 0 8px";
-		title.style.textAlign = "center";
-
-		const body = this.bodyEl.createDiv();
-		body.setText(step.body);
-		body.style.fontSize = "14px";
-		body.style.lineHeight = "1.6";
-		body.style.opacity = "0.85";
-		body.style.textAlign = "center";
+		this.bodyEl.createDiv({ cls: "atlas-tutorial-emoji", text: step.emoji });
+		this.bodyEl.createEl("h2", { cls: "atlas-tutorial-title", text: step.title });
+		this.bodyEl.createDiv({ cls: "atlas-tutorial-text", text: step.body });
 
 		if (step.action) {
-			const cta = this.bodyEl.createDiv();
-			cta.style.marginTop = "16px";
-			cta.style.padding = "12px";
-			cta.style.background = "var(--background-modifier-hover)";
-			cta.style.borderRadius = "8px";
-			cta.style.textAlign = "center";
-			cta.style.borderLeft = "3px solid var(--atlas-accent, #818cf8)";
-
-			const label = cta.createDiv();
-			label.setText("💡 " + step.action.label);
-			label.style.fontSize = "13px";
-			label.style.fontWeight = "500";
-
+			const cta = this.bodyEl.createDiv({ cls: "atlas-tutorial-cta" });
+			cta.createDiv({ cls: "atlas-tutorial-cta-label", text: "💡 " + step.action.label });
 			if (step.action.example) {
-				const ex = cta.createEl("code");
-				ex.setText(`"${step.action.example}"`);
-				ex.style.display = "inline-block";
-				ex.style.marginTop = "8px";
-				ex.style.fontSize = "12px";
-				ex.style.padding = "4px 8px";
-				ex.style.background = "var(--background-primary)";
-				ex.style.borderRadius = "4px";
+				cta.createEl("code", {
+					cls: "atlas-tutorial-cta-example",
+					text: `"${step.action.example}"`,
+				});
 			}
 		}
 
-		setTimeout(() => {
-			this.bodyEl.style.opacity = "1";
-			this.bodyEl.style.transform = "translateX(0)";
-		}, 10);
+		setTimeout(() => this.bodyEl.addClass("is-shown"), 10);
 	}
 
 	private go(delta: number): void {

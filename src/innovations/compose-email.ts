@@ -52,7 +52,7 @@ export class ComposeEmailModal extends Modal {
 				this.toEl = t;
 				t.setValue(this.prefill.to ?? "");
 				t.setPlaceholder("alguem@exemplo.com");
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-email-text-full");
 			});
 
 		new Setting(contentEl)
@@ -60,7 +60,7 @@ export class ComposeEmailModal extends Modal {
 			.addText((t) => {
 				this.ccEl = t;
 				t.setValue(this.prefill.cc ?? "");
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-email-text-full");
 			});
 
 		new Setting(contentEl)
@@ -68,7 +68,7 @@ export class ComposeEmailModal extends Modal {
 			.addText((t) => {
 				this.bccEl = t;
 				t.setValue(this.prefill.bcc ?? "");
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-email-text-full");
 			});
 
 		new Setting(contentEl)
@@ -76,38 +76,24 @@ export class ComposeEmailModal extends Modal {
 			.addText((t) => {
 				this.subjectEl = t;
 				t.setValue(this.prefill.subject ?? "");
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-email-text-full");
 			});
 
-		const bodyLabel = contentEl.createEl("h4", { text: "Corpo (markdown)" });
-		bodyLabel.style.marginTop = "12px";
+		contentEl.createEl("h4", { text: "Corpo (markdown)", cls: "atlas-email-body-label" });
 
-		const bodyWrap = contentEl.createDiv();
-		bodyWrap.style.marginTop = "4px";
+		const bodyWrap = contentEl.createDiv({ cls: "atlas-email-body-wrap" });
 		this.bodyEl = new TextAreaComponent(bodyWrap);
 		this.bodyEl.setValue(this.prefill.body ?? "");
-		this.bodyEl.inputEl.style.width = "100%";
-		this.bodyEl.inputEl.style.minHeight = "240px";
-		this.bodyEl.inputEl.style.fontFamily = "var(--font-monospace)";
-		this.bodyEl.inputEl.style.fontSize = "13px";
+		this.bodyEl.inputEl.addClass("atlas-email-body-textarea");
 
-		const aiBar = contentEl.createDiv();
-		aiBar.style.marginTop = "8px";
-		aiBar.style.display = "flex";
-		aiBar.style.gap = "8px";
-
+		const aiBar = contentEl.createDiv({ cls: "atlas-email-actions-bar" });
 		const aiBtn = aiBar.createEl("button", { text: "✨ AI assist (rascunhar)" });
 		aiBtn.addEventListener("click", () => void this.aiAssist());
 
 		const tplBtn = aiBar.createEl("button", { text: "📐 Template" });
 		tplBtn.addEventListener("click", () => this.useTemplate());
 
-		const actionRow = contentEl.createDiv();
-		actionRow.style.marginTop = "16px";
-		actionRow.style.display = "flex";
-		actionRow.style.gap = "8px";
-		actionRow.style.justifyContent = "flex-end";
-
+		const actionRow = contentEl.createDiv({ cls: "atlas-email-action-row" });
 		const cancelBtn = actionRow.createEl("button", { text: "Cancelar" });
 		cancelBtn.addEventListener("click", () => this.close());
 

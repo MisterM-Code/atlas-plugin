@@ -20,20 +20,7 @@ export class JarvisOverlay extends Modal {
 		const { contentEl, modalEl } = this;
 		modalEl.addClass("atlas-jarvis-modal");
 		contentEl.empty();
-
-		// Full-screen modal sizing
-		modalEl.style.width = "100vw";
-		modalEl.style.height = "100vh";
-		modalEl.style.maxWidth = "100vw";
-		modalEl.style.maxHeight = "100vh";
-		modalEl.style.padding = "0";
-		modalEl.style.background = "transparent";
-		modalEl.style.border = "none";
-		modalEl.style.boxShadow = "none";
-		contentEl.style.padding = "0";
-		contentEl.style.height = "100vh";
-		contentEl.style.width = "100vw";
-
+		// Full-screen sizing handled by .atlas-jarvis-modal in styles.css
 		this.core = new JarvisCore(this.app, this.plugin, {
 			mode: "fullscreen",
 			orbSize: 200,

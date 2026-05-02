@@ -388,3 +388,397 @@
 	0%, 60%, 100% { opacity: 0.4; transform: scale(1); }
 	30% { opacity: 1; transform: scale(1.4); }
 }
+
+/* ───────────────────────────────────────────────────
+ * v0.9.5 — Jarvis component CSS classes (replaces inline element.style.X)
+ */
+
+.atlas-jarvis-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.atlas-jarvis-container.is-fullscreen {
+	background: radial-gradient(ellipse at center, rgba(15,23,42,0.97) 0%, rgba(2,6,23,0.99) 100%);
+}
+
+.atlas-jarvis-container.is-sidebar {
+	background: linear-gradient(180deg, var(--background-primary), rgba(15,23,42,0.4));
+}
+
+.atlas-jarvis-hex-bg {
+	position: absolute;
+	inset: 0;
+	opacity: 0.06;
+	background-size: 32px 32px;
+	pointer-events: none;
+}
+
+.atlas-jarvis-particles {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.atlas-jarvis-header {
+	position: absolute;
+	left: 0;
+	right: 0;
+	padding: 0 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	z-index: 5;
+}
+.atlas-jarvis-header.is-sidebar { top: 8px; }
+.atlas-jarvis-header.is-fullscreen { top: 20px; }
+
+.atlas-jarvis-title-wrap {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.atlas-jarvis-title-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #22c55e;
+	box-shadow: 0 0 8px #22c55e;
+	animation: atlas-pulse-soft 2s ease-in-out infinite;
+}
+
+.atlas-jarvis-title-text {
+	font-weight: 600;
+	letter-spacing: 0.2em;
+	color: var(--atlas-accent, #818cf8);
+	font-family: var(--font-monospace);
+}
+.atlas-jarvis-title-text.is-sidebar { font-size: 10px; }
+.atlas-jarvis-title-text.is-fullscreen { font-size: 12px; }
+
+.atlas-jarvis-header-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.atlas-jarvis-btn {
+	background: rgba(15, 23, 42, 0.6);
+	color: rgba(226, 232, 240, 0.8);
+	border: 1px solid rgba(129, 140, 248, 0.3);
+	border-radius: 4px;
+	width: 28px;
+	height: 28px;
+	font-size: 14px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 160ms ease;
+}
+.atlas-jarvis-btn:hover {
+	background: rgba(99, 102, 241, 0.2);
+	border-color: rgba(129, 140, 248, 0.6);
+}
+
+.atlas-jarvis-orb-stage {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 3;
+}
+
+.atlas-jarvis-waveform {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.atlas-jarvis-ring {
+	position: absolute;
+	border-radius: 50%;
+	border: 1px solid rgba(129, 140, 248, 0.3);
+	box-shadow: inset 0 0 40px rgba(129, 140, 248, 0.1);
+	animation: atlas-jarvis-ring-rotate 30s linear infinite;
+	will-change: transform;
+}
+
+.atlas-jarvis-orb-v2 {
+	position: relative;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: background 400ms ease, box-shadow 400ms ease;
+	will-change: transform;
+}
+
+.atlas-jarvis-orb-highlight {
+	position: absolute;
+	top: 8%;
+	left: 12%;
+	width: 32%;
+	height: 20%;
+	border-radius: 50%;
+	background: radial-gradient(ellipse, rgba(255, 255, 255, 0.45), transparent 70%);
+	pointer-events: none;
+	filter: blur(3px);
+}
+
+.atlas-jarvis-orb-core {
+	position: absolute;
+	inset: 20%;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(165, 180, 252, 0.4), transparent 70%);
+	pointer-events: none;
+	animation: atlas-jarvis-core-pulse 3s ease-in-out infinite;
+}
+
+.atlas-jarvis-subtitle {
+	max-width: 85%;
+	text-align: center;
+	color: rgba(226, 232, 240, 0.85);
+	min-height: 20px;
+	padding: 12px 16px;
+	line-height: 1.5;
+	z-index: 4;
+}
+.atlas-jarvis-subtitle.is-sidebar { font-size: 12px; }
+.atlas-jarvis-subtitle.is-fullscreen { font-size: 14px; }
+
+.atlas-jarvis-history {
+	overflow-y: auto;
+	font-size: 11px;
+	color: rgba(148, 163, 184, 0.7);
+	z-index: 4;
+}
+.atlas-jarvis-history.is-sidebar {
+	position: relative;
+	width: 100%;
+	max-height: 120px;
+	padding: 0 16px;
+	margin-top: 8px;
+}
+.atlas-jarvis-history.is-fullscreen {
+	position: absolute;
+	bottom: 80px;
+	left: 40px;
+	right: 40px;
+	max-height: 180px;
+}
+
+.atlas-jarvis-history-line {
+	padding: 3px 0;
+	opacity: 0;
+	transform: translateY(4px);
+	transition: opacity 280ms ease, transform 280ms ease;
+}
+.atlas-jarvis-history-line.is-shown {
+	opacity: 0.85;
+	transform: translateY(0);
+}
+
+.atlas-jarvis-hint {
+	font-size: 10px;
+	color: rgba(148, 163, 184, 0.5);
+	font-family: var(--font-monospace);
+	letter-spacing: 0.05em;
+	padding: 8px 0;
+	z-index: 4;
+}
+
+.atlas-jarvis-status {
+	position: absolute;
+	bottom: 12px;
+	left: 16px;
+	right: 16px;
+	display: flex;
+	justify-content: space-between;
+	font-size: 9px;
+	font-family: var(--font-monospace);
+	color: rgba(148, 163, 184, 0.4);
+	letter-spacing: 0.05em;
+	z-index: 4;
+}
+
+/* Tutorial modal */
+.atlas-tutorial-progress {
+	display: flex;
+	gap: 6px;
+	justify-content: center;
+	margin-bottom: 16px;
+}
+.atlas-tutorial-progress-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--background-modifier-border);
+	transition: all 220ms ease;
+}
+.atlas-tutorial-progress-dot.is-active {
+	background: var(--atlas-accent, #818cf8);
+	transform: scale(1.3);
+}
+
+.atlas-tutorial-body {
+	min-height: 200px;
+	opacity: 0;
+	transform: translateX(12px);
+	transition: opacity 220ms ease, transform 220ms ease;
+}
+.atlas-tutorial-body.is-shown {
+	opacity: 1;
+	transform: translateX(0);
+}
+
+.atlas-tutorial-emoji {
+	font-size: 44px;
+	text-align: center;
+	margin-bottom: 12px;
+}
+
+.atlas-tutorial-title {
+	margin: 0 0 8px;
+	text-align: center;
+}
+
+.atlas-tutorial-text {
+	font-size: 14px;
+	line-height: 1.6;
+	opacity: 0.85;
+	text-align: center;
+}
+
+.atlas-tutorial-cta {
+	margin-top: 16px;
+	padding: 12px;
+	background: var(--background-modifier-hover);
+	border-radius: 8px;
+	text-align: center;
+	border-left: 3px solid var(--atlas-accent, #818cf8);
+}
+.atlas-tutorial-cta-label {
+	font-size: 13px;
+	font-weight: 500;
+}
+.atlas-tutorial-cta-example {
+	display: inline-block;
+	margin-top: 8px;
+	font-size: 12px;
+	padding: 4px 8px;
+	background: var(--background-primary);
+	border-radius: 4px;
+}
+
+.atlas-tutorial-footer {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	margin-top: 20px;
+}
+
+/* Empty states */
+.atlas-empty-state-wrap {
+	padding: 40px 20px;
+	text-align: center;
+	max-width: 420px;
+	margin: 0 auto;
+	animation: atlas-fade-in 320ms ease-out;
+}
+.atlas-empty-state-icon {
+	font-size: 44px;
+	line-height: 1;
+	margin-bottom: 12px;
+	opacity: 0.85;
+}
+.atlas-empty-state-title {
+	font-size: 16px;
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+.atlas-empty-state-subtitle {
+	font-size: 13px;
+	opacity: 0.6;
+	line-height: 1.5;
+}
+.atlas-empty-state-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+	margin-top: 16px;
+	flex-wrap: wrap;
+}
+
+/* Prompt + confirm modals */
+.atlas-prompt-input {
+	width: 100%;
+	padding: 8px 10px;
+	font-size: 14px;
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+}
+
+.atlas-modal-button-row {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 12px;
+}
+
+.atlas-confirm-message {
+	line-height: 1.5;
+	margin-bottom: 16px;
+	white-space: pre-wrap;
+}
+
+/* Compose email */
+.atlas-email-body-textarea {
+	width: 100%;
+	min-height: 240px;
+	font-family: var(--font-monospace);
+	font-size: 13px;
+}
+.atlas-email-actions-bar {
+	margin-top: 8px;
+	display: flex;
+	gap: 8px;
+}
+.atlas-email-action-row {
+	margin-top: 16px;
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+/* v0.9.5 — Jarvis orb state animations (replace inline element.style.animation) */
+.atlas-jarvis-orb-v2.is-idle      { animation: atlas-jarvis-breathe 4s ease-in-out infinite; }
+.atlas-jarvis-orb-v2.is-listening { animation: atlas-jarvis-listen 1.4s ease-in-out infinite; }
+.atlas-jarvis-orb-v2.is-thinking  { animation: atlas-jarvis-think 1.2s linear infinite; }
+.atlas-jarvis-orb-v2.is-speaking  { animation: atlas-jarvis-speak 0.25s ease-in-out infinite; }
+
+/* v0.9.5 — Jarvis fullscreen modal */
+.atlas-jarvis-modal {
+	border: none !important;
+	border-radius: 0 !important;
+}
+.atlas-jarvis-modal,
+.atlas-jarvis-modal .modal-content {
+	width: 100vw;
+	height: 100vh;
+	max-width: 100vw;
+	max-height: 100vh;
+	padding: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.atlas-email-text-full { width: 100%; }
+.atlas-email-body-label { margin-top: 12px; }
+.atlas-email-body-wrap { margin-top: 4px; }

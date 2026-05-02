@@ -36,21 +36,12 @@ class ConfirmModal extends Modal {
 		contentEl.empty();
 
 		if (this.opts.title) {
-			const t = contentEl.createEl("h3", { text: this.opts.title });
-			t.style.marginTop = "0";
+			contentEl.createEl("h3", { text: this.opts.title, cls: "atlas-confirm-title" });
 		}
 
-		const body = contentEl.createDiv();
-		body.setText(this.message);
-		body.style.lineHeight = "1.5";
-		body.style.marginBottom = "16px";
-		body.style.whiteSpace = "pre-wrap";
+		contentEl.createDiv({ cls: "atlas-confirm-message", text: this.message });
 
-		const row = contentEl.createDiv();
-		row.style.display = "flex";
-		row.style.gap = "8px";
-		row.style.justifyContent = "flex-end";
-
+		const row = contentEl.createDiv({ cls: "atlas-modal-button-row" });
 		const noBtn = row.createEl("button", { text: this.opts.noLabel ?? "Cancelar" });
 		noBtn.addEventListener("click", () => this.commit(false));
 

@@ -187,39 +187,14 @@ export function renderEmptyState(
 	opts: EmptyStateOpts = {}
 ): HTMLDivElement {
 	const cfg = REGISTRY[key] ?? REGISTRY["generic"];
-	const wrap = parent.createDiv() as HTMLDivElement;
-	wrap.addClass("atlas-empty-state");
-	wrap.style.padding = "40px 20px";
-	wrap.style.textAlign = "center";
-	wrap.style.maxWidth = "420px";
-	wrap.style.margin = "0 auto";
+	const wrap = parent.createDiv({ cls: "atlas-empty-state-wrap atlas-empty-state" }) as HTMLDivElement;
 
-	const iconEl = wrap.createDiv();
-	iconEl.style.fontSize = "44px";
-	iconEl.style.lineHeight = "1";
-	iconEl.style.marginBottom = "12px";
-	iconEl.style.opacity = "0.85";
-	iconEl.setText(cfg.icon);
-
-	const titleEl = wrap.createDiv();
-	titleEl.style.fontSize = "16px";
-	titleEl.style.fontWeight = "600";
-	titleEl.style.marginBottom = "6px";
-	titleEl.setText(cfg.title);
-
-	const subtitleEl = wrap.createDiv();
-	subtitleEl.style.fontSize = "13px";
-	subtitleEl.style.opacity = "0.6";
-	subtitleEl.style.lineHeight = "1.5";
-	subtitleEl.setText(cfg.subtitle);
+	wrap.createDiv({ cls: "atlas-empty-state-icon", text: cfg.icon });
+	wrap.createDiv({ cls: "atlas-empty-state-title", text: cfg.title });
+	wrap.createDiv({ cls: "atlas-empty-state-subtitle", text: cfg.subtitle });
 
 	if (opts.action || opts.secondaryAction) {
-		const row = wrap.createDiv();
-		row.style.display = "flex";
-		row.style.gap = "8px";
-		row.style.justifyContent = "center";
-		row.style.marginTop = "16px";
-		row.style.flexWrap = "wrap";
+		const row = wrap.createDiv({ cls: "atlas-empty-state-actions" });
 
 		if (opts.action) {
 			const btn = row.createEl("button", { text: opts.action.label, cls: "mod-cta" });

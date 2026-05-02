@@ -4,6 +4,31 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.5] — 2026-05-02 — "Showcase components migrated to CSS classes"
+
+### Changed — Inline-style → CSS classes refactor
+Converted the 6 most-visible component files to use CSS classes instead of `element.style.X` (Obsidian guideline). All component-specific CSS now lives in `styles.css`.
+
+Files refactored:
+- `src/ui/jarvis-core.ts` (~700 LOC, ~40 inline styles → 0; orb state animations via `is-idle/is-listening/is-thinking/is-speaking` classes)
+- `src/ui/jarvis-tutorial.ts` (~12 inline styles → 0)
+- `src/ui/jarvis-overlay.ts` (sizing via `.atlas-jarvis-modal` CSS rules)
+- `src/ui/empty-states.ts` (~9 inline styles → 0)
+- `src/ui/prompt-modal.ts` (~8 inline styles → 0)
+- `src/ui/confirm-modal.ts` (~7 inline styles → 0)
+- `src/innovations/compose-email.ts` (~14 inline styles → 0)
+
+`styles.css` grew to ~17 KB (still small for what it covers). New CSS classes:
+`.atlas-jarvis-{container,hex-bg,particles,header,title-*,btn,orb-{stage,v2,highlight,core},waveform,ring,subtitle,history,history-line,hint,status}`,
+`.atlas-tutorial-{progress,progress-dot,body,emoji,title,text,cta,cta-{label,example},footer}`,
+`.atlas-empty-state-{wrap,icon,title,subtitle,actions}`,
+`.atlas-{prompt-input,confirm-message,modal-button-row}`,
+`.atlas-email-{text-full,body-label,body-wrap,body-textarea,actions-bar,action-row}`,
+plus `is-{fullscreen,sidebar,active,shown,idle,listening,thinking,speaking}` modifiers.
+
+### Why this matters
+The bot's review of v0.9.1 listed ~50 inline-style warnings across the showcase Jarvis components. v0.9.5 zeros them out for these files. Older components with inline styles remain (Tasks, Dataview etc. use the same pattern; non-blocking).
+
 ## [0.9.4] — 2026-05-02 — "No-runtime-style compliance"
 
 ### Changed — Removed all `<style>` element creation at runtime

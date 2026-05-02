@@ -89,160 +89,70 @@ export class JarvisCore {
 	/** Mounts Jarvis UI inside given container. Container should be flex-column. */
 	mount(container: HTMLElement): void {
 		container.empty();
-		container.addClass("atlas-jarvis-root");
 		const isFullscreen = this.opts.mode === "fullscreen";
-		container.style.position = "relative";
-		container.style.width = "100%";
-		container.style.height = "100%";
-		container.style.display = "flex";
-		container.style.flexDirection = "column";
-		container.style.alignItems = "center";
-		container.style.justifyContent = "center";
-		container.style.overflow = "hidden";
-		container.style.background = isFullscreen
-			? "radial-gradient(ellipse at center, rgba(15,23,42,0.97) 0%, rgba(2,6,23,0.99) 100%)"
-			: "linear-gradient(180deg, var(--background-primary), rgba(15,23,42,0.4))";
+		const modeClass = isFullscreen ? "is-fullscreen" : "is-sidebar";
+		container.addClass("atlas-jarvis-container");
+		container.addClass(modeClass);
 
 		// Layer 1: Hex grid (CSS background)
 		if (this.opts.showHexGrid) {
-			const hexBg = container.createDiv();
-			hexBg.style.position = "absolute";
-			hexBg.style.inset = "0";
-			hexBg.style.opacity = "0.06";
-			hexBg.style.backgroundImage = HEX_GRID_DATA_URL;
-			hexBg.style.backgroundSize = "32px 32px";
-			hexBg.style.pointerEvents = "none";
+			const hexBg = container.createDiv({ cls: "atlas-jarvis-hex-bg" });
+			hexBg.style.setProperty("background-image", HEX_GRID_DATA_URL);
 		}
 
 		// Layer 2: Particles canvas (animated network)
-		this.particlesCanvas = container.createEl("canvas");
-		this.particlesCanvas.style.position = "absolute";
-		this.particlesCanvas.style.inset = "0";
-		this.particlesCanvas.style.width = "100%";
-		this.particlesCanvas.style.height = "100%";
-		this.particlesCanvas.style.pointerEvents = "none";
+		this.particlesCanvas = container.createEl("canvas", { cls: "atlas-jarvis-particles" });
 
 		// Layer 3: Header
-		const header = container.createDiv();
-		header.style.position = "absolute";
-		header.style.top = isFullscreen ? "20px" : "8px";
-		header.style.left = "0";
-		header.style.right = "0";
-		header.style.padding = "0 16px";
-		header.style.display = "flex";
-		header.style.justifyContent = "space-between";
-		header.style.alignItems = "center";
-		header.style.zIndex = "5";
+		const header = container.createDiv({ cls: `atlas-jarvis-header ${modeClass}` });
 
-		const titleWrap = header.createDiv();
-		titleWrap.style.display = "flex";
-		titleWrap.style.alignItems = "center";
-		titleWrap.style.gap = "8px";
-		const titleDot = titleWrap.createDiv();
-		titleDot.style.width = "8px";
-		titleDot.style.height = "8px";
-		titleDot.style.borderRadius = "50%";
-		titleDot.style.background = "#22c55e";
-		titleDot.style.boxShadow = "0 0 8px #22c55e";
-		titleDot.style.animation = "atlas-pulse-soft 2s ease-in-out infinite";
-		const titleText = titleWrap.createDiv();
-		titleText.setText("ATLAS · JARVIS");
-		titleText.style.fontSize = isFullscreen ? "12px" : "10px";
-		titleText.style.fontWeight = "600";
-		titleText.style.letterSpacing = "0.2em";
-		titleText.style.color = "var(--atlas-accent, #818cf8)";
-		titleText.style.fontFamily = "var(--font-monospace)";
+		const titleWrap = header.createDiv({ cls: "atlas-jarvis-title-wrap" });
+		titleWrap.createDiv({ cls: "atlas-jarvis-title-dot" });
+		titleWrap.createDiv({ cls: `atlas-jarvis-title-text ${modeClass}`, text: "ATLAS · JARVIS" });
 
-		const headerActions = header.createDiv();
-		headerActions.style.display = "flex";
-		headerActions.style.gap = "8px";
-
+		const headerActions = header.createDiv({ cls: "atlas-jarvis-header-actions" });
 		if (this.opts.onExpand) {
-			const expandBtn = headerActions.createEl("button");
-			expandBtn.setText("⛶");
+			const expandBtn = headerActions.createEl("button", { cls: "atlas-jarvis-btn", text: "⛶" });
 			expandBtn.title = "Expandir para tela cheia";
-			expandBtn.style.cssText = JARVIS_BTN_CSS;
 			expandBtn.addEventListener("click", () => this.opts.onExpand?.());
 		}
 		if (this.opts.onClose) {
-			const closeBtn = headerActions.createEl("button");
-			closeBtn.setText("✕");
+			const closeBtn = headerActions.createEl("button", { cls: "atlas-jarvis-btn", text: "✕" });
 			closeBtn.title = "Fechar";
-			closeBtn.style.cssText = JARVIS_BTN_CSS;
 			closeBtn.addEventListener("click", () => this.opts.onClose?.());
 		}
 
-		// Layer 4: Orb wrapper (centerpiece)
-		const orbStage = container.createDiv();
-		orbStage.style.position = "relative";
-		orbStage.style.width = `${this.opts.orbSize * 1.6}px`;
-		orbStage.style.height = `${this.opts.orbSize * 1.6}px`;
-		orbStage.style.display = "flex";
-		orbStage.style.alignItems = "center";
-		orbStage.style.justifyContent = "center";
-		orbStage.style.zIndex = "3";
+		// Layer 4: Orb stage (centerpiece) — sizes still inline since dynamic per opts.orbSize
+		const orbStage = container.createDiv({ cls: "atlas-jarvis-orb-stage" });
+		const stageDim = `${this.opts.orbSize * 1.6}px`;
+		orbStage.style.setProperty("width", stageDim);
+		orbStage.style.setProperty("height", stageDim);
 
 		// Waveform canvas (atrás do orb)
-		this.waveformCanvas = orbStage.createEl("canvas");
+		this.waveformCanvas = orbStage.createEl("canvas", { cls: "atlas-jarvis-waveform" });
 		this.waveformCanvas.width = this.opts.orbSize * 1.6;
 		this.waveformCanvas.height = this.opts.orbSize * 1.6;
-		this.waveformCanvas.style.position = "absolute";
-		this.waveformCanvas.style.inset = "0";
-		this.waveformCanvas.style.pointerEvents = "none";
 
-		// Outer ring (decorativo)
-		this.orbRingEl = orbStage.createDiv();
-		this.orbRingEl.addClass("atlas-jarvis-ring");
-		this.orbRingEl.style.position = "absolute";
-		this.orbRingEl.style.width = `${this.opts.orbSize * 1.4}px`;
-		this.orbRingEl.style.height = `${this.opts.orbSize * 1.4}px`;
-		this.orbRingEl.style.borderRadius = "50%";
-		this.orbRingEl.style.border = "1px solid rgba(129,140,248,0.3)";
-		this.orbRingEl.style.boxShadow = "inset 0 0 40px rgba(129,140,248,0.1)";
+		// Outer ring (decorativo) — size dynamic
+		this.orbRingEl = orbStage.createDiv({ cls: "atlas-jarvis-ring" });
+		const ringDim = `${this.opts.orbSize * 1.4}px`;
+		this.orbRingEl.style.setProperty("width", ringDim);
+		this.orbRingEl.style.setProperty("height", ringDim);
 
-		// Orb itself (multi-layer gradient + reflection)
-		this.orbEl = orbStage.createDiv();
-		this.orbEl.addClass("atlas-jarvis-orb-v2");
-		this.orbEl.style.position = "relative";
-		this.orbEl.style.width = `${this.opts.orbSize}px`;
-		this.orbEl.style.height = `${this.opts.orbSize}px`;
-		this.orbEl.style.borderRadius = "50%";
-		this.orbEl.style.background = ORB_GRADIENT_IDLE;
-		this.orbEl.style.boxShadow = ORB_SHADOW_IDLE;
-		this.orbEl.style.cursor = "pointer";
-		this.orbEl.style.transition = "background 400ms ease, box-shadow 400ms ease";
+		// Orb itself — size + colors dynamic per state (applyState sets bg/shadow)
+		this.orbEl = orbStage.createDiv({ cls: "atlas-jarvis-orb-v2" });
+		const orbDim = `${this.opts.orbSize}px`;
+		this.orbEl.style.setProperty("width", orbDim);
+		this.orbEl.style.setProperty("height", orbDim);
+		this.orbEl.style.setProperty("background", ORB_GRADIENT_IDLE);
+		this.orbEl.style.setProperty("box-shadow", ORB_SHADOW_IDLE);
 
-		// Reflective highlight (top-left)
-		const highlight = this.orbEl.createDiv();
-		highlight.style.position = "absolute";
-		highlight.style.top = "8%";
-		highlight.style.left = "12%";
-		highlight.style.width = "32%";
-		highlight.style.height = "20%";
-		highlight.style.borderRadius = "50%";
-		highlight.style.background = "radial-gradient(ellipse, rgba(255,255,255,0.45), transparent 70%)";
-		highlight.style.pointerEvents = "none";
-		highlight.style.filter = "blur(3px)";
-
-		// Inner core glow
-		const core = this.orbEl.createDiv();
-		core.style.position = "absolute";
-		core.style.inset = "20%";
-		core.style.borderRadius = "50%";
-		core.style.background = "radial-gradient(circle, rgba(165,180,252,0.4), transparent 70%)";
-		core.style.pointerEvents = "none";
-		core.style.animation = "atlas-jarvis-core-pulse 3s ease-in-out infinite";
+		// Reflective highlight + inner core
+		this.orbEl.createDiv({ cls: "atlas-jarvis-orb-highlight" });
+		this.orbEl.createDiv({ cls: "atlas-jarvis-orb-core" });
 
 		// Subtitle (transcript live)
-		this.subtitleEl = container.createDiv();
-		this.subtitleEl.style.maxWidth = "85%";
-		this.subtitleEl.style.textAlign = "center";
-		this.subtitleEl.style.fontSize = isFullscreen ? "14px" : "12px";
-		this.subtitleEl.style.color = "rgba(226,232,240,0.85)";
-		this.subtitleEl.style.minHeight = "20px";
-		this.subtitleEl.style.padding = "12px 16px";
-		this.subtitleEl.style.lineHeight = "1.5";
-		this.subtitleEl.style.zIndex = "4";
+		this.subtitleEl = container.createDiv({ cls: `atlas-jarvis-subtitle ${modeClass}` });
 		this.subtitleEl.setText(
 			isFullscreen
 				? "Comandos: criar pessoa/sistema/produto/cargo · agendar reunião · trocar perfil · capturar tarefa · status · mandar email"
@@ -251,51 +161,18 @@ export class JarvisCore {
 
 		// History (last 5 interactions)
 		if (this.opts.showHistory) {
-			this.historyEl = container.createDiv();
-			this.historyEl.style.position = isFullscreen ? "absolute" : "relative";
-			if (isFullscreen) {
-				this.historyEl.style.bottom = "80px";
-				this.historyEl.style.left = "40px";
-				this.historyEl.style.right = "40px";
-				this.historyEl.style.maxHeight = "180px";
-			} else {
-				this.historyEl.style.width = "100%";
-				this.historyEl.style.maxHeight = "120px";
-				this.historyEl.style.padding = "0 16px";
-				this.historyEl.style.marginTop = "8px";
-			}
-			this.historyEl.style.overflowY = "auto";
-			this.historyEl.style.fontSize = "11px";
-			this.historyEl.style.color = "rgba(148,163,184,0.7)";
-			this.historyEl.style.zIndex = "4";
+			this.historyEl = container.createDiv({ cls: `atlas-jarvis-history ${modeClass}` });
 		} else {
-			this.historyEl = container.createDiv();
-			this.historyEl.style.display = "none";
+			this.historyEl = container.createDiv({ cls: "atlas-jarvis-history is-hidden" });
+			this.historyEl.style.setProperty("display", "none");
 		}
 
 		// Hint
-		this.hintEl = container.createDiv();
-		this.hintEl.style.fontSize = "10px";
-		this.hintEl.style.color = "rgba(148,163,184,0.5)";
-		this.hintEl.style.fontFamily = "var(--font-monospace)";
-		this.hintEl.style.letterSpacing = "0.05em";
-		this.hintEl.style.padding = "8px 0";
-		this.hintEl.style.zIndex = "4";
+		this.hintEl = container.createDiv({ cls: "atlas-jarvis-hint" });
 		this.hintEl.setText("[ SEGURE ESPAÇO • CLICK NO ORB • ESC ]");
 
 		// Status bar
-		this.statusEl = container.createDiv();
-		this.statusEl.style.position = "absolute";
-		this.statusEl.style.bottom = "12px";
-		this.statusEl.style.left = "16px";
-		this.statusEl.style.right = "16px";
-		this.statusEl.style.display = "flex";
-		this.statusEl.style.justifyContent = "space-between";
-		this.statusEl.style.fontSize = "9px";
-		this.statusEl.style.fontFamily = "var(--font-monospace)";
-		this.statusEl.style.color = "rgba(148,163,184,0.4)";
-		this.statusEl.style.letterSpacing = "0.05em";
-		this.statusEl.style.zIndex = "4";
+		this.statusEl = container.createDiv({ cls: "atlas-jarvis-status" });
 		const stl = this.statusEl.createDiv();
 		stl.setText(`MODEL: ${this.plugin.settings.ollama.generationModel.toUpperCase()}`);
 		const str = this.statusEl.createDiv();
@@ -487,23 +364,13 @@ export class JarvisCore {
 	applyState(state: JarvisState): void {
 		this.state = state;
 		const colors = STATE_COLORS[state];
-		this.orbEl.style.background = colors.gradient;
-		this.orbEl.style.boxShadow = colors.shadow;
-		this.orbRingEl.style.borderColor = colors.ringBorder;
-		switch (state) {
-			case "idle":
-				this.orbEl.style.animation = "atlas-jarvis-breathe 4s ease-in-out infinite";
-				break;
-			case "listening":
-				this.orbEl.style.animation = "atlas-jarvis-listen 1.4s ease-in-out infinite";
-				break;
-			case "thinking":
-				this.orbEl.style.animation = "atlas-jarvis-think 1.2s linear infinite";
-				break;
-			case "speaking":
-				this.orbEl.style.animation = "atlas-jarvis-speak 0.25s ease-in-out infinite";
-				break;
-		}
+		// Dynamic per-state visuals — gradient/shadow are runtime-computed strings
+		this.orbEl.style.setProperty("background", colors.gradient);
+		this.orbEl.style.setProperty("box-shadow", colors.shadow);
+		this.orbRingEl.style.setProperty("border-color", colors.ringBorder);
+		// Animation switch via classes (one class per state)
+		this.orbEl.removeClass("is-idle", "is-listening", "is-thinking", "is-speaking");
+		this.orbEl.addClass(`is-${state}`);
 	}
 
 	private async startListening(): Promise<void> {
@@ -691,19 +558,11 @@ export class JarvisCore {
 
 	private appendHistory(text: string): void {
 		if (!this.historyEl) return;
-		const line = this.historyEl.createDiv();
-		line.style.padding = "3px 0";
-		line.style.opacity = "0";
-		line.style.transition = "opacity 280ms ease, transform 280ms ease";
-		line.style.transform = "translateY(4px)";
-		line.setText(text);
+		const line = this.historyEl.createDiv({ cls: "atlas-jarvis-history-line", text });
 		while (this.historyEl.children.length > 6) {
-			this.historyEl.removeChild(this.historyEl.firstChild!);
+			this.historyEl.firstChild?.remove();
 		}
-		setTimeout(() => {
-			line.style.opacity = "0.85";
-			line.style.transform = "translateY(0)";
-		}, 10);
+		setTimeout(() => line.addClass("is-shown"), 10);
 	}
 
 	destroy(): void {
@@ -782,17 +641,4 @@ const STATE_COLORS: Record<JarvisState, {
 	},
 };
 
-const JARVIS_BTN_CSS = `
-	background: rgba(15,23,42,0.6);
-	color: rgba(226,232,240,0.8);
-	border: 1px solid rgba(129,140,248,0.3);
-	border-radius: 4px;
-	width: 28px;
-	height: 28px;
-	font-size: 14px;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: all 160ms ease;
-`;
+// Button styles moved to .atlas-jarvis-btn in styles.css (v0.9.5)
