@@ -4,6 +4,53 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.1] — 2026-05-02 — "Publication readiness for obsidian-releases"
+
+### Changed
+- README rewritten in **English** with shields.io badges, install instructions (BRAT), Master Sidebar table (16 tabs), Jarvis section, hardware requirements
+- `manifest.json` description switched to English: *"Local-first second brain. 15 professional profiles, 15 AI tools, ECharts analytics, course manager, knowledge graph, 100% local via Ollama."* — synced with community-plugins.json submission
+
+### Compliance — Obsidian developer policies
+- **0 `innerHTML =`** remaining in source (was 7 occurrences):
+  - splash.ts logo → `createElementNS` SVG
+  - atlas-hud.ts / atlas-header.ts → `DOMParser` + `importNode`
+  - tutorial-system.ts body → `MarkdownRenderer.render()`
+  - weekly-report.ts preview → `MarkdownRenderer.render()`
+  - auto-link-systems.ts highlight → `createEl("mark") + appendText`
+  - onboarding.ts iCal help → DOM API
+- 0 `eval()` / `new Function()`
+- `child_process.exec` calls limited to whisper.cpp, piper, osascript, ollama (path-controlled, not user input)
+- No private API usage (`app.account`, etc.)
+
+### Released
+- GitHub Release tagged **0.9.1** (no `v` prefix, matching `manifest.version` exactly per Obsidian convention)
+- Backwards-compat: `v0.9.1` tag also pushed for existing BRAT installs
+
+## [0.9.0] — 2026-05-02 — "Jarvis Real + Tool Calling + FAB v2 + Reminders + Polish"
+
+### Added — Jarvis Real (Sprint 28)
+- **Tool registry** with 12 mutators: create_person/system/product/role/course, create_action_item, create_reminder, schedule_meeting, compose_email, switch_profile, index_vault, forget_person (destructive)
+- **Agent.run() function calling** — chat now mutates vault via Ollama tools API. Same permissions as voice.
+- **chatWithTools()** in OllamaClient with OOM auto-fallback
+- **+8 voice command mutators** routed through the same registry
+- **JarvisOverlay** — full-screen Cmd+Shift+J modal with 200px animated orb (4 states: idle breathing, listening waveform, thinking glow rotating, speaking sync)
+- **TTS speaking events** — Piper emits `atlas:tts-start/stop`, orb syncs
+
+### Added — Polish (Sprint 29)
+- **FAB v2** — 16 items in 3 categories (Capturar / Criar / Tools IA), 45° rotation when open
+- **Reminders tab** (16th tab) with countdown live, snooze (+1h/tomorrow), complete, "+ Novo" inline
+- **Empty states util** with 30 personalidade-Atlas copies
+- **Card unification** — `.atlas-card-interactive` hover translateY+shadow, action/system/knowledge variants
+
+### Added — Email + Chat redesign (Sprint 30)
+- **ComposeEmailModal** — recipient autocomplete via KG email field, AI assist (LLM drafts), templates, send via SMTP
+- **Chat tab tagline** differentiating from Jarvis with link to switch
+- **Tool call meta info** in chat assistant message (🛠️ ✓ create_person...)
+
+### Stack
+- Bundle: 1.8 MB main.js minified
+- TypeScript strict — 0 errors
+
 ## [0.8.4] — 2026-05-02 — "Polish: Sound FX wired + Hub cards + Status bar HUD"
 
 ### Added — Sound FX wired
