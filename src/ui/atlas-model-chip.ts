@@ -90,17 +90,43 @@ export function renderAtlasModelChip(parent: HTMLElement, plugin: AtlasPlugin): 
 		const model = route?.model ?? plugin.settings.ollama?.generationModel ?? "(no model)";
 		const meta = PROVIDER_LABELS[provider] ?? { emoji: "?", name: provider };
 
+		// v0.45: health dot LIVE — cyan pulse if healthy, red if not
+		const healthDot = chip.createSpan({ cls: "atlas-model-chip-health-dot is-checking" });
+		void healthDot;
+
 		const provBadge = chip.createSpan({
 			cls: `atlas-model-chip-provider is-${provider}`,
 			text: meta.emoji,
 		});
 		void provBadge;
 		chip.createSpan({ cls: "atlas-model-chip-model", text: model });
+
+		// v0.45: cost/day display — só aparece se há gasto > 0
+		const costEl = chip.createSpan({ cls: "atlas-model-chip-cost" });
+		void costEl;
+
 		const dropArrow = chip.createSpan({ cls: "atlas-model-chip-arrow", text: "▾" });
 		void dropArrow;
+
+		// Async health check + cost (não bloqueia render)
+		void updateHealthAndCost(chip, plugin, provider);
 	};
 
 	refresh();
+	// Re-check health every 30s
+	const healthTimer = window.setInterval(() => {
+		const provider =
+			plugin.providerRouter?.resolveTask("chat")?.provider ?? "ollama";
+		void updateHealthAndCost(chip, plugin, provider);
+	}, 30_000);
+	// Cleanup quando chip removido do DOM
+	const cleanupObs = new MutationObserver(() => {
+		if (!document.body.contains(chip)) {
+			window.clearInterval(healthTimer);
+			cleanupObs.disconnect();
+		}
+	});
+	cleanupObs.observe(document.body, { childList: true, subtree: true });
 
 	chip.addEventListener("click", (ev) => {
 		ev.stopPropagation();
@@ -108,6 +134,60 @@ export function renderAtlasModelChip(parent: HTMLElement, plugin: AtlasPlugin): 
 	});
 
 	return { el: chip, refresh };
+}
+
+/**
+ * v0.45: live health check + cost/day display.
+ * Async — não bloqueia render. Updates DOM diretamente nos elementos do chip.
+ */
+async function updateHealthAndCost(
+	chip: HTMLElement,
+	plugin: AtlasPlugin,
+	provider: string
+): Promise<void> {
+	const dot = chip.querySelector(".atlas-model-chip-health-dot");
+	const costEl = chip.querySelector(".atlas-model-chip-cost");
+
+	// Health check
+	if (dot) {
+		dot.classList.remove("is-healthy", "is-down", "is-checking");
+		try {
+			if (provider === "ollama") {
+				const ok = await plugin.ollama.ping();
+				dot.classList.add(ok ? "is-healthy" : "is-down");
+				dot.setAttribute("title", ok ? "Ollama UP" : "Ollama OFFLINE");
+			} else {
+				// Cloud provider: assume healthy se router tem essa key (não fazemos ping ativo pra evitar custo)
+				const configured = plugin.providerRouter?.listConfiguredProviders() ?? [];
+				const isConfigured = configured.includes(provider as never);
+				dot.classList.add(isConfigured ? "is-healthy" : "is-down");
+				dot.setAttribute("title", isConfigured ? `${provider} configurado` : `${provider} sem API key`);
+			}
+		} catch {
+			dot.classList.add("is-down");
+			dot.setAttribute("title", "Health check falhou");
+		}
+	}
+
+	// Cost/day (apenas se houver tracker + budget enabled)
+	if (costEl) {
+		try {
+			const tracker = plugin.providerRouter?.getCostTracker?.();
+			if (tracker) {
+				const spend = await tracker.getSpend({ window: "day" });
+				if (spend.totalUSD > 0.001) {
+					costEl.textContent = `$${spend.totalUSD.toFixed(2)}`;
+					costEl.classList.add("has-spend");
+					(costEl as HTMLElement).title = `Gasto hoje: $${spend.totalUSD.toFixed(4)} · ${spend.callCount} chamadas`;
+				} else {
+					costEl.textContent = "";
+					costEl.classList.remove("has-spend");
+				}
+			}
+		} catch {
+			// silent — cost is optional
+		}
+	}
 }
 
 function openDropdown(anchor: HTMLElement, plugin: AtlasPlugin, onChange: () => void): void {

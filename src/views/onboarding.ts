@@ -146,24 +146,119 @@ export class OnboardingWizard extends Modal {
 
 	private renderWelcome(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "🧠 Bem-vindo ao Atlas" });
+		c.addClass("atlas-onboarding-welcome-v2");
+
+		c.createEl("h2", {
+			cls: "atlas-onboarding-welcome-title",
+			text: "🌌 Bem-vindo ao Atlas",
+		});
 		c.createEl("p", {
-			text: "Seu segundo cérebro local. Vamos personalizar tudo em ~5 min (sem terminal).",
+			cls: "atlas-onboarding-welcome-tagline",
+			text: "Seu segundo cérebro local. Ele captura, conecta, lembra, executa. Você fala, ele faz.",
 		});
 
-		const list = c.createEl("ul");
+		// v0.45: Capabilities showcase — 4 cards com exemplos real
+		const showcaseTitle = c.createEl("div", {
+			cls: "atlas-onboarding-showcase-title",
+			text: "✨ O QUE ATLAS FAZ",
+		});
+		void showcaseTitle;
+
+		const grid = c.createDiv({ cls: "atlas-onboarding-showcase-grid" });
+
+		const cards = [
+			{
+				emoji: "💬",
+				title: "Comandos rápidos",
+				desc: "Chat ou voz pegando contexto",
+				examples: [
+					'"PIX com problema" → linka ao Sistema PIX',
+					'"Miguel faltou hoje" → action item',
+					'"lembrar reunião sexta 14h"',
+				],
+			},
+			{
+				emoji: "📊",
+				title: "Relatórios automáticos",
+				desc: "Agrega vault inteiro",
+				examples: [
+					'"gere relatório de todos 1:1 com Miguel"',
+					'"email sobre sistemas da semana"',
+					'"year in review" → spotify-wrapped',
+				],
+			},
+			{
+				emoji: "🤖",
+				title: "Multi-agent IA",
+				desc: "Local grátis ou cloud premium",
+				examples: [
+					"Researcher (KG + vault search)",
+					"Writer (relatórios markdown)",
+					"Reasoning (CoT — DACI/RAID)",
+				],
+			},
+			{
+				emoji: "🎙️",
+				title: "Voz natural (Jarvis)",
+				desc: "Cmd+Shift+J abre Jarvis",
+				examples: [
+					'"Atlas, criar pessoa João"',
+					'"Atlas, próximo um a um"',
+					'"Atlas, daily log"',
+				],
+			},
+		];
+
+		for (const card of cards) {
+			const cardEl = grid.createDiv({ cls: "atlas-onboarding-showcase-card" });
+			const top = cardEl.createDiv({ cls: "atlas-onboarding-showcase-card-top" });
+			top.createSpan({
+				cls: "atlas-onboarding-showcase-emoji",
+				text: card.emoji,
+			});
+			const wrap = top.createDiv();
+			wrap.createDiv({
+				cls: "atlas-onboarding-showcase-title-text",
+				text: card.title,
+			});
+			wrap.createDiv({
+				cls: "atlas-onboarding-showcase-desc",
+				text: card.desc,
+			});
+			const list = cardEl.createEl("ul", { cls: "atlas-onboarding-showcase-list" });
+			for (const ex of card.examples) {
+				list.createEl("li", { text: ex });
+			}
+		}
+
+		// Token economy promise
+		const tokenBadge = c.createDiv({ cls: "atlas-onboarding-token-badge" });
+		tokenBadge.createSpan({ text: "💰 " });
+		tokenBadge.createSpan({
+			cls: "atlas-onboarding-token-badge-bold",
+			text: "80% das ações = $0",
+		});
+		tokenBadge.createSpan({
+			text: " (heurística + KG). IA só pra extração nova, relatórios e disambiguation.",
+		});
+
+		// Setup steps preview
+		const stepsList = c.createDiv({ cls: "atlas-onboarding-steps-preview" });
+		stepsList.createDiv({
+			cls: "atlas-onboarding-steps-preview-title",
+			text: "Configurar em ~5 min:",
+		});
+		const stepsUl = stepsList.createEl("ul");
 		[
-			"👤 Seu perfil profissional (templates + tools customizados)",
-			"⏰ Horário de trabalho + briefing matinal",
-			"🎯 Suas prioridades de uso",
+			"👤 Perfil profissional (15 templates curados)",
+			"⏰ Horário de trabalho + briefings",
 			"📁 Estrutura de pastas no vault",
-			"🤖 Detectar/instalar Ollama (LLM local)",
-			"🎨 Color theme",
+			"🤖 Ollama (LLM local) — detecta/instala",
 			"📧 Email + 📱 Telegram + 🗓️ Calendar (opcionais)",
-		].forEach((it) => list.createEl("li", { text: it }));
+		].forEach((it) => stepsUl.createEl("li", { text: it }));
 
 		c.createEl("p", {
-			text: "Pode pular passos opcionais. Tudo configurável depois em Settings → Atlas.",
+			text: "Pode pular qualquer passo. Tudo configurável depois em Settings → Atlas.",
 			cls: "atlas-onboarding-hint",
 		});
 

@@ -536,6 +536,15 @@ export default class AtlasPlugin extends Plugin {
 		this.systemDetectorWatcher = new SystemDetectorWatcher(this);
 		this.systemDetectorWatcher.register((cleanup) => this.register(cleanup));
 
+		// v0.45 E3: Course detector watcher (auto-link cursos em notas no save)
+		try {
+			const cdMod = await import("./src/automation/course-detector");
+			const cd = new cdMod.CourseDetectorWatcher(this.app, this);
+			cd.start();
+		} catch (e) {
+			logger.warn("v0.45: CourseDetectorWatcher failed", { error: String(e) });
+		}
+
 		// Visual Template Editor store (v0.5 Sprint 9)
 		this.templateStore = new TemplateStore(this.app, this.settings.folders.atlas);
 		await this.templateStore.load();

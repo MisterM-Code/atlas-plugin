@@ -4,6 +4,47 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.45.0] — 2026-05-02 — "IA status live + Onboarding showcase + Course detector"
+
+### E1 — IA Status Indicator no Model Chip
+- Live health dot pulsando: 🟢 cyan (healthy), 🔴 red (down), cinza (checking)
+- Ollama: ping real ao daemon a cada 30s
+- Cloud providers: status configured/missing-key
+- Cost/day pill ao lado do modelo: "$1.23" verde quando há gasto
+- Tooltip detalha: "Gasto hoje: $X.XX · N chamadas"
+- Auto-refresh + cleanup MutationObserver
+
+### E2 — Onboarding Capabilities Showcase tela
+- Welcome screen reescrita com 4 cards visuais:
+  - 💬 Comandos rápidos (PIX/Miguel/lembrar exemplos)
+  - 📊 Relatórios automáticos (relatório Miguel/email semana/year-in-review)
+  - 🤖 Multi-agent IA (Researcher/Writer/Reasoning)
+  - 🎙️ Voz natural (Cmd+Shift+J + 3 comandos exemplo)
+- Token economy badge: "💰 80% das ações = $0 (heurística + KG)"
+- Steps preview: 5 passos do setup
+- Title gradient cyan→indigo→violet (cosmic)
+- Cards hover lift + cyan border
+
+### E3 — Course Detector (auto-link cursos retroativo)
+- Mirror SystemDetector pattern
+- `CourseDetector.passiveScan(file)` — detect + sync frontmatter `courses: [...]`
+- `CourseDetectorWatcher` — hooks vault modify event + debounce 30s
+- `scanVaultForCourse(course)` — retroativo quando user cria course novo
+- Adicionado em main.ts startup sequence
+- ZERO LLM calls — 100% regex word-boundary
+
+### Files
+- `src/ui/atlas-model-chip.ts` — health dot + cost pill + 30s polling + cleanup
+- `src/views/onboarding.ts` — renderWelcome v2 com 4 capability cards
+- `src/automation/course-detector.ts` (NEW) — Detector + Watcher classes
+- `main.ts` — wire CourseDetectorWatcher
+- `styles.css` — `.atlas-model-chip-health-dot/cost` (~50 LOC) + `.atlas-onboarding-showcase-*` (~110 LOC)
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Course detector is additive (Frontmatter merge non-destructive)
+
 ## [0.44.0] — 2026-05-02 — "Foundation Critical Fixes — persistence + chat trust + new 1:1 + Jarvis-grade home"
 
 User feedback fundamental: persistência, chat 500 cloud, new 1:1 só brief, vinculações faltando, home incompleta, Jarvis silencioso.
