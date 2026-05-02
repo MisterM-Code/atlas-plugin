@@ -4,6 +4,48 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.33.0] — 2026-05-02 — "Polish notification modals: Compose Email + Whisper Setup + API Key Detected"
+
+Polish dos modais de notificação/setup que aparecem em momentos de fricção (user precisa tomar decisão).
+
+### Sprint A — ComposeEmail modal
+- 1px top accent line cosmic gradient cyan→indigo
+- Header com icon 📧 com bob+rotate animation 2.6s + cyan drop-shadow
+- Title gradient cyan→indigo + subtitle
+- Body label uppercase com cyan left-border (consistente com outras sections)
+- Body textarea com cyan focus glow + hover border-tint
+- AI assist buttons row: hover translateY + cyan border + cyan shadow
+- Send/Cancel row com gradient fade-line top + Send mod-cta cyan glow
+
+### Sprint B — WhisperSetup modal
+- 1px top accent line cosmic
+- Hero com border-bottom + fade-line cosmic
+- Status box com gradient cyan/indigo bg + cyan border (was plain secondary)
+- Action cards: gradient bg + animated accent line top edge (0→80% on hover)
+- Action hover: translateY(-3px) + cyan glow + icon scale(1.1) rotate(-3deg)
+- Mod-cta action com gradient bg cyan/indigo border
+
+### Sprint C — ApiKeyDetected modal
+- 1px top accent line cosmic 4-color (cyan/indigo/purple)
+- Background animated radial-gradient blob (subtle ambient cyan)
+- Hero com border-bottom + fade-line
+- Routing box gradient cyan/indigo + cyan border (was plain)
+- Route rows com hover background tint
+- Route model text gradient cyan→indigo + bold (was plain accent)
+- Actions row com gradient line top + buttons hover translateY + Activate mod-cta cyan glow
+
+### CSS additions
+- ComposeEmail: ~150 LOC novas
+- WhisperSetup: ~50 LOC enhanced (refactored existing)
+- ApiKeyDetected: ~75 LOC enhanced
+- TOTAL: ~275 LOC
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Modal APIs idênticas
+- Animations performant (transform/opacity only)
+
 ## [0.32.0] — 2026-05-02 — "Polish always-visible: Activity Bar + Today hero + Jarvis HUD"
 
 Polish dos elementos sempre visíveis (Activity Bar todo dia o user vê + Today hero abre Atlas + Jarvis usado constantemente).

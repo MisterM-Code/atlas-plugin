@@ -42,8 +42,19 @@ export class ComposeEmailModal extends Modal {
 		const { contentEl } = this;
 		applyResponsiveModal(contentEl, { preferredWidth: 640 });
 		contentEl.empty();
+		contentEl.addClass("atlas-compose-email-modal");
 
-		contentEl.createEl("h2", { text: "📧 Compose Email" });
+		const header = contentEl.createDiv({ cls: "atlas-compose-email-header" });
+		header.createEl("span", { cls: "atlas-compose-email-icon", text: "📧" });
+		const wrap = header.createDiv({ cls: "atlas-compose-email-title-wrap" });
+		wrap.createEl("h2", {
+			cls: "atlas-compose-email-title",
+			text: "Compose Email",
+		});
+		wrap.createEl("div", {
+			cls: "atlas-compose-email-subtitle",
+			text: "Escreva direto, use AI assist pra rascunho ou pegue um template.",
+		});
 
 		new Setting(contentEl)
 			.setName("Para")

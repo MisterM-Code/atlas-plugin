@@ -4449,32 +4449,64 @@ button.atlas-btn:active::after,
  * ════════════════════════════════════════════════════════════════ */
 
 .atlas-whisper-setup-modal {
-	padding: 24px 28px 20px;
+	padding: 26px 28px 22px;
+	background: linear-gradient(180deg,
+		var(--background-primary),
+		color-mix(in srgb, var(--background-primary) 96%, var(--atlas-accent, #6366f1)));
+	position: relative;
+}
+.atlas-whisper-setup-modal::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, #00e5e5, #6366f1, transparent);
+	opacity: 0.85;
+	pointer-events: none;
 }
 .atlas-whisper-hero {
 	text-align: center;
 	margin-bottom: 18px;
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	position: relative;
+}
+.atlas-whisper-hero::after {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: 25%;
+	right: 25%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(0, 229, 229, 0.5), transparent);
 }
 .atlas-whisper-hero h2 {
 	margin: 0 0 8px 0;
 	font-size: 22px;
+	font-weight: 800;
 	background: linear-gradient(135deg, #00e5e5, #6366f1);
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
+	letter-spacing: -0.4px;
 }
 .atlas-whisper-tagline {
 	margin: 0;
 	font-size: 13px;
-	opacity: 0.75;
-	line-height: 1.5;
+	opacity: 0.78;
+	line-height: 1.55;
 }
 
 .atlas-whisper-status {
 	margin: 16px 0 20px;
-	padding: 14px 16px;
-	background: var(--background-secondary);
-	border-radius: 10px;
+	padding: 16px 18px;
+	background: linear-gradient(135deg,
+		rgba(0, 229, 229, 0.05),
+		rgba(99, 102, 241, 0.05));
+	border: 1px solid rgba(0, 229, 229, 0.22);
+	border-radius: 12px;
 }
 .atlas-whisper-status-grid {
 	display: flex;
@@ -4538,27 +4570,51 @@ button.atlas-btn:active::after,
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 12px 14px;
-	background: var(--background-secondary);
+	padding: 14px 16px;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 92%, var(--atlas-accent, #6366f1)));
 	border: 1px solid var(--background-modifier-border);
-	border-radius: 10px;
+	border-radius: 12px;
 	cursor: pointer;
 	text-align: left;
-	transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
-	            border-color 200ms ease,
-	            background 200ms ease;
+	position: relative;
+	overflow: hidden;
+	transition: all 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-whisper-action::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--atlas-accent, #00e5e5), transparent);
+	transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+	            left 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .atlas-whisper-action:hover {
-	transform: translateY(-2px);
-	border-color: var(--atlas-accent, #6366f1);
-	background: var(--background-secondary-alt);
+	transform: translateY(-3px);
+	border-color: rgba(0, 229, 229, 0.5);
+	box-shadow: 0 10px 24px rgba(0, 229, 229, 0.18);
+}
+.atlas-whisper-action:hover::before {
+	width: 80%;
+	left: 10%;
+}
+.atlas-whisper-action:hover .atlas-whisper-action-icon {
+	transform: scale(1.1) rotate(-3deg);
 }
 .atlas-whisper-action.mod-cta {
-	border-color: var(--atlas-accent, #6366f1);
+	border-color: rgba(0, 229, 229, 0.45);
+	background: linear-gradient(135deg,
+		rgba(0, 229, 229, 0.10),
+		rgba(99, 102, 241, 0.10));
 }
 .atlas-whisper-action-icon {
-	font-size: 24px;
+	font-size: 26px;
 	flex-shrink: 0;
+	transition: transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .atlas-whisper-action-text {
 	flex-grow: 1;
@@ -4612,11 +4668,53 @@ button.atlas-btn:active::after,
  * ════════════════════════════════════════════════════════════════ */
 
 .atlas-apikey-modal {
-	padding: 24px 28px 18px;
+	padding: 26px 28px 20px;
+	background: linear-gradient(180deg,
+		var(--background-primary),
+		color-mix(in srgb, var(--background-primary) 96%, var(--atlas-accent, #6366f1)));
+	position: relative;
+}
+.atlas-apikey-modal::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, #00e5e5, #6366f1, #a855f7, transparent);
+	opacity: 0.9;
+	pointer-events: none;
+}
+.atlas-apikey-modal::after {
+	content: "";
+	position: absolute;
+	top: -10%;
+	right: -10%;
+	width: 250px;
+	height: 250px;
+	background: radial-gradient(circle, rgba(0, 229, 229, 0.06), transparent 65%);
+	pointer-events: none;
+	animation: atlas-apikey-glow-blob 6s ease-in-out infinite alternate;
+}
+@keyframes atlas-apikey-glow-blob {
+	from { transform: translate(0,0) scale(1); opacity: 0.6; }
+	to { transform: translate(-20px, 15px) scale(1.15); opacity: 1; }
 }
 .atlas-apikey-hero {
 	text-align: center;
 	margin-bottom: 18px;
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	position: relative;
+}
+.atlas-apikey-hero::after {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: 25%;
+	right: 25%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(0, 229, 229, 0.5), transparent);
 }
 .atlas-apikey-emoji {
 	font-size: 42px;
@@ -4658,16 +4756,25 @@ button.atlas-btn:active::after,
 .atlas-apikey-routing {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 10px;
 	margin-bottom: 16px;
-	padding: 12px 14px;
-	background: var(--background-secondary);
-	border-radius: 10px;
+	padding: 14px 16px;
+	background: linear-gradient(135deg,
+		rgba(0, 229, 229, 0.05),
+		rgba(99, 102, 241, 0.05));
+	border: 1px solid rgba(0, 229, 229, 0.22);
+	border-radius: 12px;
 }
 .atlas-apikey-route-row {
 	display: flex;
 	align-items: center;
 	gap: 10px;
+	padding: 6px 8px;
+	border-radius: 6px;
+	transition: background 200ms ease;
+}
+.atlas-apikey-route-row:hover {
+	background: color-mix(in srgb, var(--background-secondary) 80%, var(--atlas-accent, #00e5e5));
 }
 .atlas-apikey-route-emoji {
 	font-size: 18px;
@@ -4686,8 +4793,12 @@ button.atlas-btn:active::after,
 .atlas-apikey-route-model {
 	font-size: 10px;
 	font-family: "SF Mono", Monaco, monospace;
-	opacity: 0.7;
-	color: var(--atlas-accent, #6366f1);
+	opacity: 0.85;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	font-weight: 600;
 }
 .atlas-apikey-info {
 	margin-bottom: 14px;
@@ -4718,7 +4829,31 @@ button.atlas-btn:active::after,
 	display: flex;
 	justify-content: flex-end;
 	gap: 10px;
-	margin-top: 8px;
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid var(--background-modifier-border);
+	position: relative;
+}
+.atlas-apikey-actions::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 30%;
+	right: 30%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(0, 229, 229, 0.4), transparent);
+}
+.atlas-apikey-actions button {
+	padding: 9px 22px;
+	font-size: 12px;
+	font-weight: 600;
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-apikey-actions button:hover {
+	transform: translateY(-1px);
+}
+.atlas-apikey-actions button.mod-cta:hover {
+	box-shadow: 0 8px 20px rgba(0, 229, 229, 0.4);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -7436,4 +7571,127 @@ button.atlas-btn:active::after,
 }
 .atlas-confirm-btn-yes.mod-warning:hover {
 	box-shadow: 0 6px 16px rgba(239, 68, 68, 0.45);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   v0.33 ComposeEmail Modal
+   ────────────────────────────────────────────────────────────────── */
+.atlas-compose-email-modal {
+	background: linear-gradient(180deg,
+		var(--background-primary),
+		color-mix(in srgb, var(--background-primary) 96%, var(--atlas-accent, #6366f1)));
+	position: relative;
+}
+.atlas-compose-email-modal::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, #00e5e5, #6366f1, transparent);
+	opacity: 0.85;
+	pointer-events: none;
+}
+.atlas-compose-email-header {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin-bottom: 18px;
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+.atlas-compose-email-icon {
+	font-size: 28px;
+	flex-shrink: 0;
+	filter: drop-shadow(0 0 8px rgba(0, 229, 229, 0.45));
+	animation: atlas-compose-icon-bob 2.6s ease-in-out infinite;
+}
+@keyframes atlas-compose-icon-bob {
+	0%, 100% { transform: translateY(0) rotate(-3deg); }
+	50% { transform: translateY(-4px) rotate(3deg); }
+}
+.atlas-compose-email-title-wrap {
+	flex-grow: 1;
+}
+.atlas-compose-email-title {
+	margin: 0 0 4px 0;
+	font-size: 20px;
+	font-weight: 700;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	letter-spacing: -0.3px;
+}
+.atlas-compose-email-subtitle {
+	font-size: 12px;
+	opacity: 0.72;
+	line-height: 1.5;
+}
+
+.atlas-compose-email-modal .atlas-email-text-full:focus {
+	border-color: var(--atlas-accent, #00e5e5);
+	box-shadow: 0 0 0 3px rgba(0, 229, 229, 0.15);
+	outline: none;
+}
+
+.atlas-compose-email-modal .atlas-email-body-label {
+	font-size: 11px !important;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin: 16px 0 8px 0;
+	padding-left: 8px;
+	border-left: 3px solid var(--atlas-accent, #00e5e5);
+	color: var(--atlas-accent, #00e5e5);
+	text-transform: uppercase;
+}
+.atlas-compose-email-modal .atlas-email-body-textarea {
+	min-height: 180px;
+	border-radius: 8px;
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-compose-email-modal .atlas-email-body-textarea:hover {
+	border-color: rgba(0, 229, 229, 0.3);
+}
+.atlas-compose-email-modal .atlas-email-body-textarea:focus {
+	border-color: var(--atlas-accent, #00e5e5);
+	box-shadow: 0 0 0 3px rgba(0, 229, 229, 0.15);
+	outline: none;
+}
+
+.atlas-compose-email-modal .atlas-email-actions-bar button {
+	padding: 7px 14px;
+	font-size: 12px;
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-compose-email-modal .atlas-email-actions-bar button:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 10px rgba(0, 229, 229, 0.18);
+	border-color: rgba(0, 229, 229, 0.4);
+}
+
+.atlas-compose-email-modal .atlas-email-action-row {
+	margin-top: 18px;
+	padding-top: 14px;
+	border-top: 1px solid var(--background-modifier-border);
+	position: relative;
+}
+.atlas-compose-email-modal .atlas-email-action-row::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 30%;
+	right: 30%;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(0, 229, 229, 0.4), transparent);
+}
+.atlas-compose-email-modal .atlas-email-action-row button {
+	padding: 8px 20px;
+	font-size: 12px;
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-compose-email-modal .atlas-email-action-row button.mod-cta:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 6px 16px rgba(0, 229, 229, 0.4);
 }
