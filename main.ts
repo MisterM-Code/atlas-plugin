@@ -787,10 +787,13 @@ captured_via: webhook
 					}
 				});
 			});
-			server.listen(port);
+			// v0.19: bind 127.0.0.1 explicitly (não 0.0.0.0) — segurança: só local
+			server.listen(port, "127.0.0.1");
 			this.webhookServer = { close: () => server.close() };
+			// Audit: log webhook activation
+			void this.auditLog({ action: "webhook.started", port });
 			new Notice(
-				`🔌 Atlas webhook ON em localhost:${port}. Token: ${token}\n\nTeste:\ncurl -X POST -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" -d '{"title":"teste","body":"hello"}' http://localhost:${port}`,
+				`🔌 Atlas webhook ON em 127.0.0.1:${port} (só local).\n\nToken: ${token}\n\nTeste:\ncurl -X POST -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" -d '{"title":"teste","body":"hello"}' http://localhost:${port}`,
 				30000
 			);
 		} catch (e) {
@@ -1390,11 +1393,13 @@ captured_via: webhook
 					new Notice("Atlas: KG vazio.");
 					return;
 				}
-				const apiAny = this.app as unknown as { Modal?: unknown };
-				void apiAny;
-				// Picker simples via Notice + prompt
-				const name = window.prompt(
-					"⚠️ LGPD Right-to-be-forgotten\n\nNome EXATO da pessoa para deletar do KG:\n\n(Sessões, action items, commitments, themes vinculados também serão removidos. Notas em 06_People/ NÃO são apagadas — você precisa fazer manualmente se quiser.)"
+				// v0.19: Obsidian-compliant — use promptText + confirmAsync (no window.prompt/confirm)
+				const { promptText } = await import("./src/ui/prompt-modal");
+				const { confirmAsync } = await import("./src/ui/confirm-modal");
+
+				const name = await promptText(
+					this.app,
+					"⚠️ LGPD Right-to-be-forgotten — nome EXATO da pessoa para deletar:"
 				);
 				if (!name) return;
 				const person = this.kg.findPersonByName(name);
@@ -1402,8 +1407,11 @@ captured_via: webhook
 					new Notice(`Atlas: "${name}" não encontrado.`);
 					return;
 				}
-				const confirm2 = window.confirm(
-					`Confirmar destruição de "${person.name}" + ${this.kg.listSessionsByPerson(person.id).length} sessões + commitments + temas vinculados?\n\nEsta ação NÃO PODE ser desfeita.`
+				const sessionsCountPreview = this.kg.listSessionsByPerson(person.id).length;
+				const confirm2 = await confirmAsync(
+					this.app,
+					`Você está prestes a apagar PERMANENTEMENTE:\n\n• ${person.name} do Knowledge Graph\n• ${sessionsCountPreview} sessões vinculadas\n• Action items + commitments + themes relacionados\n\nNotas em 06_People/ NÃO são apagadas (faça manual se quiser).\n\nEsta ação NÃO pode ser desfeita.`,
+					{ title: "🗑️ LGPD — Confirmar destruição", yesLabel: "Apagar tudo", noLabel: "Cancelar", danger: true }
 				);
 				if (!confirm2) return;
 
@@ -1492,7 +1500,14 @@ captured_via: webhook
 			id: "templates-reset",
 			name: "Templates: resetar para defaults (Daily/1:1/Coaching/Weekly)",
 			callback: async () => {
-				if (!confirm("Atlas: descartar templates customizados e voltar aos defaults?")) return;
+				// v0.19: Obsidian-compliant — confirmAsync substitui global confirm()
+				const { confirmAsync } = await import("./src/ui/confirm-modal");
+				const ok = await confirmAsync(
+					this.app,
+					"Descartar templates customizados e voltar aos defaults? Você perde quaisquer edições visuais feitas.",
+					{ title: "Reset templates", yesLabel: "Resetar", noLabel: "Manter customizados", danger: true }
+				);
+				if (!ok) return;
 				this.templateStore.resetToDefaults();
 				await this.templateStore.save();
 				new Notice("Atlas: templates resetados.");

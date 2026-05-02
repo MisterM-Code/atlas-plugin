@@ -222,11 +222,22 @@ export class InlineAiMenu extends Modal {
 		const notice = new Notice(`Atlas: ${action.label}...`, 0);
 
 		try {
-			const result = await this.plugin.ollama.generate(action.prompt(this.originalText), {
-				model: this.plugin.settings.ollama.generationModel,
-				temperature: action.temperature ?? 0.4,
-				max_tokens: Math.max(800, this.originalText.length),
-			});
+			// v0.19: route through LLMService — cloud rewrites tones much better than 7B local
+			const llm = this.plugin.llm;
+			const promptText = action.prompt(this.originalText);
+			const maxTokens = Math.max(800, this.originalText.length);
+			const result = llm
+				? await llm.generate(promptText, {
+						feature: `inline-ai.${action.label.toLowerCase().replace(/\s+/g, "-")}`,
+						taskKind: "chat",
+						temperature: action.temperature ?? 0.4,
+						maxTokens,
+				  })
+				: await this.plugin.ollama.generate(promptText, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: action.temperature ?? 0.4,
+						max_tokens: maxTokens,
+				  });
 
 			notice.hide();
 

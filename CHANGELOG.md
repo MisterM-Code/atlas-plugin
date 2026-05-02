@@ -4,6 +4,40 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.19.0] — 2026-05-02 — "Roadmap mop-up: Obsidian-compliance + webhook hardening + inline-ai wiring"
+
+### Discovered (no work needed)
+- **Sprint 27.2 — 14 templates de meeting**: já estavam todos em [src/templates/visual-editor/default-templates.ts](src/templates/visual-editor/default-templates.ts) (team-standup, team-retro, team-planning, team-kickoff, qbr, stakeholder-update, client-call, interview, decision-meeting, vendor-meeting, incident-bridge, 1on1-skip, refinement, demo). 20 templates total. Plan estava desatualizado.
+
+### Fixed — Obsidian guideline compliance
+- **`window.prompt` removido** do RTBF command. Substituído por `promptText` modal helper de [src/ui/prompt-modal.ts](src/ui/prompt-modal.ts).
+- **`window.confirm` removido** do RTBF command. Substituído por `confirmAsync({ danger: true })` de [src/ui/confirm-modal.ts](src/ui/confirm-modal.ts).
+- **Global `confirm()` removido** do `templates-reset` command (main.ts:1495 antigo).
+- Audit final: `grep -rEn "window\.confirm|window\.prompt|[^A-Za-z_]confirm\(" main.ts src/` retorna zero em código real (apenas false-positives em strings de Templater syntax `tp.user.prompt(...)` que NÃO são chamadas JS — são processadas pelo plugin Templater no runtime do user).
+
+### Hardened — Webhook receiver (Sprint 27.4)
+- **Bind explícito `127.0.0.1`** em vez de `0.0.0.0` (default do Node.js `server.listen(port)`). Antes, webhook escutava em todas as interfaces de rede — qualquer dispositivo na LAN podia tentar bater. Agora só localhost. Mensagem da Notice atualizada pra refletir.
+- **Audit log** adicionado: `webhook.started` registra ativação no `.atlas/audit.jsonl` com hash chain.
+
+### Wired — inline-ai via LLMService
+- [src/editor/inline-ai.ts](src/editor/inline-ai.ts) agora roteia via `plugin.llm.generate()` com `feature: "inline-ai.<action>"`. Cloud (Claude/GPT-4o) reescreve tons (formal/casual/conciso/expansivo) muito melhor que 7B local. Cost tracking automático.
+
+### Files modified (5)
+- `main.ts` — RTBF refactor + templates-reset refactor + webhook hardening + audit log
+- `src/editor/inline-ai.ts` — llm wiring
+- `manifest.json`, `package.json`, `versions.json` — bump 0.19.0
+- `CHANGELOG.md`
+
+### Verification
+- [ ] Cmd+P → "🗑️ Right-to-be-forgotten" → modal de prompt PT-BR aparece (não browser-native popup).
+- [ ] Cancelar no prompt → fecha sem ação.
+- [ ] Confirmar deleção → modal danger com botões "Apagar tudo / Cancelar".
+- [ ] Cmd+P → "Templates: resetar" → modal danger (não browser-native confirm).
+- [ ] Cmd+P → "🔌 Webhook receiver: toggle" → Notice mostra "ON em 127.0.0.1:7842". `lsof -i :7842` deve mostrar bind apenas em 127.0.0.1, não em \*.
+- [ ] Cmd+Shift+I em texto → action "Reescrever formal" → cloud rewrite (se key configurada). Status → 💰 Spend mostra `inline-ai.reescrever-formal`.
+- [ ] Build TypeScript zero errors.
+- [ ] Audit log `.atlas/audit.jsonl` tem entry `webhook.started` ao toggle ON.
+
 ## [0.18.0] — 2026-05-02 — "Cloud-Native Atlas: Router Wiring + Premium Prompts"
 
 ### Context
