@@ -10986,3 +10986,125 @@ button.atlas-btn:active::after,
   opacity: 1;
   transform: rotate(45deg);
 }
+
+/* ═══ v0.49.1: Atlas Percebeu (AI Insights) premium ═══ */
+.atlas-today-insights-pro {
+  position: relative;
+  background: linear-gradient(135deg,
+    rgba(168, 85, 247, 0.10),
+    rgba(139, 92, 246, 0.06) 50%,
+    rgba(99, 102, 241, 0.04));
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.08),
+              0 0 0 1px rgba(168, 85, 247, 0.06),
+              inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+.atlas-today-insights-pro::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(168, 85, 247, 0.6),
+    rgba(139, 92, 246, 0.4),
+    transparent);
+  pointer-events: none;
+  animation: atlas-insight-line 4s ease-in-out infinite;
+}
+@keyframes atlas-insight-line {
+  0%, 100% { opacity: 0.4; transform: translateX(-30%); }
+  50%      { opacity: 1.0; transform: translateX( 30%); }
+}
+.atlas-today-insights-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.atlas-today-insights-counter {
+  font-size: 11px;
+  font-family: var(--font-monospace, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  color: rgba(168, 85, 247, 0.85);
+  padding: 2px 8px;
+  background: rgba(168, 85, 247, 0.10);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  border-radius: 999px;
+}
+.atlas-today-insight-slot {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  transition: opacity 240ms ease, transform 240ms ease;
+}
+.atlas-today-insight-slot.is-fading {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.atlas-today-insight-icon {
+  font-size: 18px;
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.55));
+  flex-shrink: 0;
+}
+.atlas-today-insight-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-normal);
+}
+.atlas-today-insight-empty {
+  padding: 8px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ═══ v0.49.1: Critical alerts ticker — Iron Man brackets when active ═══ */
+.atlas-today-alerts-ticker.is-active::after {
+  content: "🚨 ATENÇÃO AGORA";
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  font-family: var(--font-monospace, ui-monospace, monospace);
+  color: rgba(239, 68, 68, 0.92);
+  padding: 1px 8px;
+  background: rgba(239, 68, 68, 0.10);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 999px;
+  pointer-events: none;
+}
+/* corner brackets (Iron Man HUD style) */
+.atlas-today-alerts-ticker.is-active .atlas-today-alert-item::before,
+.atlas-today-alerts-ticker.is-active .atlas-today-alert-item::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: rgba(239, 68, 68, 0.85);
+  border-style: solid;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+}
+.atlas-today-alerts-ticker.is-active {
+  position: relative;
+}
+.atlas-today-alerts-ticker.is-active .atlas-today-alert-item {
+  position: relative;
+  padding: 0 4px;
+}
+.atlas-today-alerts-ticker.is-active .atlas-today-alert-item::before {
+  top: -10px; left: -8px;
+  border-width: 2px 0 0 2px;
+}
+.atlas-today-alerts-ticker.is-active .atlas-today-alert-item::after {
+  bottom: -10px; right: -8px;
+  border-width: 0 2px 2px 0;
+}

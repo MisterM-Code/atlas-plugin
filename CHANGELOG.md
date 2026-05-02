@@ -4,6 +4,24 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.49.1] — 2026-05-02 — "Home polish: Atlas Percebeu premium + Critical alerts Iron Man brackets"
+
+### Atlas Percebeu (AI Insights) premium
+- Gradient violet/purple bg + animated accent line top edge (4s loop)
+- Counter pill "1/N" mostrando posição na rotação
+- Smooth fade transition 240ms entre insights (não mais empty + create abrupt)
+- Empty state com personalidade: "🌱 Atlas observa em silêncio."
+- Insight icon com drop-shadow violet glow
+
+### Critical Alerts ticker — Iron Man HUD
+- Quando ativo: corner brackets ::before/::after estilo Iron Man
+- Badge "🚨 ATENÇÃO AGORA" tracking-letter-spaced no canto superior direito
+- Brackets red glow filter drop-shadow
+
+### Files
+- `src/views/master/tab-today.ts` — renderAtlasPercebeu fade + counter
+- `styles.css` — `.atlas-today-insights-pro` + `.atlas-today-alerts-ticker.is-active::after` (~120 LOC)
+
 ## [0.49.0] — 2026-05-02 — "Today Status Bar live (v0.45 E1)"
 
 ### Live IA + Cost Status Bar topo da Home

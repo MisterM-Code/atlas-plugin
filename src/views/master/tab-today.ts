@@ -417,23 +417,46 @@ async function renderQuickActions(el: HTMLElement, plugin: AtlasPlugin): Promise
 // ══ ZONE 3: AWARENESS ═══════════════════════════════════════════════
 
 async function renderAtlasPercebeu(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "💡 Atlas Percebeu" });
+	el.addClass("atlas-today-insights-pro"); // v0.49.1: premium gradient + glow
+	const titleRow = el.createDiv({ cls: "atlas-today-insights-title-row" });
+	titleRow.createDiv({ cls: "atlas-today-widget-title", text: "💡 Atlas Percebeu" });
+
 	const insights = collectInsights(plugin);
 	if (insights.length === 0) {
-		el.createDiv({ cls: "atlas-today-insight-empty", text: "Nenhum padrão notável detectado." });
+		el.createDiv({
+			cls: "atlas-today-insight-empty",
+			text: "🌱 Nenhum padrão notável detectado. Atlas observa em silêncio.",
+		});
 		return;
 	}
+
+	// Counter pill (1/N)
+	const counter = titleRow.createSpan({ cls: "atlas-today-insights-counter" });
+	counter.setText(`1 / ${insights.length}`);
+
 	let idx = 0;
 	const slot = el.createDiv({ cls: "atlas-today-insight-slot" });
-	const update = () => {
-		slot.empty();
+	const update = (animate: boolean = true): void => {
 		const ins = insights[idx];
-		slot.createSpan({ cls: "atlas-today-insight-icon", text: ins.icon });
-		slot.createSpan({ cls: "atlas-today-insight-text", text: ins.text });
-		idx = (idx + 1) % insights.length;
+		const apply = (): void => {
+			slot.empty();
+			slot.createSpan({ cls: "atlas-today-insight-icon", text: ins.icon });
+			slot.createSpan({ cls: "atlas-today-insight-text", text: ins.text });
+			counter.setText(`${idx + 1} / ${insights.length}`);
+			idx = (idx + 1) % insights.length;
+		};
+		if (animate) {
+			slot.classList.add("is-fading");
+			window.setTimeout(() => {
+				apply();
+				slot.classList.remove("is-fading");
+			}, 240);
+		} else {
+			apply();
+		}
 	};
-	update();
-	const timer = window.setInterval(update, 8000);
+	update(false);
+	const timer = window.setInterval(() => update(true), 8000);
 	liveTimers.push(timer);
 }
 
