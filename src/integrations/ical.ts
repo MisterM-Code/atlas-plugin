@@ -121,6 +121,96 @@ export class IcalClient {
 			return startMs >= now && startMs <= cutoff;
 		});
 	}
+
+	/**
+	 * v0.50.1: cria stub notes pra eventos próximos 24h que ainda não tem nota.
+	 * Retorna paths das notas criadas.
+	 *
+	 * Stub goes em meetingsFolder/<YYYY-MM-DD>-<slug>.md com frontmatter:
+	 *   type: meeting, date: ISO, location, attendees
+	 *
+	 * @param meetingsFolder ex: "03_Meetings"
+	 * @param hoursAhead default 24h
+	 * @param resolvePerson optional callback to resolve attendee name → KG Person.name
+	 */
+	async createStubsForUpcoming(
+		meetingsFolder: string,
+		hoursAhead = 24,
+		resolvePerson?: (attendee: string) => string | null
+	): Promise<string[]> {
+		const cache = await this.loadCache();
+		if (!cache) return [];
+		const now = Date.now();
+		const cutoff = now + hoursAhead * 3_600_000;
+		const upcoming = cache.events.filter((e) => {
+			const startMs = new Date(e.startsAt).getTime();
+			return startMs >= now && startMs <= cutoff;
+		});
+		const created: string[] = [];
+
+		// ensure folder exists
+		if (!this.app.vault.getAbstractFileByPath(meetingsFolder)) {
+			try {
+				await this.app.vault.createFolder(meetingsFolder);
+			} catch {
+				// folder may exist via race
+			}
+		}
+
+		for (const ev of upcoming) {
+			try {
+				const dateStr = ev.startsAt.split("T")[0];
+				const slug = (ev.summary || "meeting")
+					.substring(0, 60)
+					.toLowerCase()
+					.replace(/[^a-z0-9áéíóúâêôãç]+/gi, "-")
+					.replace(/^-|-$/g, "");
+				const path = normalizePath(`${meetingsFolder}/${dateStr}-${slug}.md`);
+				if (this.app.vault.getAbstractFileByPath(path)) {
+					continue; // already exists
+				}
+				const attendeesList = ev.attendees ?? [];
+				const personMatch = attendeesList
+					.map((a) => (resolvePerson ? resolvePerson(a) : null))
+					.find((x) => !!x);
+				const attendeesYaml = attendeesList.length > 0
+					? `\nattendees: [${attendeesList.map((a) => `"${a.replace(/"/g, '\\"')}"`).join(", ")}]`
+					: "";
+				const personLine = personMatch ? `\nperson: ${personMatch}` : "";
+				const locLine = ev.location ? `\nlocation: ${ev.location.replace(/\n/g, " ")}` : "";
+				const md = `---
+type: meeting
+date: ${ev.startsAt}
+ends_at: ${ev.endsAt}${personLine}${locLine}${attendeesYaml}
+source: ical
+ical_uid: ${ev.uid}
+---
+
+# ${ev.summary || "(sem título)"}
+
+> 📅 ${new Date(ev.startsAt).toLocaleString("pt-BR")} → ${new Date(ev.endsAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+
+## 🎯 Agenda
+- [ ]
+
+## 📝 Notas
+
+
+## ✅ Action items
+- [ ]
+
+${ev.description ? `\n---\n\n## 📥 Original (iCal)\n\n${ev.description.substring(0, 800)}` : ""}
+`;
+				await this.app.vault.create(path, md);
+				created.push(path);
+			} catch (e) {
+				logger.warn("ical: stub create failed", { uid: ev.uid, error: String(e) });
+			}
+		}
+
+		logger.info("ical: stubs created", { count: created.length });
+		return created;
+	}
 }
 
 /**

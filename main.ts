@@ -1740,6 +1740,154 @@ captured_via: webhook
 			callback: () => this.showBookmarkletModal(),
 		});
 
+		// v0.50.1: Vision OCR — analisar imagem do vault (whiteboard / screenshot / handwritten)
+		this.addCommand({
+			id: "vision-analyze",
+			name: "👁️ Vision: analisar imagem (OCR / table / diagram)",
+			callback: async () => {
+				// Find image files in vault
+				const images = this.app.vault.getFiles().filter((f) =>
+					/\.(png|jpg|jpeg|webp|gif)$/i.test(f.path)
+				);
+				if (images.length === 0) {
+					new Notice("Atlas: nenhuma imagem no vault. Cole/arraste uma imagem primeiro.", 6000);
+					return;
+				}
+
+				// Use FuzzySuggestModal pra picker
+				const { FuzzySuggestModal } = await import("obsidian");
+				class ImagePicker extends FuzzySuggestModal<{ path: string; basename: string }> {
+					constructor(app: ObsidianApp, public onPick: (path: string) => void) {
+						super(app);
+						this.setPlaceholder("Escolha imagem pra analisar...");
+					}
+					getItems(): { path: string; basename: string }[] {
+						return images.map((f) => ({ path: f.path, basename: f.basename }));
+					}
+					getItemText(item: { path: string; basename: string }): string {
+						return item.basename;
+					}
+					onChooseItem(item: { path: string; basename: string }): void {
+						this.onPick(item.path);
+					}
+				}
+
+				const taskKinds = [
+					{ id: "describe" as const, label: "Descrever conteúdo" },
+					{ id: "ocr" as const, label: "OCR (extrair texto)" },
+					{ id: "table" as const, label: "Extrair tabela markdown" },
+					{ id: "diagram" as const, label: "Diagrama → Mermaid" },
+					{ id: "summarize" as const, label: "Resumir imagem" },
+				];
+
+				new ImagePicker(this.app, async (path: string) => {
+					// Pick taskKind
+					class TaskKindPicker extends FuzzySuggestModal<typeof taskKinds[number]> {
+						constructor(app: ObsidianApp, public onPick: (k: typeof taskKinds[number]) => void) {
+							super(app);
+							this.setPlaceholder("Tipo de análise...");
+						}
+						getItems(): typeof taskKinds[number][] {
+							return [...taskKinds];
+						}
+						getItemText(item: typeof taskKinds[number]): string {
+							return item.label;
+						}
+						onChooseItem(item: typeof taskKinds[number]): void {
+							this.onPick(item);
+						}
+					}
+					new TaskKindPicker(this.app, async (kind) => {
+						const notice = new Notice(`Atlas Vision: analisando ${kind.label}...`, 0);
+						try {
+							const m = await import("./src/innovations/vision");
+							const tool = new m.VisionTool(this.app, this);
+							// Resolve absolute path via vault adapter
+							const adapter = this.app.vault.adapter as unknown as {
+								getResourcePath?: (p: string) => string;
+								getFullPath?: (p: string) => string;
+								basePath?: string;
+							};
+							const fullPath = adapter.getFullPath?.(path) ?? `${adapter.basePath}/${path}`;
+							const result = await tool.run(fullPath, { taskKind: kind.id });
+							notice.hide();
+
+							// Insert in active note OR create new note
+							const activeFile = this.app.workspace.getActiveFile();
+							const insertion = `\n\n## 👁️ Vision (${kind.label})\n*Source: ${path}*\n\n${result}\n`;
+							if (activeFile) {
+								const editor = this.app.workspace.activeEditor?.editor;
+								if (editor) {
+									const cursor = editor.getCursor();
+									editor.replaceRange(insertion, cursor);
+									new Notice(`Atlas Vision: ${kind.label} inserido na nota ativa.`);
+								} else {
+									await this.app.vault.append(activeFile, insertion);
+									new Notice(`Atlas Vision: ${kind.label} appended.`);
+								}
+							} else {
+								// No active note → create new note
+								const slug = path.split("/").pop()?.replace(/\.[a-z]+$/i, "") ?? "vision";
+								const date = new Date().toISOString().split("T")[0];
+								const newPath = `${this.settings.folders.inbox}/${date}-vision-${slug}.md`;
+								if (!this.app.vault.getAbstractFileByPath(this.settings.folders.inbox)) {
+									await this.app.vault.createFolder(this.settings.folders.inbox);
+								}
+								await this.app.vault.create(newPath, `# Vision Analysis — ${slug}\n${insertion}`);
+								const f = this.app.vault.getAbstractFileByPath(newPath);
+								if (f && "stat" in f) {
+									await this.app.workspace.getLeaf().openFile(f as never);
+								}
+							}
+						} catch (e) {
+							notice.hide();
+							new Notice(`Atlas Vision falhou: ${String(e)}`, 10000);
+						}
+					}).open();
+				}).open();
+			},
+		});
+
+		// v0.50.1: criar stubs pré-meeting pra eventos do iCal cacheados
+		this.addCommand({
+			id: "ical-create-stubs",
+			name: "🗓️ iCal: criar stubs de notas pra próximos compromissos (24h)",
+			callback: async () => {
+				const url = this.settings.profile?.calendarUrl;
+				if (!url) {
+					new Notice(
+						"Atlas: configure URL .ics em Settings → Atlas → Profile → Calendar URL.",
+						8000
+					);
+					return;
+				}
+				const notice = new Notice("Atlas: criando stubs...", 0);
+				try {
+					const m = await import("./src/integrations/ical");
+					const ical = new m.IcalClient(this.app, this.settings.folders.atlas);
+					// Garante que cache existe
+					await ical.fetchAndCache(url);
+					const created = await ical.createStubsForUpcoming(
+						this.settings.folders.meetings,
+						24,
+						(attendee: string): string | null => {
+							const p = this.kg.findPersonByName(attendee);
+							return p?.name ?? null;
+						}
+					);
+					notice.hide();
+					if (created.length === 0) {
+						new Notice("Atlas: nenhum stub novo (eventos já têm notas).");
+					} else {
+						new Notice(`Atlas: ${created.length} stubs criados em ${this.settings.folders.meetings}.`);
+					}
+				} catch (e) {
+					notice.hide();
+					new Notice(`Atlas: erro — ${String(e)}`, 8000);
+				}
+			},
+		});
+
 		this.addCommand({
 			id: "capacity-planner",
 			name: "👥 Capacity Planner (analise carga do time)",

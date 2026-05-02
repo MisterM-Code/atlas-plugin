@@ -4,6 +4,27 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.50.1] — 2026-05-02 — "iCal stubs auto + Vision OCR command"
+
+### iCal: criar stubs pré-meeting (24h ahead)
+- Comando `atlas:ical-create-stubs` cria notas em `03_Meetings/<date>-<slug>.md`
+- Auto-resolve attendee → KG Person via callback (frontmatter `person:` setado)
+- Frontmatter completo: type/date/ends_at/person/location/attendees/source/ical_uid
+- Skip se nota já existe (idempotente)
+- Body com agenda template + descrição original do iCal
+
+### Vision OCR command (👁️ Vision)
+- Comando `atlas:vision-analyze` com 2-step picker:
+  - Step 1: FuzzySuggestModal escolhe imagem do vault (png/jpg/webp/gif)
+  - Step 2: escolhe taskKind (Describe / OCR / Table → markdown / Diagram → Mermaid / Resumir)
+- Resolve via VisionTool (cloud GPT-4o/Claude Sonnet vision OU llama3.2-vision local)
+- Inserção: cursor na nota ativa OU cria nova nota em Inbox
+- Markdown header `## 👁️ Vision (kind)` + source path
+
+### Files
+- `src/integrations/ical.ts` — IcalClient.createStubsForUpcoming (~95 LOC)
+- `main.ts` — 2 comandos novos (vision-analyze + ical-create-stubs) (~115 LOC)
+
 ## [0.50.0] — 2026-05-02 — "Home Cosmic Complete: Próximos polish + Quick Actions premium + Knowledge categories + KG integrations"
 
 ### Sprint A — Próximos compromissos polish
