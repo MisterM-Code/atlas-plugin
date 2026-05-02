@@ -94,6 +94,26 @@ export async function renderTodayTab(container: HTMLElement, plugin: AtlasPlugin
 	allWidgets.forEach((el, i) => {
 		(el as HTMLElement).style.animationDelay = `${i * 60}ms`;
 	});
+
+	// v0.41: cursor-tracking spotlight on widgets (premium UX)
+	wireCursorSpotlight(container);
+}
+
+/** v0.41: tracks cursor position across each widget and exposes --mx/--my CSS vars
+ *  for spotlight gradient effect. Uses single mousemove listener for perf. */
+function wireCursorSpotlight(container: HTMLElement): void {
+	const onMove = (ev: MouseEvent): void => {
+		const t = ev.target as HTMLElement | null;
+		if (!t) return;
+		const widget = t.closest(".atlas-today-widget") as HTMLElement | null;
+		if (!widget) return;
+		const r = widget.getBoundingClientRect();
+		const mx = ((ev.clientX - r.left) / r.width) * 100;
+		const my = ((ev.clientY - r.top) / r.height) * 100;
+		widget.style.setProperty("--atlas-mx", `${mx}%`);
+		widget.style.setProperty("--atlas-my", `${my}%`);
+	};
+	container.addEventListener("mousemove", onMove);
 }
 
 // ══ ZONE 1: ALERTS + HERO ═══════════════════════════════════════════
@@ -128,6 +148,9 @@ async function renderHero(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 		hour < 12 ? "🌅 Bom dia" :
 		hour < 18 ? "☀️ Boa tarde" :
 		"🌇 Boa noite";
+
+	// v0.41: Premium particle starfield canvas
+	void renderHeroStarfield(el);
 
 	const left = el.createDiv({ cls: "atlas-today-hero-left" });
 	const greetWrap = left.createDiv({ cls: "atlas-today-hero-greet" });
@@ -651,4 +674,75 @@ async function computeStreak(plugin: AtlasPlugin): Promise<number> {
 		}
 	}
 	return streak;
+}
+
+// ══ v0.41: HERO STARFIELD (premium ambient particles) ═════════════════
+function renderHeroStarfield(el: HTMLElement): void {
+	const canvas = document.createElement("canvas");
+	canvas.classList.add("atlas-today-hero-starfield");
+	el.appendChild(canvas);
+
+	const ctx = canvas.getContext("2d");
+	if (!ctx) return;
+
+	const dpr = window.devicePixelRatio || 1;
+	const resize = (): void => {
+		const r = el.getBoundingClientRect();
+		canvas.width = Math.max(100, r.width) * dpr;
+		canvas.height = Math.max(100, r.height) * dpr;
+		ctx.scale(dpr, dpr);
+	};
+	resize();
+
+	const ro = new ResizeObserver(() => {
+		canvas.width = canvas.width; // reset transform
+		resize();
+	});
+	ro.observe(el);
+
+	// Generate stars
+	const STAR_COUNT = 30;
+	type Star = { x: number; y: number; r: number; alpha: number; speed: number; phase: number };
+	const stars: Star[] = [];
+	const rect = canvas.getBoundingClientRect();
+	for (let i = 0; i < STAR_COUNT; i++) {
+		stars.push({
+			x: Math.random() * rect.width,
+			y: Math.random() * rect.height,
+			r: 0.5 + Math.random() * 1.5,
+			alpha: 0.3 + Math.random() * 0.7,
+			speed: 0.04 + Math.random() * 0.08,
+			phase: Math.random() * Math.PI * 2,
+		});
+	}
+
+	let raf = 0;
+	const draw = (t: number): void => {
+		const r = canvas.getBoundingClientRect();
+		ctx.clearRect(0, 0, r.width, r.height);
+		for (const s of stars) {
+			s.phase += s.speed;
+			const a = s.alpha * (0.5 + 0.5 * Math.sin(s.phase));
+			ctx.beginPath();
+			ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+			ctx.fillStyle = `rgba(0, 229, 229, ${a})`;
+			ctx.shadowColor = "rgba(0, 229, 229, 0.6)";
+			ctx.shadowBlur = 6;
+			ctx.fill();
+		}
+		ctx.shadowBlur = 0;
+		void t;
+		raf = requestAnimationFrame(draw);
+	};
+	raf = requestAnimationFrame(draw);
+
+	// Cleanup tied to view lifecycle: stop when canvas detached
+	const stopWatcher = new MutationObserver(() => {
+		if (!document.body.contains(canvas)) {
+			cancelAnimationFrame(raf);
+			ro.disconnect();
+			stopWatcher.disconnect();
+		}
+	});
+	stopWatcher.observe(document.body, { childList: true, subtree: true });
 }

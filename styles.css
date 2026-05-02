@@ -6527,37 +6527,106 @@ button.atlas-btn:active::after,
 
 .atlas-today-zone-title {
 	font-size: 11px;
-	font-weight: 700;
-	letter-spacing: 1.2px;
+	font-weight: 800;
+	letter-spacing: 1.4px;
 	text-transform: uppercase;
-	opacity: 0.65;
-	margin: 4px 0 8px 4px;
+	margin: 12px 0 10px 4px;
+	padding: 4px 0 6px 12px;
+	border-left: 3px solid var(--atlas-accent, #00e5e5);
+	position: relative;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	display: inline-block;
+}
+.atlas-today-zone-title::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 12px;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, rgba(0, 229, 229, 0.45), transparent 70%);
+}
+.atlas-today-zone-action .atlas-today-zone-title {
+	border-left-color: #f59e0b;
+	background: linear-gradient(135deg, #f59e0b, #ef4444);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+.atlas-today-zone-awareness .atlas-today-zone-title {
+	border-left-color: #6366f1;
+	background: linear-gradient(135deg, #6366f1, #a855f7);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
 }
 
 /* ── ZONE 1: Alerts + Hero ─────────────────────────────────────── */
 
 .atlas-today-alerts-ticker {
-	padding: 10px 16px;
-	border-radius: 10px;
+	padding: 12px 18px;
+	border-radius: 12px;
 	background: linear-gradient(90deg,
-		rgba(239, 68, 68, 0.12),
-		rgba(239, 68, 68, 0.06));
-	border-left: 3px solid var(--color-red);
+		rgba(239, 68, 68, 0.14),
+		rgba(239, 68, 68, 0.06) 50%,
+		rgba(245, 158, 11, 0.06));
+	border-left: 4px solid var(--color-red);
 	font-size: 12px;
-	min-height: 38px;
+	min-height: 42px;
 	display: flex;
 	align-items: center;
+	position: relative;
+	overflow: hidden;
 	animation: atlas-today-slidein 240ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+	box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);
+}
+.atlas-today-alerts-ticker::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.5), transparent);
+	pointer-events: none;
 }
 .atlas-today-alerts-ticker.is-empty {
 	background: linear-gradient(90deg,
-		rgba(34, 197, 94, 0.10),
-		rgba(34, 197, 94, 0.05));
+		rgba(34, 197, 94, 0.12),
+		rgba(0, 229, 229, 0.05));
 	border-left-color: #22c55e;
+	box-shadow: 0 4px 14px rgba(34, 197, 94, 0.10);
+}
+.atlas-today-alerts-ticker.is-empty::before {
+	background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.5), transparent);
 }
 .atlas-today-alerts-ticker.is-active {
 	animation: atlas-today-slidein 240ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
-	           atlas-pulse-soft 3s ease-in-out infinite 240ms;
+	           atlas-alert-glow-pulse 2.4s ease-in-out infinite 240ms;
+}
+@keyframes atlas-alert-glow-pulse {
+	0%, 100% {
+		box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12),
+		            0 0 0 0 rgba(239, 68, 68, 0);
+	}
+	50% {
+		box-shadow: 0 4px 18px rgba(239, 68, 68, 0.25),
+		            0 0 0 4px rgba(239, 68, 68, 0.08);
+	}
+}
+.atlas-today-alert-icon {
+	font-size: 18px !important;
+	filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.55));
+	animation: atlas-alert-icon-shake 5s ease-in-out infinite;
+}
+@keyframes atlas-alert-icon-shake {
+	0%, 92%, 100% { transform: rotate(0); }
+	94% { transform: rotate(-8deg); }
+	96% { transform: rotate(8deg); }
+	98% { transform: rotate(-4deg); }
 }
 .atlas-today-alert-item {
 	display: flex;
@@ -6620,6 +6689,24 @@ button.atlas-btn:active::after,
 		transparent 65%);
 	pointer-events: none;
 	animation: atlas-today-hero-glow 8s ease-in-out infinite alternate;
+	z-index: 1;
+}
+
+/* v0.41: Hero starfield canvas */
+.atlas-today-hero-starfield {
+	position: absolute !important;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	z-index: 0;
+	mix-blend-mode: screen;
+}
+.atlas-today-hero > .atlas-today-hero-left,
+.atlas-today-hero > .atlas-today-hero-right {
+	position: relative;
+	z-index: 2;
 }
 @keyframes atlas-today-hero-glow {
 	from { transform: translate(0, 0) scale(1); opacity: 0.7; }
@@ -6750,6 +6837,36 @@ button.atlas-btn:active::after,
 .atlas-today-widget:active {
 	transform: translateY(-2px) scale(1);
 	transition-duration: 80ms;
+}
+
+/* v0.41: cursor-tracking spotlight (Premium UX). Inspirado em GitHub feature cards. */
+.atlas-today-widget::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	background: radial-gradient(
+		400px circle at var(--atlas-mx, 50%) var(--atlas-my, 50%),
+		rgba(0, 229, 229, 0.08),
+		transparent 40%
+	);
+	opacity: 0;
+	transition: opacity 320ms ease;
+	pointer-events: none;
+	z-index: 1;
+}
+.atlas-today-widget:hover::after {
+	opacity: 1;
+}
+.atlas-today-widget > * {
+	position: relative;
+	z-index: 2;
+}
+
+/* v0.41: scaling icon on hover (heads-up subtle) */
+.atlas-today-widget:hover .atlas-today-widget-title {
+	color: var(--atlas-accent, #00e5e5);
+	letter-spacing: 0.8px;
 }
 .atlas-today-widget-title {
 	font-size: 11px;

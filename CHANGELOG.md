@@ -4,6 +4,59 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.41.0] — 2026-05-02 — "Today HOME premium polish — starfield + cursor spotlight + glow titles + alert pulse"
+
+User feedback: "a home tá totalmente avançada com efeitos, animações e design UX?"
+Resposta: agora SIM. Sprint focado em deixar a Home **realmente cinematográfica**.
+
+### Sprint A — Zone titles cosmic
+- 3 zone titles com gradient text distinct por zona:
+  - 🚨 Alerts: cyan→indigo
+  - 🎯 Action: orange→red (urgência)
+  - 🌐 Awareness: indigo→purple (consciência)
+- 3px left-border colored + bottom fade-line cyan
+- Letter-spacing 1.4px premium
+
+### Sprint B — Hero starfield (particle canvas)
+- Canvas absoluto behind hero com 30 estrelas cyan animadas
+- Cada estrela com phase + alpha sin-wave breathing (0.5-1.0)
+- shadowBlur 6px (glow halo)
+- mix-blend-mode: screen (não escurece bg)
+- requestAnimationFrame loop com auto-cleanup (MutationObserver detecta detach)
+- ResizeObserver pra DPR-aware redraw
+- z-index proper: starfield 0 / glow 1 / content 2
+
+### Sprint C — Cursor spotlight (Premium UX)
+- Inspirado em GitHub feature cards
+- Single mousemove listener em container (perf)
+- Exposto via CSS vars `--atlas-mx` `--atlas-my` per widget
+- 400px radial-gradient cyan que segue cursor
+- Aparece on widget hover (transition 320ms)
+- Widget title COR shifta pra cyan + letter-spacing aumenta no hover
+
+### Sprint D — Alert ticker amplified
+- Border-left 4px (was 3) + box-shadow red soft glow
+- Top accent line gradient 1px transparent→red→transparent
+- **Glow pulse animation 2.4s** (substituiu pulse-soft genérico) — pulse de cor + box-shadow ring
+- Empty state mantém green com fade-line green
+- **Icon shake animation** 5s (alert sirene visual) — rotate ±8deg in last 8% of cycle
+- Icon drop-shadow red glow
+
+### CSS additions
+- Zone titles cosmic: ~30 LOC enhanced
+- Starfield canvas + z-index: ~20 LOC novas
+- Cursor spotlight: ~30 LOC novas
+- Alert ticker amplified: ~50 LOC enhanced
+- TS: starfield helper (~70 LOC) + cursor wire (~16 LOC)
+- TOTAL: ~215 LOC
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Cleanup automático no unload (MutationObserver)
+- Performance: single mousemove listener (não per-widget)
+- Mix-blend-mode: gracefully degrades em browsers antigos
+
 ## [0.40.0] — 2026-05-02 — "Polish TI engineering modals: Architecture C4 + ADR + Runbook + Postmortem + AutoLink"
 
 ### Sprint A — TI Tools (4 engineering modals com cores funcionais)
