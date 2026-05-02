@@ -300,24 +300,25 @@ async function renderVencendo(el: HTMLElement, plugin: AtlasPlugin): Promise<voi
 	const items = plugin.kg.data.actionItems.filter(
 		(a) => a.status !== "completed" && a.status !== "cancelled" && a.dueDate
 	);
+	const startOfToday = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
 
 	const overdue = items
-		.filter((a) => new Date(a.dueDate as string).getTime() < now - dayMs * 0)
-		.filter((a) => new Date(a.dueDate as string).getTime() < new Date(new Date().setHours(0, 0, 0, 0)).getTime())
+		.filter((a) => new Date(a.dueDate as string).getTime() < startOfToday)
 		.sort((a, b) => new Date(a.dueDate as string).getTime() - new Date(b.dueDate as string).getTime());
 	const todayDue = items.filter((a) => isSameDay(new Date(a.dueDate as string), new Date()));
 	const tomorrowDue = items.filter((a) => isSameDay(new Date(a.dueDate as string), new Date(now + dayMs)));
 
-	renderVencendoColumn(cols, "🔴 OVERDUE", overdue, "is-overdue");
-	renderVencendoColumn(cols, "🔥 HOJE", todayDue, "is-today");
-	renderVencendoColumn(cols, "📅 AMANHÃ", tomorrowDue, "is-tomorrow");
+	renderVencendoColumn(cols, "🔴 OVERDUE", overdue, "is-overdue", plugin);
+	renderVencendoColumn(cols, "🔥 HOJE", todayDue, "is-today", plugin);
+	renderVencendoColumn(cols, "📅 AMANHÃ", tomorrowDue, "is-tomorrow", plugin);
 }
 
 function renderVencendoColumn(
 	parent: HTMLElement,
 	label: string,
-	items: { id: string; description: string; dueDate?: string; ownerId?: string }[],
-	cls: string
+	items: { id: string; description: string; dueDate?: string; ownerId?: string; sourceNotePath?: string }[],
+	cls: string,
+	plugin: AtlasPlugin
 ): void {
 	const col = parent.createDiv({ cls: `atlas-vencendo-col ${cls}` });
 	col.createDiv({ cls: "atlas-vencendo-col-label", text: `${label} (${items.length})` });
@@ -327,11 +328,46 @@ function renderVencendoColumn(
 		return;
 	}
 	for (const it of items.slice(0, 5)) {
-		const row = list.createDiv({ cls: "atlas-vencendo-item" });
+		const row = list.createDiv({ cls: "atlas-vencendo-item is-clickable" });
 		row.createDiv({ cls: "atlas-vencendo-text", text: it.description.substring(0, 60) });
+
+		// v0.49.2: live countdown / overdue age
+		if (it.dueDate) {
+			const dueTs = new Date(it.dueDate).getTime();
+			const ageEl = row.createSpan({ cls: "atlas-vencendo-age" });
+			const updateAge = (): void => {
+				const diff = Date.now() - dueTs;
+				const absDays = Math.floor(Math.abs(diff) / 86_400_000);
+				const absHours = Math.floor((Math.abs(diff) % 86_400_000) / 3_600_000);
+				if (diff > 0) {
+					if (absDays >= 1) ageEl.setText(`-${absDays}d`);
+					else ageEl.setText(`-${absHours}h`);
+					ageEl.classList.add("is-overdue-pulse");
+				} else if (absDays === 0) {
+					ageEl.setText(`em ${absHours}h`);
+				} else {
+					ageEl.setText(`em ${absDays}d`);
+				}
+			};
+			updateAge();
+		}
+
+		// v0.49.2: click → open source note (if available)
+		const path = it.sourceNotePath;
+		if (path) {
+			row.title = `Abrir nota: ${path}`;
+			row.addEventListener("click", () => {
+				const f = plugin.app.vault.getAbstractFileByPath(path);
+				if (f && "stat" in f) void plugin.app.workspace.getLeaf().openFile(f as never);
+			});
+		}
 	}
 	if (items.length > 5) {
-		list.createDiv({ cls: "atlas-vencendo-more", text: `+${items.length - 5} mais` });
+		const more = list.createDiv({ cls: "atlas-vencendo-more is-clickable", text: `+${items.length - 5} mais →` });
+		more.title = "Ver todos no Hub";
+		more.addEventListener("click", () => {
+			void plugin.activateMasterTab("hub");
+		});
 	}
 }
 
@@ -537,10 +573,13 @@ function relativeTime(ts: number): string {
 }
 
 async function renderVaultHealth(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "🩺 Vault Health" });
+	const titleRow = el.createDiv({ cls: "atlas-today-health-title-row" });
+	titleRow.createDiv({ cls: "atlas-today-widget-title", text: "🩺 Vault Health" });
+
 	const allFiles = plugin.app.vault.getMarkdownFiles().filter(
 		(f) => !f.path.startsWith(plugin.settings.folders.atlas)
 	);
+	const total = allFiles.length;
 	const ninetyDaysAgo = Date.now() - 90 * 86_400_000;
 	const stale = allFiles.filter((f) => f.stat.mtime < ninetyDaysAgo).length;
 
@@ -556,18 +595,55 @@ async function renderVaultHealth(el: HTMLElement, plugin: AtlasPlugin): Promise<
 		if (tags === 0 && !hasFmTags) untagged++;
 	}
 
+	// v0.49.2: score 0-100 baseado em proporção de problemas
+	const score = total === 0
+		? 100
+		: Math.max(0, Math.round(100 - (orphans + stale + untagged) / (total * 3) * 100));
+	const scoreClass = score >= 80 ? "is-good" : score >= 50 ? "is-warn" : "is-bad";
+	const scoreEmoji = score >= 80 ? "✓" : score >= 50 ? "⚠" : "✗";
+	const scoreBadge = titleRow.createSpan({
+		cls: `atlas-today-health-score ${scoreClass}`,
+		text: `${scoreEmoji} ${score}/100`,
+	});
+	scoreBadge.title = "Score = 100 - %problemas (orphans + stale + untagged)";
+
 	const grid = el.createDiv({ cls: "atlas-today-health-grid" });
-	healthCard(grid, "🧹", "Órfãs", String(orphans));
-	healthCard(grid, "💀", "Stale", String(stale));
-	healthCard(grid, "🏷️", "Sem tag", String(untagged));
-	healthCard(grid, "📊", "Total", String(allFiles.length));
+
+	// v0.49.2: cards clicáveis abrem Health tab pra detalhar
+	const openHealth = (): void => {
+		void plugin.activateMasterTab("health");
+	};
+	healthCard(grid, "🧹", "Órfãs", orphans, total, openHealth);
+	healthCard(grid, "💀", "Stale", stale, total, openHealth);
+	healthCard(grid, "🏷️", "Sem tag", untagged, total, openHealth);
+	healthCard(grid, "📊", "Total", total, total, openHealth);
 }
 
-function healthCard(parent: HTMLElement, emoji: string, label: string, value: string): void {
-	const c = parent.createDiv({ cls: "atlas-today-health-card" });
+function healthCard(
+	parent: HTMLElement,
+	emoji: string,
+	label: string,
+	value: number,
+	total: number,
+	onClick: () => void
+): void {
+	const c = parent.createDiv({ cls: "atlas-today-health-card is-clickable" });
+	c.title = "Click → Health tab";
+	c.addEventListener("click", onClick);
+
 	c.createDiv({ cls: "atlas-today-health-emoji", text: emoji });
-	c.createDiv({ cls: "atlas-today-health-value", text: value });
+	c.createDiv({ cls: "atlas-today-health-value", text: String(value) });
 	c.createDiv({ cls: "atlas-today-health-label", text: label });
+
+	// v0.49.2: percent indicator pra contextualizar
+	if (total > 0 && label !== "Total") {
+		const pct = Math.round((value / total) * 100);
+		const pctEl = c.createDiv({
+			cls: `atlas-today-health-pct ${pct > 30 ? "is-high" : pct > 10 ? "is-mid" : "is-low"}`,
+			text: `${pct}%`,
+		});
+		void pctEl;
+	}
 }
 
 async function renderXp(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {

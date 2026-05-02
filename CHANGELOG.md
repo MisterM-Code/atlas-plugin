@@ -4,6 +4,26 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.49.2] — 2026-05-02 — "Vencendo + Vault Health interactive"
+
+### Vencendo widget — clickable + countdown
+- Cada item: click → abre nota fonte (sourceNotePath)
+- Live countdown: "-2d" overdue (red pulsing pill) / "em 4h" hoje
+- "+ N mais →" no final → click abre Hub tab
+- Hover: translateX(2px) + cyan bg
+
+### Vault Health — score + clickable cards
+- Score badge 0-100 no header (✓/⚠/✗ + color-coded good/warn/bad)
+- Score = 100 - (orphans+stale+untagged) / (total*3) × 100
+- Bad score (< 50) pulsa pra chamar atenção
+- Cards 4-grid clicáveis → abrem Health tab pra detalhar
+- Percent indicator no canto superior direito do card (low/mid/high color)
+- Hover lift 2px + cyan glow
+
+### Files
+- `src/views/master/tab-today.ts` — renderVencendo + renderVaultHealth refactor
+- `styles.css` — `.atlas-vencendo-*` + `.atlas-today-health-*` (~110 LOC)
+
 ## [0.49.1] — 2026-05-02 — "Home polish: Atlas Percebeu premium + Critical alerts Iron Man brackets"
 
 ### Atlas Percebeu (AI Insights) premium
