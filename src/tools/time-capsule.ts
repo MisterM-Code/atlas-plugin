@@ -38,8 +38,14 @@ export class TimeCapsuleModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 640 });
-		contentEl.createEl("h3", { text: "🕰️ Atlas — Time Capsule" });
-		contentEl.createEl("p", {
+		contentEl.addClass("atlas-capsule-modal");
+
+		const header = contentEl.createDiv({ cls: "atlas-capsule-header" });
+		header.createEl("span", { cls: "atlas-capsule-icon", text: "🕰️" });
+		const wrap = header.createDiv({ cls: "atlas-capsule-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-capsule-title", text: "Time Capsule" });
+		wrap.createEl("div", {
+			cls: "atlas-capsule-subtitle",
 			text: "Escreva uma nota que será revelada na data escolhida. Atlas avisa você quando a data chegar.",
 		});
 
@@ -47,7 +53,7 @@ export class TimeCapsuleModal extends Modal {
 			t.setPlaceholder("Ex: Carta para meu eu de 2027").onChange((v) => {
 				this.title = v;
 			});
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-capsule-input-full");
 		});
 
 		new Setting(contentEl).setName("Data de abertura").addText((t) => {
@@ -55,13 +61,8 @@ export class TimeCapsuleModal extends Modal {
 			t.onChange((v) => (this.unlockDate = v));
 		});
 
-		const ta = contentEl.createEl("textarea");
+		const ta = contentEl.createEl("textarea", { cls: "atlas-capsule-textarea" });
 		ta.placeholder = "Escreva sua mensagem futura...\n\nDicas:\n- O que você espera que tenha mudado?\n- Que conselho daria a si mesmo?\n- Que erros não quer repetir?\n- Qual sua hipótese pra esse período?";
-		ta.style.width = "100%";
-		ta.style.minHeight = "200px";
-		ta.style.padding = "10px";
-		ta.style.fontSize = "13px";
-		ta.style.fontFamily = "var(--font-text)";
 		ta.addEventListener("input", () => (this.content = ta.value));
 
 		new Setting(contentEl)

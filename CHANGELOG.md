@@ -4,6 +4,64 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.35.0] — 2026-05-02 — "Polish innovation modals: Ghost Mentor + Time Capsule + Tone Bifold"
+
+Polish dos modais Innovation com identidades visuais distintas por tema/persona.
+
+### Sprint A — GhostMentor (👻 Wisdom)
+- 1px top accent line cosmic 4-color (purple/indigo/cyan)
+- Title 22px gradient violet→indigo
+- Persona cards: animated accent line top + scale icon on hover + selected state cyan/violet glow
+- Expertise box gradient violet/indigo + chip pills 999px violet-tinted with hover lift
+- Q-input violet focus glow + label uppercase violet color
+- Ask button hover translateY + violet shadow
+- Response box gradient violet + 4px violet left-border + cyan box-shadow
+- Loading pulse animation
+- Response name gradient text violet→indigo
+- **Cor: violet/cyan (wisdom/oracle)**
+
+### Sprint B — TimeCapsule (🕰️ Time)
+- 1px top accent line 4-color (orange/pink/cyan)
+- Header com icon 🕰️ tick animation (4s rotate ±3deg)
+- Title 20px gradient orange→pink
+- Inputs com orange focus glow
+- Textarea com orange-tinted hover/focus
+- **Cor: orange/amber/pink (time/warmth)**
+
+### Sprint C — ToneBifold (✍️ Creative)
+- 1px top accent line cosmic pink/cyan
+- Title 20px gradient pink→cyan
+- Toolbar com gradient pink/cyan bg + tone pills 999px
+- Active tone: gradient pink→cyan filled + box-shadow
+- Bifold layout: left pane 3px indigo border (Original) / right pane 3px pink border (Rewrite)
+- Pane labels color-coded (indigo Original / pink Rewrite)
+- Textareas pink focus glow
+- Counts row tabular-nums + monospace
+- Actions row pink fade-line + Apply button pink shadow on hover
+- **Cor: pink/cyan (creative/contrast)**
+
+### CSS additions
+- GhostMentor: ~245 LOC enhanced (refactored existing v0.12)
+- TimeCapsule: ~75 LOC novas
+- ToneBifold: ~140 LOC enhanced (refactored existing v0.11)
+- TOTAL: ~460 LOC
+
+### Visual identity matrix por tool
+- 🧠 Reasoning = cyan/indigo (analytical)
+- 🔮 Pre-mortem = purple/pink/cyan (oracle)
+- 👁️ Vision = cyan + orange warn
+- 👻 Ghost Mentor = violet/cyan (wisdom)
+- 🕰️ Time Capsule = orange/pink (time)
+- ✍️ Tone Bifold = pink/cyan (creative)
+
+Cada Tool agora distinguível instantaneamente por cor + animação característica.
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Animations performant
+- 8 modals consecutivos polidos com identidades visuais únicas
+
 ## [0.34.0] — 2026-05-02 — "Polish AI tool modals: Reasoning + Pre-mortem + Vision"
 
 Polish dos modais Tools IA (Lab tab — ferramentas de raciocínio profundo).
