@@ -4,6 +4,52 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.37.0] — 2026-05-02 — "Polish innovation modals 3: PatternDetectors + MemoryLoop + SmartPaste"
+
+### Sprint A — PatternDetectors / Repeating Theme Alert (📡 Signal)
+- 1px top accent indigo→cyan
+- Title gradient indigo→cyan
+- Cards: 4px indigo left-border + animated accent line top
+- People chips 999px com indigo border + hover translateY
+- Sentiment chips: blocker red / growth green com border distinct
+- Tip box gradient cyan/indigo + cyan left-border italic
+- **Cor: indigo/cyan (signal/sistêmico)**
+
+### Sprint B — MemoryLoop (🌀 Timeline)
+- 1px top accent 4-color (teal/indigo/cyan)
+- Title gradient teal→indigo
+- Time range pills 999px com gradient active state teal→indigo
+- Stats box gradient + teal border
+- Canvas wrap gradient bg + teal box-shadow
+- Theme cards: 3px teal left-border + hover translateX (+ border-color shift to indigo)
+- **Cor: teal/cyan/indigo (timeline/loop)**
+
+### Sprint C — SmartPaste (📋 Data flow)
+- 1px top accent cyan/teal (data flow)
+- Title gradient cyan→teal
+- Kind box gradient cyan/teal + drop-shadow icon
+- Bifold layout color-coded: left ORIGINAL com cyan label / right PROCESSADO com teal label
+- Output textarea com teal focus glow + gradient bg
+- Custom scrollbar cyan
+- **Cor: cyan/teal (clipboard/data flow)**
+
+### CSS additions
+- PatternDetectors: ~150 LOC enhanced
+- MemoryLoop: ~125 LOC enhanced
+- SmartPaste: ~145 LOC enhanced
+- TOTAL: ~420 LOC
+
+### Visual identity matrix expandida (12 modais Innovation)
+- 🧠 Reasoning · 🔮 Pre-mortem · 👁️ Vision
+- 👻 Ghost Mentor · 🕰️ Time Capsule · ✍️ Tone Bifold
+- 🌸 CrossPollination · 🛑 AntiProcrastination · 🔥 HabitStreaks
+- 📡 PatternDetectors **NEW** · 🌀 MemoryLoop **NEW** · 📋 SmartPaste **NEW**
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- 12 modais Innovation totalmente diferenciados visualmente
+
 ## [0.36.0] — 2026-05-02 — "Polish innovation modals 2: CrossPollination + AntiProcrastination + HabitStreaks"
 
 Continuação dos polish de modais Innovation com paletas distintas por função.
