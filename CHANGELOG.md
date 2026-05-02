@@ -4,6 +4,48 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.29.0] — 2026-05-02 — "Polish high-visibility surfaces: Onboarding + Spotlight + Settings"
+
+Polish dos surfaces de alta visibilidade que o user vê com mais frequência (first impression + everyday).
+
+### Sprint A — Onboarding wizard
+- Header com border-bottom gradient cyan→indigo + title gradient text
+- Progress dots: dot atual com scale 1.3 + cyan glow box-shadow
+- Section heading style com cyan left-border (consistente)
+- Hint box premium com gradient bg + cyan accent
+- Profile cards: animated accent line top edge (0→80% on hover/100% on selected)
+- Profile cards hover: translateY(-2px) + cyan glow shadow
+- Selected card: cyan border + gradient bg
+- Color swatches: scale 1.15 + rotate 8deg on hover (shake-like feedback)
+- Goal cards (4 large CTAs): premium gradient + accent line + scale 1.01 on hover
+
+### Sprint B — Cmd+K Spotlight (used 100×/day)
+- Migrated 100% inline styles → utility classes (~80 LOC moved to CSS)
+- Modal com 1px top accent line cyan→indigo cosmic
+- Search icon ⚡ com pulse animation 2.4s + cyan glow
+- Input wrap com gradient bg
+- Result rows com border-left active state cyan + gradient bg
+- Active row: icon scale 1.06 + drop-shadow + Enter ↵ pill cyan-tinted
+- Category pills 999px rounded
+- Custom scrollbar cyan
+- Hint footer com gradient subtle
+
+### Sprint C — Settings tab visual
+- Hero card no topo: gradient bg + 1px top accent line + title gradient cyan→indigo (~22px)
+- Section headers (h3) com cyan left-border + gradient bg (left→transparent) + bottom-fade-line
+- Section descriptions com gradient bg + cyan left-border (premium info-box)
+
+### CSS additions
+- Onboarding: ~155 LOC enhancing existing 90 LOC of v0.9.9 styles
+- Spotlight: ~165 LOC novas (substituindo inline styles)
+- Settings tab: ~75 LOC novas (hero + section headers + descriptions)
+- TOTAL: ~395 LOC novas/modificadas
+
+### Compatibility
+- Zero breaking changes. Funcionalidade idêntica.
+- Build TypeScript zero errors.
+- Settings tab class wrapper `.atlas-settings-tab` aplicado para escopo seguro (não vaza pra outros plugins).
+
 ## [0.28.0] — 2026-05-02 — "Polish shared components: SubTabBar + Course Detail + SlideOverPanel"
 
 Polish dos componentes compartilhados que aparecem em múltiplos contextos.

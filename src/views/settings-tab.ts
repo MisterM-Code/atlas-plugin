@@ -11,9 +11,15 @@ export class AtlasSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
+		containerEl.addClass("atlas-settings-tab");
 
-		containerEl.createEl("h2", { text: "🧠 Atlas" });
-		containerEl.createEl("p", {
+		const heroWrap = containerEl.createDiv({ cls: "atlas-settings-hero" });
+		heroWrap.createEl("h2", {
+			cls: "atlas-settings-hero-title",
+			text: "🧠 Atlas",
+		});
+		heroWrap.createEl("p", {
+			cls: "atlas-settings-hero-sub",
 			text: "Segundo cérebro local. 100% privado. Roda no Ollama.",
 		});
 

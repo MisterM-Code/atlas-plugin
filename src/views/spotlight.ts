@@ -34,58 +34,35 @@ export class SpotlightModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 720 });
-		(contentEl as HTMLElement).style.padding = "0";
-		// v0.8.1: gradient cosmic header (Linear/Raycast-style)
-		(contentEl as HTMLElement).style.borderRadius = "var(--atlas-radius-lg, 12px)";
-		(contentEl as HTMLElement).style.overflow = "hidden";
+		contentEl.addClass("atlas-spotlight-content");
 
 		// Input com gradient header + accent glow
-		const inputWrap = contentEl.createDiv();
-		inputWrap.style.padding = "14px 18px";
-		inputWrap.style.background =
-			"linear-gradient(135deg, var(--atlas-accent-soft, rgba(99,102,241,0.08)) 0%, transparent 100%)";
-		inputWrap.style.borderBottom = "1px solid var(--atlas-accent-soft, rgba(99,102,241,0.12))";
-		inputWrap.style.display = "flex";
-		inputWrap.style.alignItems = "center";
-		inputWrap.style.gap = "10px";
-
-		const searchIcon = inputWrap.createSpan({ text: "⚡" });
-		searchIcon.style.fontSize = "20px";
-		searchIcon.style.color = "var(--atlas-accent, var(--interactive-accent))";
+		const inputWrap = contentEl.createDiv({ cls: "atlas-spotlight-input-wrap" });
+		inputWrap.createSpan({
+			cls: "atlas-spotlight-search-icon",
+			text: "⚡",
+		});
 
 		this.inputEl = inputWrap.createEl("input", {
+			cls: "atlas-spotlight-input",
 			type: "search",
 			attr: { placeholder: "Atlas Spotlight — busque qualquer coisa ou ação…" },
 		}) as HTMLInputElement;
-		this.inputEl.style.flexGrow = "1";
-		this.inputEl.style.fontSize = "16px";
-		this.inputEl.style.padding = "8px 4px";
-		this.inputEl.style.border = "none";
-		this.inputEl.style.outline = "none";
-		this.inputEl.style.background = "transparent";
 		this.inputEl.focus();
 
-		// v0.8.1: animação fadeIn + scaleIn no abrir
+		// Animação fadeIn + scaleIn no abrir
 		(contentEl as HTMLElement).animate(
 			[
 				{ opacity: 0, transform: "scale(0.96)" },
 				{ opacity: 1, transform: "scale(1)" },
 			],
-			{ duration: 180, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
+			{ duration: 200, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" }
 		);
 
 		// Results
-		this.listEl = contentEl.createDiv() as HTMLDivElement;
-		this.listEl.style.maxHeight = "60vh";
-		this.listEl.style.overflowY = "auto";
+		this.listEl = contentEl.createDiv({ cls: "atlas-spotlight-list" });
 
-		this.hintEl = contentEl.createDiv() as HTMLDivElement;
-		this.hintEl.style.padding = "8px 16px";
-		this.hintEl.style.borderTop = "1px solid var(--background-modifier-border)";
-		this.hintEl.style.fontSize = "10px";
-		this.hintEl.style.opacity = "0.6";
-		this.hintEl.style.display = "flex";
-		this.hintEl.style.justifyContent = "space-between";
+		this.hintEl = contentEl.createDiv({ cls: "atlas-spotlight-hint" });
 		this.renderHint();
 
 		this.buildAllItems();
@@ -284,73 +261,49 @@ export class SpotlightModal extends Modal {
 	private renderResults(): void {
 		this.listEl.empty();
 		if (this.filteredItems.length === 0) {
-			const empty = this.listEl.createEl("div", { text: "Nada encontrado." });
-			empty.style.padding = "16px";
-			empty.style.opacity = "0.5";
-			empty.style.textAlign = "center";
+			this.listEl.createEl("div", {
+				cls: "atlas-spotlight-empty",
+				text: "Nada encontrado.",
+			});
 			return;
 		}
 
 		for (let i = 0; i < this.filteredItems.length; i++) {
 			const item = this.filteredItems[i];
-			const row = this.listEl.createDiv();
-			row.style.display = "flex";
-			row.style.alignItems = "center";
-			row.style.gap = "12px";
-			row.style.padding = "10px 18px";
-			row.style.cursor = "pointer";
-			row.style.transition = "background var(--atlas-transition-fast, 120ms)";
-			if (i === this.selectedIdx) {
-				row.style.background = "var(--atlas-accent, var(--interactive-accent))";
-				row.style.color = "white";
-				row.style.boxShadow = "inset 3px 0 0 var(--atlas-accent-glow, rgba(99,102,241,0.5))";
-			}
+			const isActive = i === this.selectedIdx;
+			const row = this.listEl.createDiv({
+				cls: `atlas-spotlight-row ${isActive ? "is-active" : ""}`.trim(),
+			});
 
-			const icon = row.createEl("span", { text: item.icon });
-			icon.style.fontSize = "18px";
-			icon.style.minWidth = "24px";
+			row.createEl("span", {
+				cls: "atlas-spotlight-row-icon",
+				text: item.icon,
+			});
 
-			const wrap = row.createDiv();
-			wrap.style.flexGrow = "1";
-			wrap.style.minWidth = "0";
-			const title = wrap.createEl("div", { text: item.title });
-			title.style.fontSize = "13px";
-			title.style.fontWeight = "500";
-			title.style.whiteSpace = "nowrap";
-			title.style.overflow = "hidden";
-			title.style.textOverflow = "ellipsis";
+			const wrap = row.createDiv({ cls: "atlas-spotlight-row-body" });
+			wrap.createEl("div", {
+				cls: "atlas-spotlight-row-title",
+				text: item.title,
+			});
 
 			if (item.subtitle) {
-				const sub = wrap.createEl("div", { text: item.subtitle });
-				sub.style.fontSize = "10px";
-				sub.style.opacity = i === this.selectedIdx ? "0.85" : "0.55";
-				sub.style.whiteSpace = "nowrap";
-				sub.style.overflow = "hidden";
-				sub.style.textOverflow = "ellipsis";
+				wrap.createEl("div", {
+					cls: "atlas-spotlight-row-sub",
+					text: item.subtitle,
+				});
 			}
 
-			// v0.8.1: Enter keystroke hint na linha selecionada
-			if (i === this.selectedIdx) {
-				const enterHint = row.createEl("span", { text: "↵" });
-				enterHint.style.fontSize = "12px";
-				enterHint.style.padding = "2px 8px";
-				enterHint.style.background = "rgba(255,255,255,0.2)";
-				enterHint.style.borderRadius = "4px";
-				enterHint.style.fontWeight = "bold";
+			if (isActive) {
+				row.createEl("span", {
+					cls: "atlas-spotlight-row-enter",
+					text: "↵",
+				});
 			}
 
-			const cat = row.createEl("span", { text: item.category });
-			cat.style.fontSize = "9px";
-			cat.style.padding = "2px 6px";
-			cat.style.borderRadius = "3px";
-			cat.style.background =
-				i === this.selectedIdx
-					? "rgba(255,255,255,0.2)"
-					: "var(--background-modifier-hover)";
-			cat.style.opacity = "0.7";
-			cat.style.fontWeight = "bold";
-			cat.style.letterSpacing = "0.3px";
-			cat.style.textTransform = "uppercase";
+			row.createEl("span", {
+				cls: "atlas-spotlight-row-cat",
+				text: item.category,
+			});
 
 			row.addEventListener("click", () => {
 				this.selectedIdx = i;
