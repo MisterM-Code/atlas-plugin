@@ -1,0 +1,49 @@
+{
+	"name": "atlas",
+	"version": "0.7.0",
+	"description": "Atlas v0.7 Jarvis Edition — segundo cérebro local Obsidian. 15 perfis profissionais, 15 tools IA, analytics ECharts, course manager, integrations iCal+bookmarklet. 100% local via Ollama.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"lint": "eslint src --ext .ts",
+		"test": "vitest run"
+	},
+	"keywords": [
+		"obsidian",
+		"second-brain",
+		"pkm",
+		"ollama",
+		"local-llm",
+		"coaching",
+		"manager"
+	],
+	"author": "Miguel Veríssimo",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^20.11.0",
+		"@types/node-cron": "^3.0.11",
+		"@types/nodemailer": "^6.4.14",
+		"@typescript-eslint/eslint-plugin": "^7.0.0",
+		"@typescript-eslint/parser": "^7.0.0",
+		"builtin-modules": "^4.0.0",
+		"esbuild": "^0.20.0",
+		"eslint": "^8.57.0",
+		"obsidian": "latest",
+		"tslib": "^2.6.2",
+		"typescript": "^5.3.3",
+		"vitest": "^1.2.0"
+	},
+	"dependencies": {
+		"@types/canvas-confetti": "^1.9.0",
+		"axios": "^1.6.7",
+		"canvas-confetti": "^1.9.4",
+		"chokidar": "^3.6.0",
+		"chrono-node": "^2.7.5",
+		"echarts": "^6.0.0",
+		"node-cron": "^3.0.3",
+		"nodemailer": "^6.9.9",
+		"zod": "^3.22.4"
+	}
+}

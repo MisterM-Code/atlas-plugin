@@ -1,0 +1,218 @@
+import { Notice, MarkdownView, TFile } from "obsidian";
+import type AtlasPlugin from "../../../main";
+import { Agent } from "../../agent/agent";
+
+/**
+ * Renders Atlas Chat dentro do master sidebar.
+ * Implementação inline (não reusa AtlasChatView ItemView pra evitar duplicar registerView).
+ */
+export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
+	container.empty();
+	(container as HTMLElement).style.display = "flex";
+	(container as HTMLElement).style.flexDirection = "column";
+	(container as HTMLElement).style.height = "100%";
+
+	// Header
+	const header = container.createDiv();
+	header.style.display = "flex";
+	header.style.justifyContent = "space-between";
+	header.style.alignItems = "center";
+	header.style.marginBottom = "8px";
+	header.createEl("h3", { text: "💬 Atlas Chat" }).style.margin = "0";
+
+	const headerActions = header.createDiv();
+	headerActions.style.display = "flex";
+	headerActions.style.gap = "4px";
+	const newBtn = headerActions.createEl("button", { text: "Nova" });
+	newBtn.style.fontSize = "11px";
+	const clearBtn = headerActions.createEl("button", { text: "Limpar" });
+	clearBtn.style.fontSize = "11px";
+
+	// Messages
+	const messagesEl = container.createDiv() as HTMLDivElement;
+	messagesEl.style.flexGrow = "1";
+	messagesEl.style.overflowY = "auto";
+	messagesEl.style.padding = "8px 0";
+	messagesEl.style.minHeight = "200px";
+
+	// Input
+	const inputWrap = container.createDiv();
+	inputWrap.style.borderTop = "1px solid var(--background-modifier-border)";
+	inputWrap.style.padding = "8px 0";
+
+	const inputEl = inputWrap.createEl("textarea") as HTMLTextAreaElement;
+	inputEl.placeholder = "Pergunte algo... (Enter pra enviar)";
+	inputEl.style.width = "100%";
+	inputEl.style.minHeight = "60px";
+	inputEl.style.padding = "6px";
+	inputEl.style.fontSize = "13px";
+
+	const inputActions = inputWrap.createDiv();
+	inputActions.style.display = "flex";
+	inputActions.style.justifyContent = "space-between";
+	inputActions.style.marginTop = "6px";
+
+	const statusEl = inputActions.createEl("span") as HTMLSpanElement;
+	statusEl.style.fontSize = "10px";
+	statusEl.style.opacity = "0.5";
+
+	const sendBtn = inputActions.createEl("button", { text: "Enviar" }) as HTMLButtonElement;
+
+	const agent = new Agent(
+		plugin.app,
+		plugin.ollama,
+		plugin.memory,
+		plugin.kg,
+		plugin.embedder,
+		plugin.settings.ollama.generationModel
+	);
+
+	const renderTurn = (
+		role: "user" | "assistant",
+		content: string,
+		citations: { notePath: string; snippet: string }[] = []
+	): HTMLDivElement => {
+		const wrap = messagesEl.createDiv() as HTMLDivElement;
+		wrap.style.marginBottom = "10px";
+		wrap.style.padding = "10px";
+		wrap.style.borderRadius = "6px";
+		wrap.style.whiteSpace = "pre-wrap";
+		wrap.style.fontSize = "13px";
+
+		if (role === "user") {
+			wrap.style.background = "var(--background-secondary-alt)";
+			wrap.style.marginLeft = "16px";
+			const lbl = wrap.createEl("div", { text: "Você" });
+			lbl.style.fontSize = "10px";
+			lbl.style.opacity = "0.6";
+			lbl.style.marginBottom = "4px";
+		} else {
+			wrap.style.background = "var(--background-secondary)";
+			wrap.style.marginRight = "16px";
+			const lbl = wrap.createEl("div", { text: "🧠 Atlas" });
+			lbl.style.fontSize = "10px";
+			lbl.style.opacity = "0.6";
+			lbl.style.marginBottom = "4px";
+		}
+
+		const body = wrap.createEl("div");
+		body.addClass("atlas-msg-body");
+		body.setText(content);
+
+		if (citations.length > 0) {
+			const citWrap = wrap.createDiv();
+			citWrap.style.marginTop = "6px";
+			citWrap.style.fontSize = "10px";
+			const seen = new Set<string>();
+			for (const c of citations) {
+				if (seen.has(c.notePath)) continue;
+				seen.add(c.notePath);
+				const chip = citWrap.createEl("span", {
+					text: `📄 ${c.notePath.split("/").pop()?.replace(/\.md$/, "")}`,
+				});
+				chip.style.display = "inline-block";
+				chip.style.padding = "2px 6px";
+				chip.style.margin = "2px 4px 2px 0";
+				chip.style.background = "var(--background-modifier-hover)";
+				chip.style.borderRadius = "3px";
+				chip.style.cursor = "pointer";
+				chip.addEventListener("click", () => {
+					const f = plugin.app.vault.getAbstractFileByPath(c.notePath);
+					if (f instanceof TFile) plugin.app.workspace.getLeaf().openFile(f);
+				});
+			}
+		}
+
+		messagesEl.scrollTop = messagesEl.scrollHeight;
+		return wrap;
+	};
+
+	// Restore last session
+	const turns = plugin.memory.getRecentTurns(20);
+	for (const t of turns) {
+		renderTurn(t.role, t.content);
+	}
+
+	const send = async () => {
+		const text = inputEl.value.trim();
+		if (!text) return;
+		inputEl.value = "";
+		sendBtn.disabled = true;
+
+		renderTurn("user", text);
+
+		// Skeleton loader + spinner enquanto LLM pensa
+		const { renderSkeleton } = await import("../../ui/skeleton");
+		const thinkingWrap = messagesEl.createDiv();
+		thinkingWrap.style.padding = "10px 12px";
+		thinkingWrap.style.background = "var(--background-secondary)";
+		thinkingWrap.style.borderRadius = "8px";
+		thinkingWrap.style.marginBottom = "8px";
+		const thinkingHead = thinkingWrap.createDiv();
+		thinkingHead.style.display = "flex";
+		thinkingHead.style.alignItems = "center";
+		thinkingHead.style.gap = "8px";
+		thinkingHead.style.marginBottom = "8px";
+		thinkingHead.style.fontSize = "11px";
+		thinkingHead.style.opacity = "0.6";
+		const spinner = thinkingHead.createSpan();
+		spinner.addClass("atlas-spinner");
+		thinkingHead.createSpan({ text: "Atlas pensando..." });
+		renderSkeleton(thinkingWrap, { kind: "paragraph", count: 3 });
+		messagesEl.scrollTop = messagesEl.scrollHeight;
+
+		try {
+			const r = await agent.run({ query: text });
+			thinkingWrap.remove();
+			// Typing effect (opcional via settings)
+			const typingEnabled = plugin.settings.animations?.typingEffect ?? true;
+			if (typingEnabled && r.answer.length < 800) {
+				const wrap = renderTurn("assistant", "", r.citations);
+				const bodyEl = wrap.querySelector(".atlas-msg-body") as HTMLElement | null;
+				if (bodyEl) {
+					const { typeWriter } = await import("../../ui/animations");
+					await typeWriter(bodyEl, r.answer, { charDelay: 14 });
+				} else {
+					wrap.setText(r.answer);
+				}
+			} else {
+				renderTurn("assistant", r.answer, r.citations);
+			}
+			if (r.toolsUsed.length > 0) statusEl.setText(`Tools: ${r.toolsUsed.join(", ")}`);
+		} catch (e) {
+			thinkingWrap.remove();
+			const ae = e as { humanMessage?: string };
+			renderTurn(
+				"assistant",
+				`⚠️ ${ae.humanMessage ?? String(e)}\n\nClick em ⚙️ Status (Cmd+Shift+S) pra diagnosticar.`,
+				[]
+			);
+			plugin.presentError(e);
+		} finally {
+			sendBtn.disabled = false;
+		}
+	};
+
+	inputEl.addEventListener("keydown", (ev: KeyboardEvent) => {
+		if (ev.key === "Enter" && !ev.shiftKey) {
+			ev.preventDefault();
+			void send();
+		}
+	});
+	sendBtn.addEventListener("click", () => void send());
+
+	newBtn.addEventListener("click", () => {
+		plugin.memory.clearCurrentSession();
+		plugin.memory.startNewSession();
+		messagesEl.empty();
+		new Notice("Atlas: nova sessão iniciada.");
+	});
+	clearBtn.addEventListener("click", () => {
+		messagesEl.empty();
+		statusEl.setText("");
+	});
+
+	statusEl.setText(
+		`💾 ${plugin.memory.getFacts().length} fatos · ${plugin.memory.listSessions().length} sessões`
+	);
+}

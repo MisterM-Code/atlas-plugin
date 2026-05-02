@@ -1,0 +1,61 @@
+name: Release Atlas plugin
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc -noEmit -skipLibCheck
+
+      - name: Build
+        run: node esbuild.config.mjs production
+
+      - name: Verify artifacts
+        run: |
+          test -f main.js
+          test -f manifest.json
+          test -f styles.css
+          ls -la main.js manifest.json styles.css
+
+      - name: Extract release notes from CHANGELOG
+        id: notes
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          version="${tag#v}"
+          # Extract section between [version] and next ## heading
+          awk -v ver="$version" '
+            /^## \['"$version"'\]/ { found=1; next }
+            /^## \[/ && found { exit }
+            found { print }
+          ' CHANGELOG.md > /tmp/notes.md || true
+          if [ ! -s /tmp/notes.md ]; then
+            echo "Atlas $tag — segundo cérebro local. Veja CHANGELOG.md." > /tmp/notes.md
+          fi
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.notes.outputs.tag }}"
+          gh release create "$tag" \
+            --title="Atlas $tag" \
+            --notes-file /tmp/notes.md \
+            main.js manifest.json styles.css

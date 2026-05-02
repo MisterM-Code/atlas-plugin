@@ -1,0 +1,74 @@
+/* Atlas plugin styles */
+
+.atlas-modal-textarea {
+	width: 100%;
+	font-size: 16px;
+	padding: 8px;
+	font-family: var(--font-text);
+}
+
+.atlas-modal-hint {
+	font-size: 11px;
+	opacity: 0.7;
+	margin-top: 4px;
+}
+
+.atlas-chat-panel {
+	padding: 12px;
+}
+
+.atlas-chat-message {
+	margin-bottom: 12px;
+	padding: 10px;
+	border-radius: 8px;
+}
+
+.atlas-chat-message-user {
+	background-color: var(--background-secondary-alt);
+	margin-left: 24px;
+}
+
+.atlas-chat-message-assistant {
+	background-color: var(--background-secondary);
+	margin-right: 24px;
+}
+
+.atlas-citation-card {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	margin: 2px;
+	border-radius: 4px;
+	background-color: var(--background-modifier-hover);
+	cursor: pointer;
+	font-size: 12px;
+}
+
+.atlas-citation-card:hover {
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.atlas-briefing-section {
+	border-left: 3px solid var(--interactive-accent);
+	padding-left: 12px;
+	margin: 8px 0;
+}
+
+.atlas-severity-low {
+	color: var(--text-muted);
+}
+
+.atlas-severity-medium {
+	color: var(--color-orange);
+}
+
+.atlas-severity-high {
+	color: var(--color-red);
+}
+
+.atlas-severity-critical {
+	color: var(--color-red);
+	font-weight: bold;
+}
