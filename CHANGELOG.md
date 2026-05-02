@@ -4,6 +4,62 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.36.0] — 2026-05-02 — "Polish innovation modals 2: CrossPollination + AntiProcrastination + HabitStreaks"
+
+Continuação dos polish de modais Innovation com paletas distintas por função.
+
+### Sprint A — CrossPollination (🌸 Flora)
+- 1px top accent line cosmic 4-color (emerald/pink/cyan)
+- Title 20px gradient emerald→pink
+- Inputs com emerald focus glow + label uppercase emerald color
+- Suggestions box gradient emerald/cyan + chips 999px com gradient hover emerald→pink
+- Ask button hover emerald shadow
+- Result body gradient emerald + 3px emerald left-border
+- Loading pulse animation
+- **Cor: emerald/pink/cyan (cross-fertilization/flora)**
+
+### Sprint B — AntiProcrastination (🛑 Focus)
+- 1px top accent line red/orange (urgency)
+- Title 20px gradient red→orange
+- Cards: gradient red-tinted bg + 3px red left-border + animated accent line top edge
+- Hover: translateX 2px + red shadow
+- Empty state: green/cyan gradient (success theme!) com dashed border emerald
+- Break button hover red shadow
+- **Cor: red/orange (urgency/breakdown)**
+
+### Sprint C — HabitStreaks (🔥 Fire)
+- 1px top accent 4-color (yellow/orange/red — fire flame)
+- Title 20px gradient yellow→red
+- Cards: 4px orange left-border + animated accent line yellow→red
+- Card emoji scale 1.2 + rotate -5deg on hover + drop-shadow orange glow
+- Streak text gradient yellow→red + tabular-nums
+- Days count 26px gradient yellow→red bold
+- **Bar fill com 3-color gradient (yellow/orange/red) + box-shadow orange + shine animation 2.4s**
+- **Cor: orange/yellow/red (fire/streak)**
+
+### CSS additions
+- CrossPollination: ~150 LOC enhanced (refactored existing)
+- AntiProcrastination: ~120 LOC enhanced
+- HabitStreaks: ~155 LOC enhanced (with shine animation)
+- TOTAL: ~425 LOC
+
+### Visual identity matrix expandida (9 modais Innovation)
+- 🧠 Reasoning = cyan/indigo (analytical)
+- 🔮 Pre-mortem = purple/pink/cyan (oracle)
+- 👁️ Vision = cyan + orange warn
+- 👻 Ghost Mentor = violet/cyan (wisdom)
+- 🕰️ Time Capsule = orange/pink (time)
+- ✍️ Tone Bifold = pink/cyan (creative)
+- 🌸 CrossPollination = emerald/pink (flora) **NEW**
+- 🛑 AntiProcrastination = red/orange (urgency) **NEW**
+- 🔥 HabitStreaks = orange/yellow/red (fire) **NEW**
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Animations performant
+- 9 modais Innovation totalmente diferenciados visualmente
+
 ## [0.35.0] — 2026-05-02 — "Polish innovation modals: Ghost Mentor + Time Capsule + Tone Bifold"
 
 Polish dos modais Innovation com identidades visuais distintas por tema/persona.
