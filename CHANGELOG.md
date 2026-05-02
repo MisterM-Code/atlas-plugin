@@ -4,6 +4,53 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.13.0] — 2026-05-02 — "4 detectores de bem-estar + Smart Paste"
+
+### Added — 4 features do Power Catalog do roadmap
+
+#### ❤️ Burnout Detector (`Cmd+P → Atlas: Burnout Detector`)
+Analisa últimos 14 dias de daily logs procurando 22 keywords de fadiga/overwhelm/ansiedade. Detecta:
+- **Dias consecutivos** com sinais (crítico se ≥ 3)
+- **Total de dias** afetados nos últimos 14
+- **Verdict**: healthy / mid / warning
+- **6 recomendações práticas** quando warning (pausa, sleep, BICEPS, exercício, etc.)
+- Click no card abre a daily log fonte
+
+#### ⚖️ Capacity Overload Warning (`Cmd+P → Atlas: Capacity Overload Warning`)
+Detecta pessoas em sobrecarga via KG:
+- **Severidade Overload (🔴)**: 4+ produtos OU 12+ commitments abertos
+- **Severidade Watch (🟡)**: 3+ produtos OU 7+ commitments
+- Lista produtos onde a pessoa está owner
+- **Tip de conversa** sugerido para reset de capacidade
+
+#### 🤝 Promise Tracker (`Cmd+P → Atlas: Promise Tracker`)
+Varre 1:1s e meetings dos últimos 30 dias procurando padrões de promessa:
+- Regex: "prometo", "garanto", "me comprometo", "vou fazer", "100%", "com certeza"
+- Filtra por tipo de nota (1on1/meeting/coaching)
+- Dedupe automático
+- Click "→ Commitment formal" cria entry no KG `commitments` com `status=open`, `weight=medium`
+- Aparece automaticamente em Hub → Action Items
+
+#### 📋 Smart Paste (`Cmd+P → Atlas: Smart Paste`)
+Cola inteligente que detecta tipo de conteúdo no clipboard:
+- **🔗 URL** → fetch metadata (title + description) via `requestUrl`, cola como `[title](url)\n> description`
+- **{} JSON** → valida + indenta + wraps em fence ` ```json ... ``` `
+- **📊 CSV** → converte em markdown table
+- **🗂️ Markdown table** → cola direto formatado
+- **💬 Slack/Teams quote** → reformata como blockquote citado
+- **🚨 Stack trace / erro** → wrap fence + dica "use Reasoning Mode"
+- **</> Código** → detecta linguagem (TS/PY/Java/Go/Rust/SQL/HTML/YAML) + fence
+- **📄 Texto longo > 500 chars** → resume em 2-3 linhas via LLM, append ao texto
+
+UX: side-by-side ORIGINAL | PROCESSADO. User pode editar processed antes de inserir, ou usar original. Insere no editor ativo OU copia pro clipboard se sem nota aberta.
+
+### Stack
+- main.js: 1.8 MB (sem deps adicionais)
+- styles.css: 63 KB → **68 KB**
+- 2 novos arquivos: `wellbeing-detectors.ts` (3 modais) + `smart-paste.ts`
+- 4 novos commands (total: 125)
+- Reaproveita: Ollama, KG, requestUrl, MarkdownView
+
 ## [0.12.0] — 2026-05-02 — "5 inovações Tier 3 do roadmap original"
 
 ### Added — 5 features inovadoras (Tier 3 v0.2 do roadmap)

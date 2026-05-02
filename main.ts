@@ -889,6 +889,42 @@ captured_via: webhook
 		});
 
 		this.addCommand({
+			id: "burnout-detector",
+			name: "❤️ Burnout Detector (sinais nos daily logs)",
+			callback: async () => {
+				const m = await import("./src/innovations/wellbeing-detectors");
+				new m.BurnoutDetectorModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "capacity-overload",
+			name: "⚖️ Capacity Overload Warning (time)",
+			callback: async () => {
+				const m = await import("./src/innovations/wellbeing-detectors");
+				new m.CapacityOverloadModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "promise-tracker",
+			name: "🤝 Promise Tracker (extrai commitments)",
+			callback: async () => {
+				const m = await import("./src/innovations/wellbeing-detectors");
+				new m.PromiseTrackerModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "smart-paste",
+			name: "📋 Smart Paste (URL/JSON/code intelligent)",
+			callback: async () => {
+				const m = await import("./src/innovations/smart-paste");
+				new m.SmartPasteModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
 			id: "create-reminder",
 			name: "🔔 Criar reminder com data",
 			callback: async () => {

@@ -2666,3 +2666,169 @@
 .atlas-fsl-wordcount { font-size: 11px; opacity: 0.6; margin-top: 4px; text-align: right; }
 
 .atlas-fsl-action { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+/* v0.13 — Burnout Detector */
+.atlas-burnout-title { margin: 0 0 4px 0; }
+.atlas-burnout-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.atlas-burnout-loading { padding: 16px; opacity: 0.6; }
+
+.atlas-burnout-verdict {
+	padding: 12px;
+	border-radius: 6px;
+	margin-bottom: 16px;
+	font-size: 13px;
+	line-height: 1.5;
+}
+.atlas-burnout-verdict.is-healthy {
+	background: rgba(34, 197, 94, 0.1);
+	border-left: 3px solid var(--color-green);
+}
+.atlas-burnout-verdict.is-mid {
+	background: rgba(251, 191, 36, 0.1);
+	border-left: 3px solid var(--color-orange);
+}
+.atlas-burnout-verdict.is-warning {
+	background: rgba(239, 68, 68, 0.12);
+	border-left: 3px solid var(--color-red);
+	font-weight: 500;
+}
+
+.atlas-burnout-section-title {
+	font-size: 13px;
+	margin: 12px 0 6px 0;
+}
+.atlas-burnout-card {
+	padding: 8px 12px;
+	margin-bottom: 4px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	cursor: pointer;
+	border-left: 3px solid var(--color-orange);
+}
+.atlas-burnout-card:hover { background: var(--background-modifier-hover); }
+.atlas-burnout-card-date { font-weight: bold; font-size: 12px; }
+.atlas-burnout-card-kw { margin: 4px 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.atlas-burnout-kw-chip {
+	font-size: 10px;
+	padding: 1px 6px;
+	background: var(--background-modifier-hover);
+	border-radius: 3px;
+	color: var(--color-orange);
+}
+.atlas-burnout-card-excerpt { font-size: 11px; opacity: 0.7; font-style: italic; }
+.atlas-burnout-recs { margin-top: 16px; padding: 12px; background: var(--background-secondary-alt); border-radius: 6px; }
+
+/* v0.13 — Capacity Overload */
+.atlas-overload-title { margin: 0 0 4px 0; }
+.atlas-overload-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.atlas-overload-empty {
+	padding: 24px;
+	text-align: center;
+	background: rgba(34, 197, 94, 0.08);
+	border-radius: 6px;
+}
+
+.atlas-overload-card {
+	padding: 12px;
+	margin-bottom: 8px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+}
+.atlas-overload-card.is-overload { border-left: 3px solid var(--color-red); }
+.atlas-overload-card.is-watch { border-left: 3px solid var(--color-orange); }
+.atlas-overload-card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.atlas-overload-card-emoji { font-size: 14px; }
+.atlas-overload-card-severity {
+	font-size: 10px;
+	font-weight: bold;
+	letter-spacing: 0.5px;
+	opacity: 0.7;
+}
+.atlas-overload-card-meta { font-size: 11px; opacity: 0.7; }
+.atlas-overload-card-projects { font-size: 11px; opacity: 0.65; margin-top: 4px; }
+.atlas-overload-card-tip { font-size: 11px; margin-top: 6px; padding: 6px 8px; background: var(--background-modifier-hover); border-radius: 4px; }
+
+/* v0.13 — Promise Tracker */
+.atlas-promise-title { margin: 0 0 4px 0; }
+.atlas-promise-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.atlas-promise-loading { padding: 16px; opacity: 0.6; }
+.atlas-promise-empty { padding: 24px; text-align: center; opacity: 0.6; }
+.atlas-promise-count { font-size: 12px; font-weight: bold; margin-bottom: 8px; opacity: 0.8; }
+
+.atlas-promise-card {
+	padding: 10px 12px;
+	margin-bottom: 8px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	border-left: 3px solid var(--atlas-accent, var(--interactive-accent));
+	transition: opacity 200ms ease;
+}
+.atlas-promise-card.is-converted {
+	opacity: 0.5;
+	border-left-color: var(--color-green);
+}
+.atlas-promise-card.is-ignored {
+	opacity: 0.3;
+	border-left-color: var(--text-muted);
+}
+.atlas-promise-card-text { font-style: italic; font-size: 13px; line-height: 1.5; }
+.atlas-promise-card-meta { font-size: 10px; opacity: 0.6; margin-top: 4px; }
+.atlas-promise-card-actions { display: flex; gap: 6px; margin-top: 8px; }
+.atlas-promise-convert-btn { font-size: 11px; padding: 4px 10px; }
+.atlas-promise-ignore-btn { font-size: 11px; padding: 4px 10px; }
+
+/* v0.13 — Smart Paste */
+.atlas-paste-title { margin: 0 0 4px 0; }
+.atlas-paste-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.atlas-paste-loading,
+.atlas-paste-processing { padding: 16px; opacity: 0.6; }
+.atlas-paste-empty,
+.atlas-paste-error { padding: 16px; color: var(--color-red); }
+
+.atlas-paste-kind-box {
+	padding: 8px 12px;
+	background: var(--background-secondary-alt);
+	border-radius: 4px;
+	margin-bottom: 12px;
+	font-size: 12px;
+}
+.atlas-paste-kind-emoji { font-size: 16px; margin-right: 6px; }
+.atlas-paste-kind-meta { opacity: 0.6; font-size: 11px; }
+
+.atlas-paste-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+.atlas-paste-col-label {
+	font-size: 10px;
+	font-weight: bold;
+	opacity: 0.7;
+	letter-spacing: 0.5px;
+	margin-bottom: 6px;
+}
+.atlas-paste-pre {
+	padding: 8px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	font-size: 11px;
+	max-height: 280px;
+	overflow: auto;
+	white-space: pre-wrap;
+}
+.atlas-paste-output-textarea {
+	width: 100%;
+	min-height: 280px;
+	padding: 8px;
+	font-family: var(--font-monospace);
+	font-size: 12px;
+	border-radius: 4px;
+}
+
+.atlas-paste-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+}
+.atlas-paste-insert-btn { padding: 6px 14px; }
