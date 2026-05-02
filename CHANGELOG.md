@@ -4,6 +4,52 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.11.0] — 2026-05-02 — "Tier B innovations: Tone Bifold + Graph Pruning + Easter Eggs"
+
+### Added — 3 features inovadoras (Tier B do roadmap original)
+
+#### ✍️ Tone Bifold Editor (`Cmd+P → Atlas: Tone Bifold Editor`)
+Modal split-view com texto original (esq.) + reescrita LLM (dir.), ambos editáveis. **7 tons disponíveis:**
+- 🎩 Formal · 😎 Casual · 💼 Executivo (bullets) · 🤗 Amigável · ✂️ Conciso · 🌳 Expandido · 📚 Acadêmico
+
+Word counts live + ratio (% do original). Botão "⇄ Trocar lados" pra permutar. "Aplicar original" ou "Aplicar reescrita" volta na nota ativa.
+
+Por que: muitos editores têm "rewrite" mas raros mostram side-by-side editável — permite **blend** entre original e IA.
+
+#### ✂️ Graph Pruning Assistant (`Cmd+P → Atlas: Graph Pruning Assistant`)
+Análise de saúde do Knowledge Graph com 4 seções:
+- **📊 Overview** — total nodes, edges, densidade %, componentes
+- **🩺 Verdict** — healthy / mid / warning baseado em fragmentação
+- **🧩 Disconnected components** — clusters separados detectados via BFS
+- **🏝️ Orphan entities** — nodes sem nenhuma conexão
+- **🔗 Merge suggestions** — entidades com nomes muito similares (Jaro-like sim ≥ 0.7) com botão "Adicionar como alias" 1-click
+
+Por que: KG cresce organicamente e fragmenta. Esse tool dá visibilidade + ação imediata.
+
+#### 🎮 Easter Eggs (descoberta gradual)
+- **Konami code** (↑↑↓↓←→←→BA) — ativa modo nostálgico com confetti, +30 XP, mensagens randomizadas, glow drama 4s
+- **7 comandos secretos** acessíveis via Spotlight (não documentados):
+  - "coffee" / "café" → pausa recomendada
+  - "thanks" / "obrigado" → resposta randomizada
+  - "42" → meaning of life
+  - "hello world" → hello reply
+  - "jarvis" → abre Jarvis
+  - "matrix" / "neo" → modo matrix 6s
+  - "xp" → +10 XP cheat
+
+Por que: pequenos detalhes que recompensam usuários atentos = produto vivo.
+
+### Stack
+- main.js: 1.8 MB (sem deps adicionais)
+- styles.css: 51 KB → **55 KB**
+- Reaproveita Web Animations API + canvas-confetti existentes
+- Graph Pruning usa BFS nativo (zero deps)
+
+### NÃO incluído (intencional)
+- **3D KG Graph (Three.js)** — bundle bloat ~500 KB, ECharts force-directed existente já é robusto
+- **Vosk hotword "Atlas" always-listening** — 50 MB modelo + privacy-sensitive, push-to-talk via Web Speech suficiente
+- **GraphRAG / HippoRAG** — research-level, fora do escopo de plugin Obsidian
+
 ## [0.10.0] — 2026-05-02 — "Final migration: Reports Composer + Visual Template Editor → CSS"
 
 ### Changed — Last 2 heavy files migrated to CSS classes

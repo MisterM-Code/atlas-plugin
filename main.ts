@@ -218,6 +218,7 @@ export default class AtlasPlugin extends Plugin {
 	reminderWatcher!: ReminderWatcher;
 	proactive!: ProactiveDetector;
 	private statusBar: HTMLElement | null = null;
+	private easterEggs: { unmount: () => void } | null = null;
 
 	async onload(): Promise<void> {
 		logger.info("Atlas plugin carregando...");
@@ -541,6 +542,15 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 			}
 		});
 
+		// v0.11: Easter eggs (Konami code listener)
+		try {
+			const m = await import("./src/ui/easter-eggs");
+			this.easterEggs = new m.EasterEggsListener(this);
+			(this.easterEggs as unknown as { mount: () => void }).mount();
+		} catch (e) {
+			logger.warn("easter-eggs failed to mount", { error: String(e) });
+		}
+
 		logger.info("Atlas plugin pronto.");
 	}
 
@@ -548,6 +558,7 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		logger.info("Atlas plugin descarregando...");
 		this.scheduler?.cancelAll();
 		this.hud?.hide();
+		this.easterEggs?.unmount();
 		removeAtlasTheme();
 	}
 
@@ -811,6 +822,24 @@ captured_via: webhook
 			callback: async () => {
 				const m = await import("./src/innovations/compose-email");
 				new m.ComposeEmailModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "tone-bifold",
+			name: "✍️ Tone Bifold Editor (reescrever em outro tom)",
+			callback: async () => {
+				const m = await import("./src/innovations/tone-bifold");
+				await m.openToneBifoldFromActive(this);
+			},
+		});
+
+		this.addCommand({
+			id: "graph-pruning",
+			name: "✂️ Graph Pruning Assistant (saúde do KG)",
+			callback: async () => {
+				const m = await import("./src/innovations/graph-pruning");
+				new m.GraphPruningModal(this.app, this).open();
 			},
 		});
 

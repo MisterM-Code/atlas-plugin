@@ -2214,3 +2214,180 @@
 .atlas-tplpicker-card-desc { font-size: 11px; opacity: 0.7; }
 .atlas-tplpicker-card-meta { font-size: 10px; opacity: 0.5; margin-top: 2px; }
 .atlas-tplpicker-new-btn { margin-top: 12px; }
+
+/* v0.11 — Easter eggs Konami mode */
+.atlas-konami-active {
+	animation: atlas-konami-glow 0.5s ease-in-out infinite;
+}
+@keyframes atlas-konami-glow {
+	0%, 100% { filter: hue-rotate(0deg); }
+	50% { filter: hue-rotate(60deg) brightness(1.1); }
+}
+
+.atlas-matrix-mode {
+	filter: hue-rotate(120deg) saturate(1.5);
+	transition: filter 1s ease;
+}
+
+/* v0.11 — Tone Bifold Editor */
+.atlas-tonebifold-header { margin-bottom: 12px; }
+.atlas-tonebifold-title { margin: 0; }
+.atlas-tonebifold-subtitle { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+
+.atlas-tonebifold-toolbar {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+	padding: 8px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+}
+.atlas-tonebifold-tone-btn {
+	font-size: 12px;
+	padding: 6px 12px;
+	cursor: pointer;
+	border-radius: 4px;
+	transition: all 120ms ease;
+}
+.atlas-tonebifold-tone-btn.is-active {
+	background: var(--atlas-accent, var(--interactive-accent));
+	color: var(--text-on-accent);
+}
+
+.atlas-tonebifold-layout {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	height: 400px;
+}
+.atlas-tonebifold-pane {
+	display: flex;
+	flex-direction: column;
+}
+.atlas-tonebifold-pane-label {
+	font-size: 11px;
+	opacity: 0.7;
+	font-weight: bold;
+	margin-bottom: 6px;
+	letter-spacing: 0.5px;
+}
+.atlas-tonebifold-textarea {
+	flex-grow: 1;
+	width: 100%;
+	padding: 10px;
+	font-size: 13px;
+	line-height: 1.5;
+	font-family: var(--font-text);
+	border-radius: 6px;
+	resize: vertical;
+}
+
+.atlas-tonebifold-counts {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 8px;
+	font-size: 11px;
+	opacity: 0.6;
+}
+.atlas-tonebifold-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 16px;
+}
+
+/* v0.11 — Graph Pruning Assistant */
+.atlas-pruning-title { margin: 0 0 4px 0; }
+.atlas-pruning-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.atlas-pruning-loading { padding: 24px; text-align: center; opacity: 0.6; }
+
+.atlas-pruning-stats { margin-bottom: 16px; }
+.atlas-pruning-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 8px;
+	margin-top: 8px;
+}
+.atlas-pruning-stat-cell {
+	padding: 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	text-align: center;
+}
+.atlas-pruning-stat-value {
+	font-size: 22px;
+	font-weight: bold;
+	color: var(--atlas-accent, var(--interactive-accent));
+}
+.atlas-pruning-stat-label {
+	font-size: 10px;
+	opacity: 0.6;
+	margin-top: 2px;
+}
+
+.atlas-pruning-verdict {
+	padding: 12px;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+	margin-bottom: 16px;
+}
+.atlas-pruning-verdict.is-healthy {
+	background: rgba(34, 197, 94, 0.1);
+	border-left: 3px solid var(--color-green);
+}
+.atlas-pruning-verdict.is-mid {
+	background: rgba(251, 191, 36, 0.1);
+	border-left: 3px solid var(--color-orange);
+}
+.atlas-pruning-verdict.is-warning {
+	background: rgba(239, 68, 68, 0.1);
+	border-left: 3px solid var(--color-red);
+}
+
+.atlas-pruning-section { margin-bottom: 16px; }
+.atlas-pruning-section h4 { margin: 0 0 4px 0; }
+.atlas-pruning-section-desc { font-size: 11px; opacity: 0.6; margin-bottom: 8px; }
+
+.atlas-pruning-component-row {
+	padding: 6px 8px;
+	margin-bottom: 4px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	font-size: 12px;
+}
+.atlas-pruning-component-list { opacity: 0.7; }
+
+.atlas-pruning-orphans-list {
+	font-size: 12px;
+	padding-left: 20px;
+	max-height: 140px;
+	overflow-y: auto;
+}
+.atlas-pruning-more { font-size: 11px; opacity: 0.5; margin-top: 4px; }
+
+.atlas-pruning-merge-row {
+	padding: 6px 8px;
+	margin-bottom: 4px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	font-size: 12px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.atlas-pruning-merge-emoji { font-size: 14px; }
+.atlas-pruning-merge-reason { opacity: 0.6; font-size: 11px; }
+.atlas-pruning-merge-btn {
+	margin-left: auto;
+	font-size: 11px;
+	padding: 3px 8px;
+}
+
+.atlas-pruning-done {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 16px;
+}
