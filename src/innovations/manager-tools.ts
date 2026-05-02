@@ -383,17 +383,19 @@ export class PreMortemModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 640 });
-		contentEl.createEl("h3", { text: "🔮 Atlas — Pre-mortem Oracle" });
-		contentEl.createEl("p", {
+		contentEl.addClass("atlas-premortem-modal");
+
+		const header = contentEl.createDiv({ cls: "atlas-premortem-header" });
+		header.createEl("span", { cls: "atlas-premortem-icon", text: "🔮" });
+		const wrap = header.createDiv({ cls: "atlas-premortem-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-premortem-title", text: "Pre-mortem Oracle" });
+		wrap.createEl("div", {
+			cls: "atlas-premortem-subtitle",
 			text: "Descreva um projeto/decisão. Atlas vai prever como pode falhar, usando seu histórico do KG.",
 		});
 
-		const ta = contentEl.createEl("textarea");
+		const ta = contentEl.createEl("textarea", { cls: "atlas-premortem-input" });
 		ta.placeholder = "Ex: Vamos migrar todo o sistema de pagamentos pra microserviços em 3 meses, com time de 8 pessoas, mantendo legacy rodando em paralelo...";
-		ta.style.width = "100%";
-		ta.style.minHeight = "180px";
-		ta.style.padding = "10px";
-		ta.style.fontSize = "13px";
 		ta.addEventListener("input", () => (this.projectDesc = ta.value));
 
 		new Setting(contentEl)
@@ -431,23 +433,19 @@ class PreMortemResultModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 800 });
-		contentEl.createEl("h3", { text: "🔮 Pre-mortem — Atlas Oracle" });
+		contentEl.addClass("atlas-premortem-result-modal");
+		contentEl.createEl("h3", {
+			cls: "atlas-premortem-result-title",
+			text: "🔮 Pre-mortem — Atlas Oracle",
+		});
 
-		const q = contentEl.createEl("blockquote", { text: this.question });
-		q.style.padding = "8px";
-		q.style.background = "var(--background-secondary)";
-		q.style.borderRadius = "4px";
-		q.style.fontSize = "12px";
+		const q = contentEl.createEl("blockquote", {
+			cls: "atlas-premortem-question",
+			text: this.question,
+		});
+		void q;
 
-		const pre = contentEl.createEl("div");
-		pre.style.padding = "12px";
-		pre.style.background = "var(--background-secondary-alt)";
-		pre.style.borderRadius = "6px";
-		pre.style.marginTop = "12px";
-		pre.style.whiteSpace = "pre-wrap";
-		pre.style.fontSize = "13px";
-		pre.style.maxHeight = "60vh";
-		pre.style.overflow = "auto";
+		const pre = contentEl.createDiv({ cls: "atlas-premortem-result" });
 		pre.textContent = this.result;
 
 		new Setting(contentEl)

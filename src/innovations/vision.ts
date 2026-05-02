@@ -188,11 +188,16 @@ export class VisionModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 560 });
+		contentEl.addClass("atlas-vision-modal");
 
-		contentEl.createEl("h3", { text: "👁️ Atlas Vision" });
-		contentEl.createEl("p", {
-			text: `Analisa imagens via ${VISION_MODEL}. Use para whiteboards, screenshots, diagramas, recibos, anotações à mão.`,
-		}).style.fontSize = "12px";
+		const header = contentEl.createDiv({ cls: "atlas-vision-header" });
+		header.createEl("span", { cls: "atlas-vision-icon", text: "👁️" });
+		const wrap = header.createDiv({ cls: "atlas-vision-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-vision-title", text: "Atlas Vision" });
+		wrap.createEl("div", {
+			cls: "atlas-vision-subtitle",
+			text: `Analisa imagens via ${VISION_MODEL}. Whiteboards, screenshots, diagramas, recibos, anotações à mão.`,
+		});
 
 		new Setting(contentEl)
 			.setName("Caminho do arquivo")
@@ -200,7 +205,7 @@ export class VisionModal extends Modal {
 			.addText((t) => {
 				t.setPlaceholder("/Users/seu_user/Desktop/whiteboard.png")
 					.onChange((v) => (this.filePath = v.trim()));
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-vision-path-input");
 			});
 
 		new Setting(contentEl)
@@ -215,13 +220,7 @@ export class VisionModal extends Modal {
 				d.onChange((v) => (this.taskKind = v as typeof this.taskKind));
 			});
 
-		const note = contentEl.createDiv();
-		note.style.padding = "10px";
-		note.style.background = "var(--background-secondary)";
-		note.style.borderRadius = "6px";
-		note.style.fontSize = "11px";
-		note.style.opacity = "0.8";
-		note.style.marginBottom = "12px";
+		const note = contentEl.createDiv({ cls: "atlas-vision-warn" });
 		note.setText(
 			`⚠️ ${VISION_MODEL} consome ~8 GB RAM temporário. Em máquinas 8 GB, feche outros apps antes de rodar.`
 		);

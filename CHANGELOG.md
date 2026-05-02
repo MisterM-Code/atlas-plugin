@@ -4,6 +4,51 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.34.0] — 2026-05-02 — "Polish AI tool modals: Reasoning + Pre-mortem + Vision"
+
+Polish dos modais Tools IA (Lab tab — ferramentas de raciocínio profundo).
+
+### Sprint A — ReasoningModal (Pense comigo)
+- 1px top accent line cosmic 4-color (cyan/indigo/purple)
+- Header com icon 🧠 spinning continuous (8s linear) + drop-shadow cyan
+- Title 20px gradient cyan→indigo
+- Mode picker grid (6 modes): premium cards com animated accent line top + hover translateY + cyan glow
+- Active mode: gradient bg cyan/indigo + box-shadow cyan
+- Hint box cyan italic info
+- Input textarea com cyan focus glow + font-mono
+- Stream modal: question blockquote gradient bg + cyan border, thinking details cyan summary, answer box gradient cyan/indigo
+
+### Sprint B — Pre-mortem Modal (Oracle)
+- 1px top accent line cosmic 4-color (purple/pink/cyan — distinta do Reasoning)
+- Header com icon 🔮 floating animation (translateY+rotate) + purple drop-shadow
+- Title 20px **animated gradient** 5s linear (purple→pink→cyan looping)
+- Input com purple focus (acento distinto da paleta cyan padrão)
+- Result modal: question gradient purple/pink + result com border-left purple + custom scrollbar purple
+
+### Sprint C — Vision Modal
+- 1px top accent line cosmic cyan/indigo
+- Header com icon 👁️ blink animation (3.5s, 90% open + 7% blink — eye realistic)
+- Title gradient cyan→indigo
+- Path input cyan focus glow
+- Warn box gradient orange/red + 3px orange left-border (RAM warning visivelmente distinct)
+
+### CSS additions
+- ReasoningModal: ~205 LOC novas
+- Pre-mortem (modal+result): ~115 LOC novas
+- VisionModal: ~80 LOC novas
+- TOTAL: ~400 LOC
+
+### Color identity per tool
+- **Reasoning** = cyan/indigo (analytical/calm)
+- **Pre-mortem** = purple/pink/cyan (creative/risk/oracle)
+- **Vision** = cyan/indigo + orange warn (eye + RAM caution)
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Animations performant
+- Each tool has distinct visual identity for easy recognition
+
 ## [0.33.0] — 2026-05-02 — "Polish notification modals: Compose Email + Whisper Setup + API Key Detected"
 
 Polish dos modais de notificação/setup que aparecem em momentos de fricção (user precisa tomar decisão).
