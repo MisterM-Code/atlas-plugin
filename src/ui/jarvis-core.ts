@@ -102,9 +102,11 @@ export class JarvisCore {
 			if (this.state === "speaking") this.applyState("idle");
 		};
 		this.whisperConfigPromptHandler = () => {
+			// v0.43: don't auto-prompt — user can open WhisperSetupModal manually via
+			// Settings or the explicit command. Web Speech fallback works zero-config.
 			if (this.whisperPromptShown) return;
 			this.whisperPromptShown = true;
-			void this.showWhisperConfigPrompt();
+			// Silent — no auto-modal. User picks if/when to configure whisper.
 		};
 	}
 
@@ -812,7 +814,11 @@ export class JarvisCore {
 	private async startListening(): Promise<void> {
 		if (this.state !== "idle") return;
 
-		const useWhisper = !!this.plugin.settings.voice?.whisperBinaryPath;
+		// v0.43: only use whisper if BOTH binary AND model are configured.
+		// Otherwise silently fallback to Web Speech (zero-config browser API).
+		// Avoids the "whisper não configurado" notice loop.
+		const v = this.plugin.settings.voice;
+		const useWhisper = !!(v?.whisperBinaryPath && v?.whisperModelPath);
 
 		try {
 			if (useWhisper) {
@@ -831,12 +837,15 @@ export class JarvisCore {
 						void this.processTranscript(txt);
 					},
 					onError: (err) => {
-						new Notice(`Atlas Jarvis: ${err}`, 6000);
+						// v0.43: Don't spam — only show err if mic permission denied
+						if (err.includes("denied") || err.includes("permission")) {
+							new Notice(`Atlas Jarvis: ${err}`, 6000);
+						}
 						this.applyState("idle");
 					},
 				});
 				this.applyState("listening");
-				this.subtitleEl.setText("🎙️ Ouvindo (Web Speech)...");
+				this.subtitleEl.setText("🎙️ Ouvindo...");
 			}
 		} catch (e) {
 			new Notice(`Atlas Jarvis: mic indisponível — ${String(e)}`, 6000);

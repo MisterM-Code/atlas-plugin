@@ -4,6 +4,59 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.43.0] — 2026-05-02 — "Bug fixes Today + FAB scroll + Jarvis automático"
+
+User feedback acumulado: spacing card, tirar sparkles, diminuir clock, FAB não scrolla, Jarvis whisper reclamando.
+
+### Fix 1 — Spacing entre alert ticker e hero
+- `.atlas-today-zone { display: flex; flex-direction: column; gap: 14px }` adicionado
+- Cards "Nada novo no momento" não ficam mais colados no greeting card abaixo
+- Bottom padding 80px no cmdcenter (era 24px) pra não cobrir conteúdo com FAB fixed
+
+### Fix 2 — Sparkles starfield REMOVIDO
+- Canvas de 30 estrelas animadas removido (user pediu "tire os efeitos sparkles, deixe só o LED")
+- Helper `renderHeroStarfield()` desativado mas código mantido pra futura reativação opcional
+- Mantido: ambient glow blob (LED-style) + cosmic top accent line + breathing glow effect
+- CSS `.atlas-today-hero-starfield` deletado
+
+### Fix 3 — Clock reduzido + Frases auto-rotating
+- Clock font: 32px → **22px** (menos dominante, deixa mais espaço pro greeting)
+- Letter-spacing 2px → 1.5px
+- text-shadow removido (mantém só drop-shadow do pulse animation)
+- **Frases trocando automaticamente a cada 8s** com fade transition 280ms
+- 10 quotes pré-existentes (Drucker, Bezos, Naval, Camille Fournier, etc) rotacionam
+
+### Fix 4 — FAB (+) flutuante acompanha scroll
+- `position: absolute` → **`position: fixed`** + dynamic positioning
+- `updateFabPosition()` calcula posição via `getBoundingClientRect` do parent
+- ResizeObserver re-calcula no resize (sidebar pode mudar largura)
+- `right` ancorado ao right edge do parent
+- `bottom` 20px do bottom (acompanha viewport)
+- ResizeObserver disconnected no unmount (memory clean)
+- Background gradient cyan→indigo + box-shadow cyan glow
+- Width 44 → 48px
+- Hover: shadow intensifica + scale 1.05
+
+### Fix 5 — Jarvis whisper fallback automático
+- Antes: checava só `whisperBinaryPath` → tentava whisper, falhava no transcribeAudio
+- Agora: checa `binaryPath && modelPath` ambos. Se incompleto → **silent fallback Web Speech**
+- `whisperConfigPromptHandler` desativado (não auto-abre modal de config)
+- Web Speech zero-config funciona out-of-box no browser/Electron
+- Notice de erro só se mic permission denied (não spam de "whisper não configurado")
+- Subtitle text: "🎙️ Ouvindo..." (sem indicar qual engine — transparent pro user)
+
+### Files modified
+- `src/views/master/tab-today.ts`: starfield desativado + quote auto-rotate timer
+- `src/ui/quick-add-fab.ts`: position fixed + updateFabPosition + ResizeObserver + cleanup
+- `src/ui/jarvis-core.ts`: dual check (binary + model) + silent fallback + handler stub
+- `styles.css`: zone gap + clock 22px + FAB fixed + bottom padding 80px
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- FAB ainda funciona em todos contextos (CRUD tabs, Today, etc)
+- Whisper opt-in continua funcionando se ambos paths configurados
+
 ## [0.42.0] — 2026-05-02 — "Whisper model download button — copia comando + abre Terminal"
 
 User feedback: "tentei usar o jarvis e o modelo bin tá faltando instalar, faça ser clicável igual o do brew"

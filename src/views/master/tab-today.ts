@@ -149,8 +149,7 @@ async function renderHero(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 		hour < 18 ? "☀️ Boa tarde" :
 		"🌇 Boa noite";
 
-	// v0.41: Premium particle starfield canvas
-	void renderHeroStarfield(el);
+	// v0.43: starfield removido por feedback — manter apenas LED glow ambient
 
 	const left = el.createDiv({ cls: "atlas-today-hero-left" });
 	const greetWrap = left.createDiv({ cls: "atlas-today-hero-greet" });
@@ -165,6 +164,15 @@ async function renderHero(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	left.createDiv({ cls: "atlas-today-hero-date", text: dateText });
 	const quoteEl = left.createDiv({ cls: "atlas-today-hero-quote" });
 	quoteEl.setText(rotateQuote());
+	// v0.43: rotate quote every 8s with fade transition
+	const quoteTimer = window.setInterval(() => {
+		quoteEl.classList.add("is-fading");
+		window.setTimeout(() => {
+			quoteEl.setText(rotateQuote());
+			quoteEl.classList.remove("is-fading");
+		}, 280);
+	}, 8000);
+	liveTimers.push(quoteTimer);
 
 	const right = el.createDiv({ cls: "atlas-today-hero-right" });
 	const clock = right.createDiv({ cls: "atlas-today-hero-clock" });

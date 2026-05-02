@@ -51,9 +51,30 @@ export class QuickAddFab {
 		parent.addClass("atlas-fab-parent");
 		parent.appendChild(fab);
 		this.fabEl = fab;
+
+		// v0.43: align FAB to parent's right edge using getBoundingClientRect
+		// (since position is fixed, we need to compute right offset relative to viewport)
+		this.updateFabPosition();
+		const ro = new ResizeObserver(() => this.updateFabPosition());
+		ro.observe(parent);
+		// Track parent for scroll/resize updates
+		(this.fabEl as HTMLElement & { _atlasRO?: ResizeObserver })._atlasRO = ro;
+	}
+
+	private updateFabPosition(): void {
+		if (!this.fabEl) return;
+		const parent = this.fabEl.parentElement;
+		if (!parent) return;
+		const r = parent.getBoundingClientRect();
+		// Anchor to parent's right edge with 16px margin
+		this.fabEl.style.right = `${Math.max(16, window.innerWidth - r.right + 16)}px`;
+		// Anchor bottom: parent's bottom edge (or viewport bottom if smaller)
+		this.fabEl.style.bottom = `${Math.max(20, window.innerHeight - r.bottom + 20)}px`;
 	}
 
 	unmount(): void {
+		const ro = (this.fabEl as (HTMLElement & { _atlasRO?: ResizeObserver }) | null)?._atlasRO;
+		ro?.disconnect();
 		this.fabEl?.remove();
 		this.popoverEl?.remove();
 		if (this.clickOutsideHandler) {

@@ -1565,22 +1565,29 @@
 }
 
 .atlas-fab {
-	position: absolute;
-	bottom: 16px;
-	right: 16px;
-	width: 44px;
-	height: 44px;
+	/* v0.43: fixed positioning anchored to viewport so FAB stays visible during scroll */
+	position: fixed;
+	bottom: 20px;
+	width: 48px;
+	height: 48px;
 	border-radius: 50%;
-	background: var(--interactive-accent);
-	color: var(--text-on-accent);
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	color: white;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 22px;
+	font-size: 24px;
+	font-weight: 300;
 	cursor: pointer;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 6px 16px rgba(0, 229, 229, 0.35),
+	            0 2px 6px rgba(0, 0, 0, 0.15);
 	z-index: 100;
-	transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+	            box-shadow 220ms ease;
+}
+.atlas-fab:hover {
+	box-shadow: 0 10px 24px rgba(0, 229, 229, 0.5),
+	            0 4px 12px rgba(0, 0, 0, 0.2);
 }
 .atlas-fab:hover {
 	transform: scale(1.05);
@@ -6497,11 +6504,18 @@ button.atlas-btn:active::after,
 
 .atlas-today-cmdcenter {
 	/* v0.24: padding mais generoso + scroll smooth */
-	padding: 16px 14px 24px;
+	padding: 16px 14px 80px; /* v0.43: bottom padding pra FAB não cobrir conteúdo */
 	display: flex;
 	flex-direction: column;
 	gap: 18px;
 	scroll-behavior: smooth;
+	position: relative;
+}
+/* v0.43: zone children spacing — fix "nada novo" colado no hero */
+.atlas-today-zone {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
 }
 .atlas-today-coach-badge {
 	align-self: flex-start;
@@ -6692,21 +6706,18 @@ button.atlas-btn:active::after,
 	z-index: 1;
 }
 
-/* v0.41: Hero starfield canvas */
-.atlas-today-hero-starfield {
-	position: absolute !important;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
-	z-index: 0;
-	mix-blend-mode: screen;
-}
+/* v0.43: starfield removido — ambient glow LED only */
 .atlas-today-hero > .atlas-today-hero-left,
 .atlas-today-hero > .atlas-today-hero-right {
 	position: relative;
 	z-index: 2;
+}
+/* Quote fade transition (v0.43 auto-rotate every 8s) */
+.atlas-today-hero-quote {
+	transition: opacity 280ms ease;
+}
+.atlas-today-hero-quote.is-fading {
+	opacity: 0;
 }
 @keyframes atlas-today-hero-glow {
 	from { transform: translate(0, 0) scale(1); opacity: 0.7; }
@@ -6744,14 +6755,13 @@ button.atlas-btn:active::after,
 }
 .atlas-today-hero-clock {
 	font-family: "SF Mono", Monaco, monospace;
-	font-size: 32px;
+	font-size: 22px;
 	font-weight: 700;
 	background: linear-gradient(135deg, #00e5e5, #6366f1);
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
-	letter-spacing: 2px;
-	text-shadow: 0 0 16px rgba(0, 229, 229, 0.4);
+	letter-spacing: 1.5px;
 	font-variant-numeric: tabular-nums;
 	position: relative;
 	animation: atlas-today-clock-pulse 2.4s ease-in-out infinite;
