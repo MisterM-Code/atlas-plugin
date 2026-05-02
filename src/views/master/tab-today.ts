@@ -380,7 +380,7 @@ async function renderFlashcards(el: HTMLElement, plugin: AtlasPlugin): Promise<v
 			const apiAny = plugin.app as unknown as {
 				commands?: { executeCommandById?: (id: string) => void };
 			};
-			apiAny.commands?.executeCommandById?.("atlas:atlas-flashcards-review");
+			apiAny.commands?.executeCommandById?.("atlas:flashcards-review");
 		});
 	}
 }

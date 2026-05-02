@@ -44,14 +44,17 @@ export class IcalClient {
 	/** Fetcha + parseia + persiste cache. Retorna events. */
 	async fetchAndCache(url: string): Promise<IcalEvent[]> {
 		try {
-			const response = await fetch(url, {
+			const { requestUrl } = await import("obsidian");
+			const response = await requestUrl({
+				url,
 				method: "GET",
 				headers: { Accept: "text/calendar" },
+				throw: false,
 			});
-			if (!response.ok) {
+			if (response.status !== 200) {
 				throw new Error(`HTTP ${response.status} ao buscar iCal`);
 			}
-			const ics = await response.text();
+			const ics = response.text;
 			const events = parseIcal(ics);
 			await this.writeCache({ version: 1, url, fetchedAt: new Date().toISOString(), events });
 			logger.info("ical: fetched", { url, count: events.length });

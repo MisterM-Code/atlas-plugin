@@ -125,9 +125,10 @@ export class HealthCheck {
 	private async fetchModelDetails(): Promise<ModelInfo[]> {
 		// Ollama exposes /api/tags com size + details
 		try {
-			const r = await fetch(`http://localhost:11434/api/tags`);
-			if (!r.ok) return [];
-			const data = (await r.json()) as { models?: RawModel[] };
+			const { requestUrl } = await import("obsidian");
+			const r = await requestUrl({ url: `http://localhost:11434/api/tags`, throw: false });
+			if (r.status !== 200) return [];
+			const data = r.json as { models?: RawModel[] };
 			const models = data.models ?? [];
 			return models.map((m) => {
 				const sizeBytes = m.size ?? 0;

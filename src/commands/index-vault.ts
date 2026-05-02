@@ -29,7 +29,7 @@ export async function indexVaultCommand(plugin: AtlasPlugin): Promise<void> {
 		const indexer = new Indexer(plugin.app, [
 			settings.folders.atlas,
 			"99_Archive",
-			".obsidian",
+			this.app.vault.configDir,
 			".trash",
 		]);
 		const extractor = new KGExtractor(plugin.ollama, settings.ollama.generationModel);

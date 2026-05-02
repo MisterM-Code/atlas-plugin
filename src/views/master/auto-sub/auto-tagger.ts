@@ -46,7 +46,7 @@ export async function renderAutoTaggerSub(
 			v: [
 				plugin.settings.folders.atlas,
 				"99_Archive",
-				".obsidian",
+				this.app.vault.configDir,
 				".trash",
 				"Coach paths (privacidade)",
 			].join(", "),

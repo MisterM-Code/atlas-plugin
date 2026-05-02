@@ -845,7 +845,7 @@ export class OnboardingWizard extends Modal {
 					new Notice("Atlas: testando...");
 					// Trigger via Obsidian internal API (cast required)
 					const apiAny = this.app as unknown as { commands?: { executeCommandById?: (id: string) => void } };
-					apiAny.commands?.executeCommandById?.("atlas:atlas-test-email");
+					apiAny.commands?.executeCommandById?.("atlas:test-email");
 				})
 			)
 			.addButton((b) =>

@@ -59,7 +59,7 @@ export function classifyOllamaError(e: unknown): AtlasError {
 			"Ollama não está rodando. Inicie o app Ollama (ou rode `ollama serve` no terminal).",
 			[
 				{ label: "Como instalar", url: "https://ollama.com" },
-				{ label: "Atlas Status Panel", commandId: "atlas:atlas-status-panel" },
+				{ label: "Atlas Status Panel", commandId: "atlas:status-panel" },
 			],
 			e
 		);
@@ -73,7 +73,7 @@ export function classifyOllamaError(e: unknown): AtlasError {
 			"Demorou demais. Modelo grande pode levar tempo no primeiro uso. Pode ser cold-start.",
 			[
 				{ label: "Tentar novamente" },
-				{ label: "Trocar modelo (mais leve)", commandId: "atlas:atlas-status-panel" },
+				{ label: "Trocar modelo (mais leve)", commandId: "atlas:status-panel" },
 			],
 			e
 		);
@@ -95,8 +95,8 @@ export function classifyOllamaError(e: unknown): AtlasError {
 				`Ollama OOM: ${errStr}`,
 				"Modelo grande não cabe na sua RAM disponível. Vamos trocar para um modelo menor?",
 				[
-					{ label: "Pull qwen2.5:7b (recomendado)", commandId: "atlas:atlas-pull-recommended-model" },
-					{ label: "Atlas Status Panel", commandId: "atlas:atlas-status-panel" },
+					{ label: "Pull qwen2.5:7b (recomendado)", commandId: "atlas:pull-recommended-model" },
+					{ label: "Atlas Status Panel", commandId: "atlas:status-panel" },
 					{ label: "Fechar apps pesados e tentar de novo" },
 				],
 				e
@@ -110,7 +110,7 @@ export function classifyOllamaError(e: unknown): AtlasError {
 				`Ollama model missing: ${errStr}`,
 				"Modelo não baixado. Vamos baixar agora?",
 				[
-					{ label: "Pull modelo", commandId: "atlas:atlas-pull-recommended-model" },
+					{ label: "Pull modelo", commandId: "atlas:pull-recommended-model" },
 					{ label: "Settings → trocar modelo" },
 				],
 				e
@@ -123,8 +123,8 @@ export function classifyOllamaError(e: unknown): AtlasError {
 			`Ollama 500: ${errStr}`,
 			`Ollama retornou erro inesperado: "${errStr}". Pode ser modelo corrompido ou daemon instável.`,
 			[
-				{ label: "Atlas Status Panel", commandId: "atlas:atlas-status-panel" },
-				{ label: "Reiniciar Ollama", commandId: "atlas:atlas-restart-ollama" },
+				{ label: "Atlas Status Panel", commandId: "atlas:status-panel" },
+				{ label: "Reiniciar Ollama", commandId: "atlas:restart-ollama" },
 			],
 			e
 		);
@@ -136,7 +136,7 @@ export function classifyOllamaError(e: unknown): AtlasError {
 			"ollama-bad-request",
 			`Ollama ${ax.response.status}: ${ax.message ?? "bad request"}`,
 			"Atlas enviou request inválida ao Ollama. Reporte como bug.",
-			[{ label: "Atlas Status Panel", commandId: "atlas:atlas-status-panel" }],
+			[{ label: "Atlas Status Panel", commandId: "atlas:status-panel" }],
 			e
 		);
 	}
@@ -157,7 +157,7 @@ export function classifyOllamaError(e: unknown): AtlasError {
 		"unknown",
 		ax.message ?? String(e),
 		`Erro inesperado: ${ax.message ?? String(e)}`,
-		[{ label: "Atlas Status Panel", commandId: "atlas:atlas-status-panel" }],
+		[{ label: "Atlas Status Panel", commandId: "atlas:status-panel" }],
 		e
 	);
 }

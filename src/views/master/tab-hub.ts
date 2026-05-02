@@ -264,7 +264,7 @@ export async function renderHubTab(container: HTMLElement, plugin: AtlasPlugin):
 
 async function scanAllTasks(plugin: AtlasPlugin): Promise<VaultTask[]> {
 	const out: VaultTask[] = [];
-	const excluded = [...getExcludedFolders(), ".atlas", ".obsidian", "99_Archive"];
+	const excluded = [...getExcludedFolders(), ".atlas", this.app.vault.configDir, "99_Archive"];
 	const inclusive = getInclusiveFolders();
 	const files = plugin.app.vault.getMarkdownFiles();
 

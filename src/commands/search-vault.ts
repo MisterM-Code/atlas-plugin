@@ -41,7 +41,7 @@ export class SearchVaultModal extends Modal {
 		try {
 			const indexer = new Indexer(this.app, [
 				this.plugin.settings.folders.atlas,
-				".obsidian",
+				this.app.vault.configDir,
 				".trash",
 			]);
 			const notes = await indexer.indexVault();

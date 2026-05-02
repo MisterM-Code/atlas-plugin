@@ -74,7 +74,7 @@ export async function dispatchVoiceCommand(
 		const apiAny = plugin.app as unknown as {
 			commands?: { executeCommandById?: (id: string) => void };
 		};
-		apiAny.commands?.executeCommandById?.("atlas:atlas-daily-log");
+		apiAny.commands?.executeCommandById?.("atlas:daily-log");
 		return { matched: true, command: "daily", feedback: "Daily log aberto." };
 	}
 
@@ -147,7 +147,7 @@ export async function dispatchVoiceCommand(
 		const apiAny = plugin.app as unknown as {
 			commands?: { executeCommandById?: (id: string) => void };
 		};
-		apiAny.commands?.executeCommandById?.("atlas:atlas-prepare-1on1");
+		apiAny.commands?.executeCommandById?.("atlas:prepare-1on1");
 		return { matched: true, command: "proximo-1on1", feedback: "Brief de próximo 1:1 sendo preparado." };
 	}
 
@@ -158,7 +158,7 @@ export async function dispatchVoiceCommand(
 			const apiAny = plugin.app as unknown as {
 				commands?: { executeCommandById?: (id: string) => void };
 			};
-			apiAny.commands?.executeCommandById?.("atlas:atlas-spotlight");
+			apiAny.commands?.executeCommandById?.("atlas:spotlight");
 			return { matched: true, command: "pesquisar", feedback: `Buscando: ${query}` };
 		}
 	}

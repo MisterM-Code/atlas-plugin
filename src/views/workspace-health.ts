@@ -110,7 +110,7 @@ export class WorkspaceHealthView extends ItemView {
 		};
 
 		for (const f of allFiles) {
-			if (f.path.startsWith(".atlas") || f.path.startsWith(".obsidian")) continue;
+			if (f.path.startsWith(".atlas") || f.path.startsWith(this.app.vault.configDir)) continue;
 
 			let raw = "";
 			try {

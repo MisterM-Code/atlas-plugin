@@ -46,7 +46,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		const apiAny = plugin.app as unknown as {
 			commands?: { executeCommandById?: (id: string) => void };
 		};
-		apiAny.commands?.executeCommandById?.("atlas:atlas-jarvis");
+		apiAny.commands?.executeCommandById?.("atlas:jarvis");
 	});
 
 	// Messages

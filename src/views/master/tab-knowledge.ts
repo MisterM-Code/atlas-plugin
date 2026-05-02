@@ -204,7 +204,7 @@ function renderPersonCard(
 			commands?: { executeCommandById?: (id: string) => void };
 		};
 		// Open prepare-1on1 modal pre-filled
-		apiAny.commands?.executeCommandById?.("atlas:atlas-prepare-1on1");
+		apiAny.commands?.executeCommandById?.("atlas:prepare-1on1");
 	});
 }
 

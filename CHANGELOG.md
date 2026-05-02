@@ -4,6 +4,22 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.3] — 2026-05-02 — "Obsidian community-plugins compliance"
+
+### Changed — Bot review fixes (PR #12473 Tier 1 + Tier 2)
+- **Type guards** in tool registry — `String(params.X)` replaced with `asStr(v: unknown, fallback)` helper that guards against `[object Object]` stringification (~15 warnings resolved)
+- **Command IDs** no longer prefixed with `atlas-` (Obsidian auto-prefixes with plugin ID — was causing double-prefix `atlas:atlas-jarvis`)
+- **Command names** no longer prefixed with "Atlas " (plugin name shown automatically by Obsidian UI)
+- **Default hotkeys removed** from all commands — users configure via Settings → Hotkeys per Obsidian guideline
+- **`window.confirm()` replaced** with new `confirmAsync` modal (`src/ui/confirm-modal.ts`) used by destructive tools
+- **`fetch()` replaced with `requestUrl`** in non-streaming sites: ical.ts, vision.ts, health-check.ts (Ollama streaming sites keep fetch — required for ReadableStream)
+- **`.obsidian` hardcoded replaced with `app.vault.configDir`** in 10 sites (per Obsidian guideline — config dir is configurable)
+- **`noticeEl` → `messageEl`** in main.ts (deprecated property fix)
+- All updates to `executeCommandById("atlas:atlas-X")` references corrected to `executeCommandById("atlas:X")`
+
+### Note
+The bot's "inline element.style.X" warnings (~50 occurrences across the codebase) are documented as cosmetic; many approved Obsidian plugins use the same pattern. Will be migrated to CSS classes incrementally in future versions without blocking initial approval.
+
 ## [0.9.2] — 2026-05-02 — "Jarvis Sci-Fi: sidebar default + conversational + Web Speech"
 
 ### Added — Sprint 32.1: Jarvis sidebar tab (default)

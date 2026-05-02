@@ -132,7 +132,7 @@ export class ActionItemsHubView extends ItemView {
 
 	private async scanAllTasks(): Promise<VaultTask[]> {
 		const out: VaultTask[] = [];
-		const excluded = [...getExcludedFolders(), ".atlas", ".obsidian", "99_Archive"];
+		const excluded = [...getExcludedFolders(), ".atlas", this.app.vault.configDir, "99_Archive"];
 		const inclusive = getInclusiveFolders();
 
 		const files = this.app.vault.getMarkdownFiles();

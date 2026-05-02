@@ -47,8 +47,14 @@ export class TemplateEditorModal extends Modal {
 		const resetBtn = headerBtns.createEl("button", { text: "↻ Resetar" });
 		resetBtn.style.fontSize = "11px";
 		resetBtn.title = "Restaurar template original";
-		resetBtn.addEventListener("click", () => {
-			if (confirm("Atlas: descartar mudanças e voltar ao default?")) {
+		resetBtn.addEventListener("click", async () => {
+			const { confirmAsync } = await import("../../ui/confirm-modal");
+			const ok = await confirmAsync(
+				this.app,
+				"Descartar mudanças e voltar ao default?",
+				{ title: "Resetar template", yesLabel: "Resetar", danger: true }
+			);
+			if (ok) {
 				const original = this.plugin.templateStore
 					.list()
 					.find((t) => t.id === this.template.id);

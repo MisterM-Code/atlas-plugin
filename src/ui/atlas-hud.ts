@@ -157,7 +157,7 @@ export class AtlasHUD {
 			const apiAny = this.plugin.app as unknown as {
 				commands?: { executeCommandById?: (id: string) => void };
 			};
-			apiAny.commands?.executeCommandById?.("atlas:atlas-quick-capture");
+			apiAny.commands?.executeCommandById?.("atlas:quick-capture");
 		});
 		action("⚙️", "Settings", () => {
 			const apiAny = this.plugin.app as unknown as {

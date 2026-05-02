@@ -295,7 +295,7 @@ export default class AtlasPlugin extends Plugin {
 			this.app,
 			this.notifier,
 			reminderStatePath(this.settings.folders.atlas),
-			[this.settings.folders.atlas, ".obsidian", ".trash", "99_Archive"]
+			[this.settings.folders.atlas, this.app.vault.configDir, ".trash", "99_Archive"]
 		);
 		await this.reminderWatcher.load();
 
@@ -361,7 +361,7 @@ export default class AtlasPlugin extends Plugin {
 				excludeFolders: [
 					this.settings.folders.atlas,
 					"99_Archive",
-					".obsidian",
+					this.app.vault.configDir,
 					".trash",
 				],
 			}
@@ -723,20 +723,20 @@ captured_via: webhook
 		const Modal = (window as unknown as { require?: unknown; Modal?: typeof import("obsidian").Modal }).Modal ?? require("obsidian").Modal;
 		// Fallback simples: mostra Notice longo + abre Settings com texto copiável
 		const notice = new Notice("", 0);
-		notice.noticeEl.empty();
-		notice.noticeEl.style.maxWidth = "560px";
+		notice.messageEl.empty();
+		notice.messageEl.style.maxWidth = "560px";
 
-		const head = notice.noticeEl.createEl("div", { text: "🔖 Atlas Bookmarklet" });
+		const head = notice.messageEl.createEl("div", { text: "🔖 Atlas Bookmarklet" });
 		head.style.fontWeight = "bold";
 		head.style.marginBottom = "8px";
 
-		const desc = notice.noticeEl.createEl("div", {
+		const desc = notice.messageEl.createEl("div", {
 			text: "1) Selecione TODO o código abaixo. 2) Arraste pra barra de favoritos do browser. 3) Em qualquer site, click no bookmark → captura URL no Atlas.",
 		});
 		desc.style.fontSize = "11px";
 		desc.style.marginBottom = "8px";
 
-		const code = notice.noticeEl.createEl("textarea");
+		const code = notice.messageEl.createEl("textarea");
 		code.value = bookmarkletJs;
 		code.style.width = "100%";
 		code.style.height = "80px";
@@ -746,7 +746,7 @@ captured_via: webhook
 		code.readOnly = true;
 		code.addEventListener("focus", () => code.select());
 
-		const copyBtn = notice.noticeEl.createEl("button", { text: "📋 Copiar bookmarklet" });
+		const copyBtn = notice.messageEl.createEl("button", { text: "📋 Copiar bookmarklet" });
 		copyBtn.style.marginTop = "8px";
 		copyBtn.style.fontSize = "11px";
 		copyBtn.addEventListener("click", async () => {
@@ -761,7 +761,7 @@ captured_via: webhook
 			}
 		});
 
-		const closeBtn = notice.noticeEl.createEl("button", { text: "Fechar" });
+		const closeBtn = notice.messageEl.createEl("button", { text: "Fechar" });
 		closeBtn.style.marginTop = "8px";
 		closeBtn.style.marginLeft = "6px";
 		closeBtn.style.fontSize = "11px";
@@ -791,16 +791,14 @@ captured_via: webhook
 
 	private registerCommands(): void {
 		this.addCommand({
-			id: "atlas-quick-capture",
+			id: "quick-capture",
 			name: "Quick capture",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "a" }],
 			callback: () => new QuickCaptureModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-jarvis",
+			id: "jarvis",
 			name: "🧠 Jarvis (voice + tool calls)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "j" }],
 			callback: async () => {
 				const m = await import("./src/ui/jarvis-overlay");
 				new m.JarvisOverlay(this.app, this).open();
@@ -808,7 +806,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-compose-email",
+			id: "compose-email",
 			name: "📧 Compose email",
 			callback: async () => {
 				const m = await import("./src/innovations/compose-email");
@@ -817,7 +815,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-create-reminder",
+			id: "create-reminder",
 			name: "🔔 Criar reminder com data",
 			callback: async () => {
 				const tr = await import("./src/agent/tool-registry");
@@ -832,7 +830,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-create-course",
+			id: "create-course",
 			name: "📚 Criar curso",
 			callback: async () => {
 				const tr = await import("./src/agent/tool-registry");
@@ -846,13 +844,13 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-voice-capture",
+			id: "voice-capture",
 			name: "🎙️ Voice capture (gravar + transcrever)",
 			callback: async () => {
 				const m = await import("./src/automation/voice-input");
 				const recording = await m.startVoiceRecording();
 				const notice = new Notice("🎙️ Gravando... clique pra parar.", 0);
-				notice.noticeEl.addEventListener("click", async () => {
+				notice.messageEl.addEventListener("click", async () => {
 					notice.hide();
 					const result = await recording.stop();
 					if (result?.tempFile) {
@@ -874,19 +872,19 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-daily-log",
+			id: "daily-log",
 			name: "Daily log (criar/abrir hoje)",
 			callback: () => openOrCreateDailyLog(this),
 		});
 
 		this.addCommand({
-			id: "atlas-setup-vault",
+			id: "setup-vault",
 			name: "Setup: criar estrutura de pastas no vault",
 			callback: () => setupVaultStructure(this),
 		});
 
 		this.addCommand({
-			id: "atlas-test-ollama",
+			id: "test-ollama",
 			name: "Testar Ollama",
 			callback: async () => {
 				const ok = await this.ollama.ping();
@@ -900,32 +898,31 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-index-vault",
+			id: "index-vault",
 			name: "Indexar vault (extrai KG)",
 			callback: () => indexVaultCommand(this),
 		});
 
 		this.addCommand({
-			id: "atlas-summarize-person",
+			id: "summarize-person",
 			name: "Resumir pessoa",
 			callback: () => new SummarizePersonModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-prepare-1on1",
+			id: "prepare-1on1",
 			name: "Preparar próximo 1:1",
 			callback: () => new Prepare1on1Modal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-search-vault",
+			id: "search-vault",
 			name: "Buscar no vault (hybrid)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "k" }],
 			callback: () => new SearchVaultModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-show-kg-stats",
+			id: "show-kg-stats",
 			name: "Knowledge Graph: estatísticas",
 			callback: () => {
 				const d = this.kg.data;
@@ -937,38 +934,37 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-weekly-now",
+			id: "weekly-now",
 			name: "Gerar weekly report agora",
 			callback: () => generateWeeklyReportCommand(this),
 		});
 
 		this.addCommand({
-			id: "atlas-send-weekly",
+			id: "send-weekly",
 			name: "Enviar weekly report (nota ativa)",
 			callback: () => sendCurrentWeeklyCommand(this),
 		});
 
 		this.addCommand({
-			id: "atlas-morning-briefing-now",
+			id: "morning-briefing-now",
 			name: "Briefing matinal (gerar agora)",
 			callback: () => this.runMorningBriefing(),
 		});
 
 		this.addCommand({
-			id: "atlas-evening-review-now",
+			id: "evening-review-now",
 			name: "Evening review (gerar agora)",
 			callback: () => this.runEveningReview(),
 		});
 
 		this.addCommand({
-			id: "atlas-focus-mode",
+			id: "focus-mode",
 			name: "Focus mode 90 min",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "f" }],
 			callback: () => setFocusMode(90),
 		});
 
 		this.addCommand({
-			id: "atlas-test-telegram",
+			id: "test-telegram",
 			name: "Testar notificação Telegram",
 			callback: async () => {
 				const r = await this.notifier.testTelegram();
@@ -979,59 +975,57 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-test-email",
+			id: "test-email",
 			name: "Testar SMTP",
 			callback: () => this.testEmail(),
 		});
 
 		this.addCommand({
-			id: "atlas-open-chat",
+			id: "open-chat",
 			name: "Abrir chat",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "j" }],
 			callback: () => this.activateMasterTab("chat"),
 		});
 
 		// ─── v0.4 SPRINT 2: Master Sidebar commands ───
 
 		this.addCommand({
-			id: "atlas-master-open",
+			id: "master-open",
 			name: "Abrir Atlas (sidebar unificada)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "o" }],
 			callback: () => this.activateMasterTab("today"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-today",
+			id: "master-today",
 			name: "Master Sidebar → Today",
 			callback: () => this.activateMasterTab("today"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-knowledge",
+			id: "master-knowledge",
 			name: "Master Sidebar → Knowledge (cards de pessoas/projetos/temas)",
 			callback: () => this.activateMasterTab("knowledge"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-systems",
+			id: "master-systems",
 			name: "Master Sidebar → 🖥️ Sistemas (CRUD)",
 			callback: () => this.activateMasterTab("systems"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-products",
+			id: "master-products",
 			name: "Master Sidebar → 📦 Produtos (CRUD)",
 			callback: () => this.activateMasterTab("products"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-roles",
+			id: "master-roles",
 			name: "Master Sidebar → 🎓 Cargos (CRUD)",
 			callback: () => this.activateMasterTab("roles"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-reports-composer",
+			id: "master-reports-composer",
 			name: "Master Sidebar → 📊 Reports Composer (filtros multi-dim)",
 			callback: () => {
 				try {
@@ -1044,7 +1038,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-master-reports-templates",
+			id: "master-reports-templates",
 			name: "Master Sidebar → 📐 Reports Templates (editor visual)",
 			callback: () => {
 				try {
@@ -1058,7 +1052,7 @@ captured_via: webhook
 
 		// Quick-add direto via Command Palette
 		this.addCommand({
-			id: "atlas-add-system",
+			id: "add-system",
 			name: "+ Novo Sistema",
 			callback: async () => {
 				const m = await import("./src/views/master/tab-systems");
@@ -1067,7 +1061,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-add-product",
+			id: "add-product",
 			name: "+ Novo Produto",
 			callback: async () => {
 				const m = await import("./src/views/master/tab-products");
@@ -1076,7 +1070,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-add-role",
+			id: "add-role",
 			name: "+ Novo Cargo",
 			callback: async () => {
 				const m = await import("./src/views/master/tab-roles");
@@ -1085,7 +1079,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-add-person",
+			id: "add-person",
 			name: "+ Nova Pessoa",
 			callback: async () => {
 				const m = await import("./src/views/master/person-form");
@@ -1096,13 +1090,13 @@ captured_via: webhook
 		// ─── v0.5 Sprint 7: System detection ───
 
 		this.addCommand({
-			id: "atlas-auto-link-systems",
+			id: "auto-link-systems",
 			name: "🔗 Auto-link sistemas mencionados na nota ativa",
 			callback: () => autoLinkSystemsCommand(this),
 		});
 
 		this.addCommand({
-			id: "atlas-scan-systems-now",
+			id: "scan-systems-now",
 			name: "Sistemas: escanear nota ativa agora (sem debounce)",
 			callback: async () => {
 				const file = this.app.workspace.getActiveFile();
@@ -1123,7 +1117,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-scan-systems-vault",
+			id: "scan-systems-vault",
 			name: "Sistemas: escanear vault inteiro (batch)",
 			callback: async () => {
 				const all = this.app.vault.getMarkdownFiles();
@@ -1160,7 +1154,7 @@ captured_via: webhook
 		// ─── v0.7.7: LGPD Right-to-be-forgotten ───
 
 		this.addCommand({
-			id: "atlas-forget-person",
+			id: "forget-person",
 			name: "🗑️ Right-to-be-forgotten (apagar pessoa do KG)",
 			callback: async () => {
 				const people = this.kg.listPeople();
@@ -1228,7 +1222,7 @@ captured_via: webhook
 		// ─── v0.7.7: Webhook receiver (Express-lite via Node http) ───
 
 		this.addCommand({
-			id: "atlas-webhook-toggle",
+			id: "webhook-toggle",
 			name: "🔌 Webhook receiver: toggle (localhost:7842)",
 			callback: () => this.toggleWebhookReceiver(),
 		});
@@ -1236,14 +1230,13 @@ captured_via: webhook
 		// ─── v0.7.4: Voice Jarvis ───
 
 		this.addCommand({
-			id: "atlas-hud-toggle",
+			id: "hud-toggle",
 			name: "🧠 HUD: toggle (Cmd+Shift+H)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "h" }],
 			callback: () => this.hud.toggle(),
 		});
 
 		this.addCommand({
-			id: "atlas-voice-record-cmd",
+			id: "voice-record-cmd",
 			name: "🎙️ Falar com Atlas (gravar voz + transcrever + dispatch comando)",
 			callback: () => {
 				if (!this.hud.isVisible()) this.hud.show();
@@ -1253,7 +1246,7 @@ captured_via: webhook
 
 		// ─── v0.8.3: Vision ───
 		this.addCommand({
-			id: "atlas-vision",
+			id: "vision",
 			name: "👁️ Vision: analisar imagem (whiteboard/OCR/diagrama/tabela)",
 			callback: async () => {
 				const m = await import("./src/innovations/vision");
@@ -1262,13 +1255,13 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-templates-picker",
+			id: "templates-picker",
 			name: "📐 Templates Atlas (escolher / usar / editar)",
 			callback: () => new TemplatePickerModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-templates-reset",
+			id: "templates-reset",
 			name: "Templates: resetar para defaults (Daily/1:1/Coaching/Weekly)",
 			callback: async () => {
 				if (!confirm("Atlas: descartar templates customizados e voltar aos defaults?")) return;
@@ -1279,7 +1272,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-master-reports",
+			id: "master-reports",
 			name: "Master Sidebar → Reports (timeline)",
 			callback: () => this.activateMasterTab("reports"),
 		});
@@ -1287,13 +1280,13 @@ captured_via: webhook
 		// ─── v0.6 Sprint 10b: Lab tab ───
 
 		this.addCommand({
-			id: "atlas-master-lab",
+			id: "master-lab",
 			name: "Master Sidebar → 🧪 Lab (Tools IA / Serendipity / Capsules / Tree)",
 			callback: () => this.activateMasterTab("lab"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-lab-tools",
+			id: "master-lab-tools",
 			name: "Master Sidebar → 🛠️ Lab: Tools IA",
 			callback: () => {
 				try {
@@ -1306,7 +1299,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-master-lab-serendipity",
+			id: "master-lab-serendipity",
 			name: "Master Sidebar → 💡 Lab: Serendipity feed",
 			callback: () => {
 				try {
@@ -1319,7 +1312,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-master-lab-tree",
+			id: "master-lab-tree",
 			name: "Master Sidebar → 🌳 Lab: Entity Tree (KG)",
 			callback: () => {
 				try {
@@ -1334,13 +1327,13 @@ captured_via: webhook
 		// ─── v0.6 Sprint 10d: Automations tab ───
 
 		this.addCommand({
-			id: "atlas-master-automations",
+			id: "master-automations",
 			name: "Master Sidebar → 🤖 Auto (Tagger / Aliaser / Rules / Atlas Percebeu)",
 			callback: () => this.activateMasterTab("automations"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-auto-rules",
+			id: "master-auto-rules",
 			name: "Master Sidebar → 📋 Auto: Rules engine (toggle / aplicar)",
 			callback: () => {
 				try {
@@ -1355,7 +1348,7 @@ captured_via: webhook
 		// ─── v0.7 Sprint 18: TI Tools IA ───
 
 		this.addCommand({
-			id: "atlas-architecture-diagram",
+			id: "architecture-diagram",
 			name: "🏗️ Architecture Diagram (Mermaid C4)",
 			callback: async () => {
 				const m = await import("./src/innovations/ti-tools");
@@ -1364,7 +1357,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-adr-generator",
+			id: "adr-generator",
 			name: "📜 ADR Generator (Architecture Decision Record)",
 			callback: async () => {
 				const m = await import("./src/innovations/ti-tools");
@@ -1373,7 +1366,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-tech-debt-scanner",
+			id: "tech-debt-scanner",
 			name: "💸 Tech Debt Scanner (escaneia vault)",
 			callback: async () => {
 				const m = await import("./src/innovations/ti-tools");
@@ -1389,7 +1382,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-runbook-generator",
+			id: "runbook-generator",
 			name: "🚑 Runbook Generator",
 			callback: async () => {
 				const m = await import("./src/innovations/ti-tools");
@@ -1398,7 +1391,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-postmortem-builder",
+			id: "postmortem-builder",
 			name: "🚨 Postmortem Builder (blameless RCA 5-whys)",
 			callback: async () => {
 				const m = await import("./src/innovations/ti-tools");
@@ -1409,7 +1402,7 @@ captured_via: webhook
 		// ─── v0.7 Sprint 15: Integrations ───
 
 		this.addCommand({
-			id: "atlas-ical-sync-now",
+			id: "ical-sync-now",
 			name: "🗓️ iCal: sincronizar calendar agora",
 			callback: async () => {
 				const url = this.settings.profile?.calendarUrl;
@@ -1435,13 +1428,13 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-bookmarklet-show",
+			id: "bookmarklet-show",
 			name: "🔖 Bookmarklet: mostrar código pra arrastar pra browser",
 			callback: () => this.showBookmarkletModal(),
 		});
 
 		this.addCommand({
-			id: "atlas-capacity-planner",
+			id: "capacity-planner",
 			name: "👥 Capacity Planner (analise carga do time)",
 			callback: async () => {
 				const m = await import("./src/innovations/ti-tools");
@@ -1457,7 +1450,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-master-auto-percebeu",
+			id: "master-auto-percebeu",
 			name: "Master Sidebar → 📡 Auto: Atlas Percebeu (proactive feed)",
 			callback: () => {
 				try {
@@ -1470,19 +1463,19 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-master-study",
+			id: "master-study",
 			name: "Master Sidebar → Study (flashcards + papers)",
 			callback: () => this.activateMasterTab("study"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-status",
+			id: "master-status",
 			name: "Master Sidebar → Status (Ollama + RAM)",
 			callback: () => this.activateMasterTab("status"),
 		});
 
 		this.addCommand({
-			id: "atlas-master-suggest",
+			id: "master-suggest",
 			name: "Master Sidebar → Smart Suggestions",
 			callback: () => this.activateMasterTab("suggest"),
 		});
@@ -1490,43 +1483,43 @@ captured_via: webhook
 		// ─── v0.4 Sprint 3: Tutorial + Achievement commands ───
 
 		this.addCommand({
-			id: "atlas-tour-first-steps",
+			id: "tour-first-steps",
 			name: "Tour: Primeiros passos (recomendado começar aqui)",
 			callback: () => this.startTutorial("first-steps"),
 		});
 
 		this.addCommand({
-			id: "atlas-tour-1on1",
+			id: "tour-1on1",
 			name: "Tour: Como rodar seu primeiro 1:1",
 			callback: () => this.startTutorial("one-on-one"),
 		});
 
 		this.addCommand({
-			id: "atlas-tour-weekly",
+			id: "tour-weekly",
 			name: "Tour: Como gerar weekly report automático",
 			callback: () => this.startTutorial("weekly-report"),
 		});
 
 		this.addCommand({
-			id: "atlas-tour-flashcards",
+			id: "tour-flashcards",
 			name: "Tour: Spaced repetition + flashcards",
 			callback: () => this.startTutorial("flashcards"),
 		});
 
 		this.addCommand({
-			id: "atlas-tour-kg",
+			id: "tour-kg",
 			name: "Tour: Como o Knowledge Graph funciona",
 			callback: () => this.startTutorial("knowledge-graph"),
 		});
 
 		this.addCommand({
-			id: "atlas-tours-list",
+			id: "tours-list",
 			name: "Tours disponíveis (escolher)",
 			callback: () => this.showTourPicker(),
 		});
 
 		this.addCommand({
-			id: "atlas-achievements",
+			id: "achievements",
 			name: "🏆 Achievements & XP",
 			callback: () => this.showAchievements(),
 		});
@@ -1534,13 +1527,13 @@ captured_via: webhook
 		// ─── v0.4 Sprint 4: Auto-organização ───
 
 		this.addCommand({
-			id: "atlas-vault-wizard",
+			id: "vault-wizard",
 			name: "🧹 Vault Wizard (cleanup multi-step)",
 			callback: () => new VaultWizardModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-rules-evaluate-active",
+			id: "rules-evaluate-active",
 			name: "Rules: avaliar nota ativa (preview)",
 			callback: async () => {
 				const file = this.app.workspace.getActiveFile();
@@ -1559,7 +1552,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-rules-apply-active",
+			id: "rules-apply-active",
 			name: "Rules: aplicar agora na nota ativa",
 			callback: async () => {
 				const file = this.app.workspace.getActiveFile();
@@ -1578,7 +1571,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-moc-folder",
+			id: "moc-folder",
 			name: "Gerar MoC para pasta atual",
 			callback: async () => {
 				const file = this.app.workspace.getActiveFile();
@@ -1606,25 +1599,25 @@ captured_via: webhook
 		// ─── v0.4 Sprint 5: Entity Trees ───
 
 		this.addCommand({
-			id: "atlas-tree-people",
+			id: "tree-people",
 			name: "🌳 Árvore de Pessoas",
 			callback: () => new EntityTreesModal(this.app, this, "people").open(),
 		});
 
 		this.addCommand({
-			id: "atlas-tree-projects",
+			id: "tree-projects",
 			name: "🌳 Árvore de Projetos",
 			callback: () => new EntityTreesModal(this.app, this, "projects").open(),
 		});
 
 		this.addCommand({
-			id: "atlas-tree-themes",
+			id: "tree-themes",
 			name: "🌳 Árvore de Temas",
 			callback: () => new EntityTreesModal(this.app, this, "themes").open(),
 		});
 
 		this.addCommand({
-			id: "atlas-moc-tag",
+			id: "moc-tag",
 			name: "Gerar MoC para tag (pergunta qual)",
 			callback: async () => {
 				const tag = await promptInput(this.app, "Tag (sem #):");
@@ -1646,7 +1639,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-scan-reminders",
+			id: "scan-reminders",
 			name: "Reminders: escanear vault agora",
 			callback: async () => {
 				await this.reminderWatcher.tick(15);
@@ -1660,43 +1653,43 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-proactive-check",
+			id: "proactive-check",
 			name: "Detecção proativa: rodar agora",
 			callback: () => this.runProactiveCheck(),
 		});
 
 		this.addCommand({
-			id: "atlas-toggle-coach-mode",
+			id: "toggle-coach-mode",
 			name: "Alternar Coach Mode ↔ Work Mode",
 			callback: () => toggleCoachMode(this),
 		});
 
 		this.addCommand({
-			id: "atlas-flashcards-from-note",
+			id: "flashcards-from-note",
 			name: "Estudo: gerar flashcards desta nota",
 			callback: () => generateFlashcardsFromActiveNote(this),
 		});
 
 		this.addCommand({
-			id: "atlas-flashcards-review",
+			id: "flashcards-review",
 			name: "Estudo: sessão de spaced repetition (revisar)",
 			callback: () => new ReviewSessionModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-flashcards-export-anki",
+			id: "flashcards-export-anki",
 			name: "Estudo: exportar flashcards para Anki (TSV)",
 			callback: () => exportFlashcardsAsCsv(this),
 		});
 
 		this.addCommand({
-			id: "atlas-flashcards-export-sr",
+			id: "flashcards-export-sr",
 			name: "Estudo: exportar para Obsidian Spaced Repetition (.md)",
 			callback: () => exportFlashcardsAsObsidianSr(this),
 		});
 
 		this.addCommand({
-			id: "atlas-flashcards-stats",
+			id: "flashcards-stats",
 			name: "Estudo: estatísticas do deck",
 			callback: () => {
 				const s = this.flashcards.stats();
@@ -1708,45 +1701,43 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-socratic",
+			id: "socratic",
 			name: "Estudo: Feynman check (perguntas socráticas)",
 			callback: () => new SocraticModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-onboarding",
+			id: "onboarding",
 			name: "Onboarding wizard (rodar de novo)",
 			callback: () => new OnboardingWizard(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-inline-ai",
+			id: "inline-ai",
 			name: "Inline AI (reescrever / resumir / explicar / traduzir)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "i" }],
 			callback: () => openInlineAi(this),
 		});
 
 		this.addCommand({
-			id: "atlas-smart-paste",
+			id: "smart-paste",
 			name: "Smart paste (URL → metadata, JSON → format, code → fenced)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "v" }],
 			callback: () => smartPaste(this),
 		});
 
 		this.addCommand({
-			id: "atlas-open-hub",
+			id: "open-hub",
 			name: "Action Items Hub (abrir)",
 			callback: () => this.activateMasterTab("hub"),
 		});
 
 		this.addCommand({
-			id: "atlas-open-suggestions",
+			id: "open-suggestions",
 			name: "Smart suggestions sidebar (abrir)",
 			callback: () => this.activateMasterTab("suggest"),
 		});
 
 		this.addCommand({
-			id: "atlas-tag-active-note",
+			id: "tag-active-note",
 			name: "Auto-tag: aplicar agora na nota ativa",
 			callback: async () => {
 				const file = this.app.workspace.getActiveFile();
@@ -1760,26 +1751,25 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-find-aliases",
+			id: "find-aliases",
 			name: "Auto-aliasing: detectar duplicatas no KG",
 			callback: () => new AutoAliasingModal(this.app, this.autoAliaser).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-reasoning",
+			id: "reasoning",
 			name: "Pense comigo (CoT — decisões / RCA / planning)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "r" }],
 			callback: () => new ReasoningModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-auto-summary",
+			id: "auto-summary",
 			name: "Auto-summary: TLDR no topo da nota ativa",
 			callback: () => generateSummaryForActiveNote(this),
 		});
 
 		this.addCommand({
-			id: "atlas-toggle-reranker",
+			id: "toggle-reranker",
 			name: "Reranker: alternar ON/OFF",
 			callback: async () => {
 				this.settings.performance.rerankerEnabled =
@@ -1792,26 +1782,25 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-spotlight",
-			name: "Atlas Spotlight (busca + ações universais)",
-			hotkeys: [{ modifiers: ["Mod"], key: "k" }],
+			id: "spotlight",
+			name: "Spotlight (busca + ações universais)",
 			callback: () => new SpotlightModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-open-today",
-			name: "Atlas Today (dashboard)",
+			id: "open-today",
+			name: "Today (dashboard)",
 			callback: () => this.activateMasterTab("today"),
 		});
 
 		this.addCommand({
-			id: "atlas-serendipity-now",
+			id: "serendipity-now",
 			name: "Serendipity: mostrar nota antiga relevante agora",
 			callback: () => this.serendipity.tick(),
 		});
 
 		this.addCommand({
-			id: "atlas-year-in-review",
+			id: "year-in-review",
 			name: "Year in Review (Atlas Wrapped)",
 			callback: async () => {
 				const notice = new Notice("Atlas: gerando Year in Review...", 0);
@@ -1832,13 +1821,13 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-time-capsule",
+			id: "time-capsule",
 			name: "Time Capsule: criar cápsula que abre no futuro",
 			callback: () => new TimeCapsuleModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-check-capsules",
+			id: "check-capsules",
 			name: "Time Capsule: verificar entregas do dia",
 			callback: () => this.capsuleWatcher.checkDeliveries(),
 		});
@@ -1846,7 +1835,7 @@ captured_via: webhook
 		// ─── v0.3 INNOVATIONS ───
 
 		this.addCommand({
-			id: "atlas-context-collapse",
+			id: "context-collapse",
 			name: "Context Collapse: insight unificador sobre uma pessoa",
 			callback: async () => {
 				const people = this.kg.listPeople();
@@ -1873,7 +1862,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-manager-readme",
+			id: "manager-readme",
 			name: "Manager README (auto-gerar a partir do histórico)",
 			callback: async () => {
 				const tool = new ManagerReadmeTool(this.app, this);
@@ -1889,13 +1878,13 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-premortem-oracle",
+			id: "premortem-oracle",
 			name: "Pre-mortem Oracle (prever falhas de novo projeto)",
 			callback: () => new PreMortemModal(this.app, this).open(),
 		});
 
 		this.addCommand({
-			id: "atlas-decision-diary",
+			id: "decision-diary",
 			name: "Decision Diary do mês (compilar decisões)",
 			callback: async () => {
 				const now = new Date();
@@ -1910,13 +1899,13 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-workspace-health",
+			id: "workspace-health",
 			name: "Workspace Health dashboard (abrir)",
 			callback: () => this.activateMasterTab("health"),
 		});
 
 		this.addCommand({
-			id: "atlas-podcast-generator",
+			id: "podcast-generator",
 			name: "Podcast: gerar áudio NPR-style do weekly ativo",
 			callback: async () => {
 				const file = this.app.workspace.getActiveFile();
@@ -1938,20 +1927,19 @@ captured_via: webhook
 		// ─── v0.4 BUG FIX commands ───
 
 		this.addCommand({
-			id: "atlas-status-panel",
-			name: "Atlas Status Panel (RAM + Ollama + modelos)",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "s" }],
+			id: "status-panel",
+			name: "Status panel (RAM + Ollama + modelos)",
 			callback: () => this.activateMasterTab("status"),
 		});
 
 		this.addCommand({
-			id: "atlas-pull-recommended-model",
+			id: "pull-recommended-model",
 			name: "Pull qwen2.5:7b (modelo leve recomendado)",
 			callback: () => pullRecommendedModel(this),
 		});
 
 		this.addCommand({
-			id: "atlas-restart-ollama",
+			id: "restart-ollama",
 			name: "Como reiniciar Ollama (instruções)",
 			callback: () => {
 				new Notice(
@@ -1962,7 +1950,7 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-show-error-help",
+			id: "show-error-help",
 			name: "Diagnóstico: ajuda com último erro",
 			callback: async () => {
 				const last = this.lastAtlasError;
@@ -1975,13 +1963,13 @@ captured_via: webhook
 		});
 
 		this.addCommand({
-			id: "atlas-apply-templates",
+			id: "apply-templates",
 			name: "Aplicar templates no vault",
 			callback: () => applyTemplatesToVault(this),
 		});
 
 		this.addCommand({
-			id: "atlas-tts-selection",
+			id: "tts-selection",
 			name: "Voz: ler seleção em voz alta (Piper TTS)",
 			editorCallback: async (editor) => {
 				const text = editor.getSelection() || editor.getValue().substring(0, 2000);

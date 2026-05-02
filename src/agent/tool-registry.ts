@@ -25,6 +25,16 @@ export interface ToolResult {
 	data?: unknown;
 }
 
+/**
+ * Safe stringify of unknown params — guards against [object Object] when
+ * params come from Ollama tool-calling (untrusted JSON).
+ */
+function asStr(v: unknown, fallback = ""): string {
+	if (typeof v === "string") return v.trim();
+	if (typeof v === "number" || typeof v === "boolean") return String(v);
+	return fallback;
+}
+
 export interface ToolDefinition {
 	name: string;
 	description: string;
@@ -69,9 +79,9 @@ export const TOOLS: ToolDefinition[] = [
 			required: ["name", "type"],
 		},
 		handler: async (params, plugin) => {
-			const name = String(params.name ?? "").trim();
+			const name = asStr(params.name);
 			if (!name) return { ok: false, message: "Nome obrigatório." };
-			const type = String(params.type ?? "other") as
+			const type = asStr(params.type, "other") as
 				| "direct-report"
 				| "peer"
 				| "manager"
@@ -82,9 +92,9 @@ export const TOOLS: ToolDefinition[] = [
 			const person = plugin.kg.upsertPerson({
 				name,
 				type,
-				role: params.role ? String(params.role) : undefined,
-				team: params.team ? String(params.team) : undefined,
-				email: params.email ? String(params.email) : undefined,
+				role: params.role ? asStr(params.role) : undefined,
+				team: params.team ? asStr(params.team) : undefined,
+				email: params.email ? asStr(params.email) : undefined,
 				aliases: [],
 			});
 			await plugin.kg.save();
@@ -113,12 +123,12 @@ export const TOOLS: ToolDefinition[] = [
 			required: ["name"],
 		},
 		handler: async (params, plugin) => {
-			const name = String(params.name ?? "").trim();
+			const name = asStr(params.name);
 			if (!name) return { ok: false, message: "Nome obrigatório." };
 			const sys = plugin.kg.upsertSystem({
 				name,
-				vendor: params.vendor ? String(params.vendor) : undefined,
-				type: (params.type ? String(params.type) : "other") as never,
+				vendor: params.vendor ? asStr(params.vendor) : undefined,
+				type: (params.type ? asStr(params.type) : "other") as never,
 				aliases: [],
 			});
 			await plugin.kg.save();
@@ -141,11 +151,11 @@ export const TOOLS: ToolDefinition[] = [
 			required: ["name"],
 		},
 		handler: async (params, plugin) => {
-			const name = String(params.name ?? "").trim();
+			const name = asStr(params.name);
 			if (!name) return { ok: false, message: "Nome obrigatório." };
 			const p = plugin.kg.upsertProduct({
 				name,
-				category: params.category ? String(params.category) : undefined,
+				category: params.category ? asStr(params.category) : undefined,
 				systemIds: [],
 			});
 			await plugin.kg.save();
@@ -168,11 +178,11 @@ export const TOOLS: ToolDefinition[] = [
 			required: ["title"],
 		},
 		handler: async (params, plugin) => {
-			const title = String(params.title ?? "").trim();
+			const title = asStr(params.title);
 			if (!title) return { ok: false, message: "Título obrigatório." };
 			const r = plugin.kg.upsertRole({
 				title,
-				level: params.level ? String(params.level) : undefined,
+				level: params.level ? asStr(params.level) : undefined,
 				responsibilities: [],
 			});
 			await plugin.kg.save();
@@ -195,11 +205,11 @@ export const TOOLS: ToolDefinition[] = [
 			required: ["name"],
 		},
 		handler: async (params, plugin) => {
-			const name = String(params.name ?? "").trim();
+			const name = asStr(params.name);
 			if (!name) return { ok: false, message: "Nome obrigatório." };
 			const c = plugin.kg.upsertCourse({
 				name,
-				provider: params.provider ? String(params.provider) : undefined,
+				provider: params.provider ? asStr(params.provider) : undefined,
 				status: "active",
 			});
 			await plugin.kg.save();
@@ -224,15 +234,15 @@ export const TOOLS: ToolDefinition[] = [
 			required: ["text"],
 		},
 		handler: async (params, plugin) => {
-			const text = String(params.text ?? "").trim();
+			const text = asStr(params.text);
 			if (!text) return { ok: false, message: "Texto obrigatório." };
 			let dueIso: string | undefined;
 			if (params.due) {
-				const parsed = chrono.pt.parse(String(params.due), new Date(), { forwardDate: true });
+				const parsed = chrono.pt.parse(asStr(params.due), new Date(), { forwardDate: true });
 				if (parsed.length > 0) dueIso = parsed[0].date().toISOString().substring(0, 16).replace("T", " ");
 			}
 			const owner = params.owner
-				? plugin.kg.findPersonByName(String(params.owner))
+				? plugin.kg.findPersonByName(asStr(params.owner))
 				: undefined;
 			const dueLine = dueIso ? ` (@${dueIso})` : "";
 			const ownerLine = owner ? ` [[${owner.name}]]` : "";
@@ -276,8 +286,8 @@ captured_via: tool-call
 			required: ["text", "datetime"],
 		},
 		handler: async (params, plugin) => {
-			const text = String(params.text ?? "").trim();
-			const dt = String(params.datetime ?? "").trim();
+			const text = asStr(params.text);
+			const dt = asStr(params.datetime);
 			if (!text || !dt) return { ok: false, message: "Texto e data obrigatórios." };
 			const parsed = chrono.pt.parse(dt, new Date(), { forwardDate: true });
 			if (parsed.length === 0) return { ok: false, message: `Data inválida: "${dt}"` };
@@ -327,15 +337,15 @@ captured_via: tool-call
 			required: ["person", "datetime"],
 		},
 		handler: async (params, plugin) => {
-			const personName = String(params.person ?? "").trim();
-			const dt = String(params.datetime ?? "").trim();
+			const personName = asStr(params.person);
+			const dt = asStr(params.datetime);
 			if (!personName || !dt) return { ok: false, message: "Pessoa e data obrigatórios." };
 			const parsed = chrono.pt.parse(dt, new Date(), { forwardDate: true });
 			if (parsed.length === 0) return { ok: false, message: `Data inválida: "${dt}"` };
 			const date = parsed[0].date();
 			const dateStr = date.toISOString().split("T")[0];
 			const timeStr = date.toTimeString().substring(0, 5);
-			const framework = (params.framework ? String(params.framework) : "GROW") as
+			const framework = (params.framework ? asStr(params.framework) : "GROW") as
 				| "GROW"
 				| "CLEAR"
 				| "BICEPS"
@@ -408,9 +418,9 @@ framework: ${framework}
 			required: ["to", "subject"],
 		},
 		handler: async (params, plugin) => {
-			const to = String(params.to ?? "").trim();
-			const subject = String(params.subject ?? "").trim();
-			const body = String(params.body ?? "").trim();
+			const to = asStr(params.to);
+			const subject = asStr(params.subject);
+			const body = asStr(params.body);
 			if (!to || !subject) return { ok: false, message: "Destinatário e assunto obrigatórios." };
 			// Resolve pessoa do KG → email
 			let recipient = to;
@@ -468,7 +478,7 @@ framework: ${framework}
 			required: ["profile_id"],
 		},
 		handler: async (params, plugin) => {
-			const id = String(params.profile_id ?? "").trim();
+			const id = asStr(params.profile_id);
 			if (!id) return { ok: false, message: "profile_id obrigatório." };
 			const m = await import("../profiles/registry");
 			const p = m.findProfile(id as never);
@@ -492,7 +502,7 @@ framework: ${framework}
 			const apiAny = plugin.app as unknown as {
 				commands?: { executeCommandById?: (id: string) => void };
 			};
-			apiAny.commands?.executeCommandById?.("atlas:atlas-index-vault");
+			apiAny.commands?.executeCommandById?.("atlas:index-vault");
 			return { ok: true, message: "Indexação do vault iniciada (background)." };
 		},
 	},
@@ -509,7 +519,7 @@ framework: ${framework}
 		},
 		destructive: true,
 		handler: async (params, plugin) => {
-			const name = String(params.name ?? "").trim();
+			const name = asStr(params.name);
 			if (!name) return { ok: false, message: "Nome obrigatório." };
 			const person = plugin.kg.findPersonByName(name);
 			if (!person) return { ok: false, message: `"${name}" não encontrado no KG.` };
@@ -564,10 +574,13 @@ export async function executeTool(
 		return { ok: false, message: `Tool "${name}" não encontrada.` };
 	}
 	if (tool.destructive && !opts.skipConfirm) {
-		const confirm = window.confirm(
-			`⚠️ Tool destrutiva: ${name}\n\n${tool.description}\n\nParams:\n${JSON.stringify(params, null, 2)}\n\nConfirmar?`
+		const { confirmAsync } = await import("../ui/confirm-modal");
+		const ok = await confirmAsync(
+			plugin.app,
+			`${tool.description}\n\nParams:\n${JSON.stringify(params, null, 2)}`,
+			{ title: `⚠️ Tool destrutiva: ${name}`, yesLabel: "Confirmar", danger: true }
 		);
-		if (!confirm) {
+		if (!ok) {
 			return { ok: false, message: "Cancelado pelo usuário." };
 		}
 	}

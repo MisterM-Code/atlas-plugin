@@ -52,7 +52,7 @@ export async function renderLabCapsules(
 		const apiAny = plugin.app as unknown as {
 			commands?: { executeCommandById?: (id: string) => void };
 		};
-		apiAny.commands?.executeCommandById?.("atlas:atlas-check-capsules");
+		apiAny.commands?.executeCommandById?.("atlas:check-capsules");
 		new Notice("Atlas: verificação rodada (veja desktop notification se houver entrega).");
 		void renderLabCapsules(container, plugin);
 	});

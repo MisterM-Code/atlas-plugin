@@ -58,7 +58,7 @@ export class YearInReviewTool {
 		const startMs = new Date(`${year}-01-01T00:00:00`).getTime();
 		const endMs = new Date(`${year}-12-31T23:59:59`).getTime();
 
-		const indexer = new Indexer(this.app, [".atlas", ".obsidian", ".trash"]);
+		const indexer = new Indexer(this.app, [".atlas", this.app.vault.configDir, ".trash"]);
 		const allFiles = this.app.vault.getMarkdownFiles();
 
 		const yearFiles = allFiles.filter((f) => {

@@ -56,7 +56,9 @@ export class VisionTool {
 
 		const baseUrl = this.plugin.settings.ollama.baseUrl;
 		try {
-			const response = await fetch(`${baseUrl}/api/generate`, {
+			const { requestUrl } = await import("obsidian");
+			const response = await requestUrl({
+				url: `${baseUrl}/api/generate`,
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -69,9 +71,10 @@ export class VisionTool {
 						num_predict: 2000,
 					},
 				}),
+				throw: false,
 			});
 
-			if (!response.ok) {
+			if (response.status !== 200) {
 				if (response.status === 404) {
 					throw new Error(
 						`Atlas Vision: modelo ${VISION_MODEL} não encontrado. Faça pull primeiro: Status → Catálogo → ${VISION_MODEL}.`
@@ -80,7 +83,7 @@ export class VisionTool {
 				throw new Error(`HTTP ${response.status}`);
 			}
 
-			const json = (await response.json()) as { response?: string; error?: string };
+			const json = response.json as { response?: string; error?: string };
 			if (json.error) {
 				throw new Error(`Ollama: ${json.error}`);
 			}

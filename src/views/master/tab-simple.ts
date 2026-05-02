@@ -191,7 +191,7 @@ export async function renderHealthTab(container: HTMLElement, plugin: AtlasPlugi
 		loading.style.opacity = "0.6";
 
 		const allFiles = plugin.app.vault.getMarkdownFiles().filter(
-			(f) => !f.path.startsWith(".atlas") && !f.path.startsWith(".obsidian")
+			(f) => !f.path.startsWith(".atlas") && !f.path.startsWith(this.app.vault.configDir)
 		);
 		const now = Date.now();
 		const ninetyDaysAgo = now - 90 * 86_400_000;
