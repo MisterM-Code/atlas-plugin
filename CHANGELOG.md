@@ -4,6 +4,58 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.38.0] — 2026-05-02 — "Polish innovation modals 4: CoacheePlateau + Inconsistency + StaleOkrAlert"
+
+### Sprint A — CoacheePlateau (📊 Coaching)
+- 1px top accent amber→teal
+- Title gradient amber→teal
+- Empty state success green/cyan
+- Cards 4px left-border colored by verdict (red plateau / orange watch / green progressing)
+- Card hover translateY + teal shadow
+- Theme chips 999px teal-bordered with hover lift
+- Verdict badge 999px pill
+- Tip box gradient amber/teal italic
+- **Cor: amber/teal (coaching/progress)**
+
+### Sprint B — InconsistencyDetector (🟡 Contradiction)
+- 1px top accent 4-color (yellow/orange/red)
+- Title gradient yellow→red
+- Warning box gradient amber + 3px amber left-border
+- Run button hover amber shadow
+- Cards 4px amber left-border + animated accent line top edge red
+- Hover translateX + border-color shift to red
+- Contradiction body com red soft bg + 3px red left-border
+- Found count uppercase amber color
+- **Cor: yellow/orange/red (contradiction/warning)**
+
+### Sprint C — StaleOkrAlert (⏰ Stale)
+- 1px top accent red/amber (stale/urgency)
+- Title gradient red→amber
+- Empty state celebrating: green/cyan dashed border
+- Cards: warning amber 4px left-border / critical red 4px (with darker bg)
+- Hover translateX + amber shadow / critical hover deeper red shadow
+- Days text tabular-nums + critical state in red bold
+- Path com font-mono
+- **Cor: red/amber (stale/critical)**
+
+### CSS additions
+- CoacheePlateau: ~135 LOC enhanced
+- Inconsistency: ~140 LOC enhanced
+- StaleOkrAlert: ~95 LOC enhanced
+- TOTAL: ~370 LOC
+
+### Visual identity matrix expandida (15 modais Innovation total)
+- 🧠 Reasoning · 🔮 Pre-mortem · 👁️ Vision
+- 👻 Ghost Mentor · 🕰️ Time Capsule · ✍️ Tone Bifold
+- 🌸 CrossPollination · 🛑 AntiProcrastination · 🔥 HabitStreaks
+- 📡 PatternDetectors · 🌀 MemoryLoop · 📋 SmartPaste
+- 📊 CoacheePlateau **NEW** · 🟡 Inconsistency **NEW** · ⏰ StaleOkrAlert **NEW**
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- 15 modais Innovation polished
+
 ## [0.37.0] — 2026-05-02 — "Polish innovation modals 3: PatternDetectors + MemoryLoop + SmartPaste"
 
 ### Sprint A — PatternDetectors / Repeating Theme Alert (📡 Signal)
