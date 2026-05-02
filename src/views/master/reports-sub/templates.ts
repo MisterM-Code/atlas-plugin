@@ -77,7 +77,13 @@ export async function renderReportsTemplates(
 	resetBtn.style.padding = "4px 10px";
 	resetBtn.title = "Resetar para os defaults";
 	resetBtn.addEventListener("click", async () => {
-		if (!confirm("Atlas: descartar customizações e voltar aos templates defaults?")) return;
+		const { confirmAsync } = await import("../../../ui/confirm-modal");
+		const ok = await confirmAsync(plugin.app, "Descartar customizações e voltar aos templates defaults?", {
+			title: "Resetar templates",
+			yesLabel: "Resetar",
+			danger: true,
+		});
+		if (!ok) return;
 		plugin.templateStore.resetToDefaults();
 		await plugin.templateStore.save();
 		new Notice("Atlas: templates resetados.");
@@ -223,7 +229,13 @@ function renderTemplateCard(
 		delBtn.style.padding = "0 6px";
 		delBtn.title = "Deletar template (só customs)";
 		delBtn.addEventListener("click", async () => {
-			if (!confirm(`Atlas: deletar "${t.name}"?`)) return;
+			const { confirmAsync } = await import("../../../ui/confirm-modal");
+			const ok = await confirmAsync(plugin.app, `Deletar "${t.name}"?`, {
+				title: "Confirmar exclusão",
+				yesLabel: "Deletar",
+				danger: true,
+			});
+			if (!ok) return;
 			plugin.templateStore.delete(t.id);
 			await plugin.templateStore.save();
 			new Notice(`Atlas: template "${t.name}" deletado.`);

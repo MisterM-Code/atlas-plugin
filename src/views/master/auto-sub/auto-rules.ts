@@ -66,7 +66,13 @@ export async function renderAutoRulesSub(
 	resetBtn.style.fontSize = "11px";
 	resetBtn.style.padding = "6px 12px";
 	resetBtn.addEventListener("click", async () => {
-		if (!confirm("Atlas: descartar customizações de rules e voltar aos defaults?")) return;
+		const { confirmAsync } = await import("../../../ui/confirm-modal");
+		const ok = await confirmAsync(plugin.app, "Descartar customizações de rules e voltar aos defaults?", {
+			title: "Resetar rules",
+			yesLabel: "Resetar",
+			danger: true,
+		});
+		if (!ok) return;
 		await plugin.ruleEngine.setRules(DEFAULT_RULES);
 		new Notice("Atlas: rules resetadas.");
 		void renderAutoRulesSub(container, plugin);

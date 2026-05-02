@@ -27,8 +27,11 @@ function log(level: Level, msg: string, meta?: Record<string, unknown>): void {
 	const out = fmt(level, msg, meta);
 	switch (level) {
 		case "debug":
+			console.debug(out);
+			break;
 		case "info":
-			console.log(out);
+			// Obsidian guideline: prefer warn/error/debug; info treated as debug
+			console.debug(out);
 			break;
 		case "warn":
 			console.warn(out);

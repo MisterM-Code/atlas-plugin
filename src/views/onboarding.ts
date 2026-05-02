@@ -4,10 +4,8 @@ import { setupVaultStructure } from "../commands/setup-vault";
 import { applyTemplatesToVault } from "../commands/apply-templates";
 import { encryptLight } from "../utils/crypto-light";
 import { detectSystemInfo, recommendationForProfile } from "../utils/system-info";
-import { logger } from "../utils/logger";
 import { applyResponsiveModal } from "../ui/modal-helpers";
 import { PROFILES, PROFILE_CATEGORIES, ProfileId, mergeProfiles } from "../profiles/registry";
-import { detectOllama } from "../automation/ollama-installer";
 
 const STEPS = [
 	"welcome",

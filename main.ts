@@ -86,7 +86,7 @@ import { rescheduleAllSavedViews } from "./src/views/master/tab-reports-composer
 import { TemplateStore } from "./src/templates/visual-editor/template-store";
 import { TemplatePickerModal } from "./src/templates/visual-editor/editor-ui";
 import { logger } from "./src/utils/logger";
-import { injectGlobalAnimationStyles, confettiBurst } from "./src/ui/animations";
+import { injectGlobalAnimationStyles } from "./src/ui/animations";
 import { SplashScreen } from "./src/ui/splash";
 import { applyAtlasTheme, removeAtlasTheme } from "./src/ui/theme-applier";
 import { AtlasHUD } from "./src/ui/atlas-hud";
@@ -731,7 +731,6 @@ captured_via: webhook
 			`(s?'&selection='+encodeURIComponent(s):'');` +
 			`window.open(u);})();`;
 
-		const Modal = (window as unknown as { require?: unknown; Modal?: typeof import("obsidian").Modal }).Modal ?? require("obsidian").Modal;
 		// Fallback simples: mostra Notice longo + abre Settings com texto copiável
 		const notice = new Notice("", 0);
 		notice.messageEl.empty();
@@ -766,9 +765,9 @@ captured_via: webhook
 				copyBtn.setText("✓ Copiado!");
 				setTimeout(() => copyBtn.setText("📋 Copiar bookmarklet"), 2000);
 			} catch {
+				// Fallback se clipboard API não disponível: select + Ctrl+C manual
 				code.select();
-				document.execCommand("copy");
-				copyBtn.setText("✓ Copiado!");
+				copyBtn.setText("Aperte Ctrl/Cmd+C");
 			}
 		});
 
@@ -777,8 +776,6 @@ captured_via: webhook
 		closeBtn.style.marginLeft = "6px";
 		closeBtn.style.fontSize = "11px";
 		closeBtn.addEventListener("click", () => notice.hide());
-
-		void Modal; // keep import
 	}
 
 	showAchievements(): void {

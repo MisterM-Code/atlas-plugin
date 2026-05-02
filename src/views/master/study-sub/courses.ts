@@ -283,7 +283,13 @@ function openCourseDetail(plugin: AtlasPlugin, course: CourseT, onChange: () => 
 			delBtn.style.padding = "4px 10px";
 			delBtn.title = "Deletar curso";
 			delBtn.addEventListener("click", async () => {
-				if (!confirm(`Atlas: deletar "${course.name}"? (módulos perdidos)`)) return;
+				const { confirmAsync } = await import("../../../ui/confirm-modal");
+				const ok = await confirmAsync(plugin.app, `Deletar "${course.name}"? Módulos serão perdidos.`, {
+					title: "Confirmar exclusão",
+					yesLabel: "Deletar",
+					danger: true,
+				});
+				if (!ok) return;
 				plugin.kg.deleteCourse(course.id);
 				await plugin.kg.save();
 				new Notice("Atlas: curso deletado.");
