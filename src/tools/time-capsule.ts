@@ -157,6 +157,21 @@ _Cápsula criada via Atlas em ${new Date().toLocaleDateString("pt-BR")}._
 export class CapsuleWatcher {
 	constructor(private plugin: AtlasPlugin) {}
 
+	/** v0.51.1: count cápsulas due hoje (badge no Lab tab) */
+	getDueCount(): number {
+		const today = new Date().toISOString().split("T")[0];
+		const files = this.plugin.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(CAPSULE_FOLDER));
+		let count = 0;
+		for (const f of files) {
+			const cache = this.plugin.app.metadataCache.getFileCache(f);
+			const fm = (cache?.frontmatter ?? {}) as Record<string, unknown>;
+			const unlock = fm.unlock_date as string | undefined;
+			if (!unlock || fm.delivered === true) continue;
+			if (unlock <= today) count++;
+		}
+		return count;
+	}
+
 	async checkDeliveries(): Promise<void> {
 		const today = new Date().toISOString().split("T")[0];
 		const folder = this.plugin.app.vault.getAbstractFileByPath(CAPSULE_FOLDER);

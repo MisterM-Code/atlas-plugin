@@ -218,7 +218,7 @@ export default class AtlasPlugin extends Plugin {
 	// v0.18 — LLMService façade (single entry point for ALL LLM calls)
 	llm!: import("./src/providers/llm-service").LLMService;
 	lastAtlasError: AtlasError | null = null;
-	private capsuleWatcher!: CapsuleWatcher;
+	capsuleWatcher!: CapsuleWatcher;
 	private audit!: AuditLog;
 	reminderWatcher!: ReminderWatcher;
 	proactive!: ProactiveDetector;

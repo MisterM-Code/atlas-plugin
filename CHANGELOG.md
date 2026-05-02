@@ -4,6 +4,22 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.51.1] — 2026-05-02 — "Activity Bar badges expandidos"
+
+### Lab tab badge — time capsules due
+- `CapsuleWatcher.getDueCount()` retorna count de cápsulas com unlock_date hoje/passado e não delivered
+- Badge no Activity Bar mostra "N" quando há entrega pendente
+- `capsuleWatcher` exposto público para acesso a partir da sidebar
+
+### Auto tab badge stub
+- Try/catch safe pra futuros getters de proactive insights + aliaser candidates
+- Returns null se métodos não existirem (não quebra)
+
+### Files
+- `src/tools/time-capsule.ts` — `getDueCount()` method
+- `main.ts` — `capsuleWatcher` field público
+- `src/views/master/master-sidebar-view.ts` — badges Lab/Auto
+
 ## [0.51.0] — 2026-05-02 — "Active Learning loop — extraction feedback + anti-examples"
 
 ### Active Learning Loop

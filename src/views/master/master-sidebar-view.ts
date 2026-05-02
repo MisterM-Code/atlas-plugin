@@ -311,6 +311,18 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "flask-conical",
 				label: "Lab",
 				description: "Tools IA · Serendipity · Time Capsules · Entity Tree",
+				badge: () => {
+					// v0.51.1: Time capsules ready to deliver TODAY (or overdue)
+					try {
+						const cw = (plugin as unknown as {
+							capsuleWatcher?: { getDueCount?: () => number };
+						}).capsuleWatcher;
+						const due = cw?.getDueCount?.() ?? 0;
+						return due > 0 ? String(due) : null;
+					} catch {
+						return null;
+					}
+				},
 				render: renderLabTab,
 			},
 			{
@@ -319,6 +331,21 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "bot",
 				label: "Auto",
 				description: "AutoTagger · Aliaser · Rules · Atlas Percebeu (monitoramento)",
+				badge: () => {
+					// v0.51.1: Pending proactive insights + pending aliaser candidates
+					try {
+						const pd = (plugin as unknown as {
+							proactiveDetector?: { getPendingCount?: () => number };
+							autoAliaser?: { getPendingCandidatesCount?: () => number };
+						});
+						const insights = pd.proactiveDetector?.getPendingCount?.() ?? 0;
+						const aliases = pd.autoAliaser?.getPendingCandidatesCount?.() ?? 0;
+						const total = insights + aliases;
+						return total > 0 ? String(total) : null;
+					} catch {
+						return null;
+					}
+				},
 				render: renderAutomationsTab,
 			},
 			{
