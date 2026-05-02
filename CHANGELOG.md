@@ -4,6 +4,61 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.12.0] — 2026-05-02 — "5 inovações Tier 3 do roadmap original"
+
+### Added — 5 features inovadoras (Tier 3 v0.2 do roadmap)
+
+#### 👻 Ghost Mentor (`Cmd+P → Atlas: Ghost Mentor`)
+Atlas adota persona de mentor real e responde em estilo característico:
+- 👑 **Camille Fournier** (Manager's Path) — direta, pragmática
+- 💜 **Lara Hogan** (Resilient Management) — empática, BICEPS framework
+- 📚 **Pat Kua** (Tech Lead Coach) — sistemático, retros, learning loops
+- 🧱 **Will Larson** (Staff Engineer + Elegant Puzzle) — estratégico, scale-first
+- ⚓ **Grace Hopper** — audaciosa, "ask forgiveness, not permission"
+
+Cada persona tem: emoji, role, expertise tags, style description e prompt customizado com frameworks favoritos. Salva sessão como nota em `09_Knowledge/mentoring/`.
+
+#### 🌸 Cross-Pollination AI (`Cmd+P → Atlas: Cross-Pollination AI`)
+Encontra pontes conceituais entre 2 áreas distintas. User informa "DE" e "PARA" áreas; Atlas gera 4-6 conceitos da área origem aplicáveis na destino, cada um com:
+- O que é em [origem]
+- Aplicação em [destino]
+- Ação experimentável (1 ação concreta pra testar amanhã)
+
+Sugere temas top do KG como atalhos de input. Salva como nota em `09_Knowledge/cross-pollination/`.
+
+#### 🛑 Anti-Procrastination Buddy (`Cmd+P → Atlas: Anti-Procrastination`)
+Detecta tasks com `#defer`/`#snoozed` no vault e oferece quebrar em **3 micro-ações de 5 min** via LLM. Critérios:
+- 1ª ação absurdamente fácil (vence inércia)
+- Cada uma concreta + ordenada
+- Append automático no fim da nota fonte
+
+#### 🔥 Habit Streaks Auto-Detect (`Cmd+P → Atlas: Habit Streaks`)
+Analisa daily logs dos últimos 30 dias e detecta padrões repetitivos via regex matching (8 hábitos default: meditação, pomodoro, leitura, exercício, journaling, estudo, sleep, daily log). Mostra:
+- Streak (dias com ocorrência)
+- Total de menções
+- Confidence % (ocorrências / 30 dias)
+- Visual progress bar gradient
+
+Awards XP por hábito detectado.
+
+#### 🕰️ Future Self Letter (`Cmd+P → Atlas: Future Self Letter`)
+Modal com 2 modos baseados em research de Hal Hershfield (future-self continuity):
+1. **📮 Para meu eu do FUTURO** — você escreve hoje, Atlas sela e abre em 3/6/12/24 meses (cria reminder automático)
+2. **📜 Do meu eu do PASSADO** — você escreve carta como se fosse o você de 1 ano atrás dando conselhos. Reframe psicológico.
+
+6 prompts sugeridos por modo (clicáveis pra inserir no textarea). Word count + ratio. Salva em `09_Knowledge/letters/` + cria reminder automático na data de abertura.
+
+### Smart Pause Timer (helper class)
+`SmartPauseTimer` em `work-rhythm.ts` — chamável por qualquer feature pra detectar 90+ min sem pausa, sugerir pausa de 10 min com tip aleatório (alongamento, água, caminhada, respiração 4-7-8).
+
+### Stack
+- main.js: 1.8 MB (sem deps adicionais)
+- styles.css: 55 KB → **63 KB**
+- 4 novos arquivos: `ghost-mentor.ts` + `cross-pollination.ts` + `work-rhythm.ts` + `future-self-letter.ts`
+- Reaproveita Ollama generate + KG + scheduler existentes
+
+### 6 novos commands no Cmd+P (total: 121)
+
 ## [0.11.0] — 2026-05-02 — "Tier B innovations: Tone Bifold + Graph Pruning + Easter Eggs"
 
 ### Added — 3 features inovadoras (Tier B do roadmap original)

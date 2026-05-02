@@ -844,6 +844,51 @@ captured_via: webhook
 		});
 
 		this.addCommand({
+			id: "ghost-mentor",
+			name: "👻 Ghost Mentor (Camille/Lara/Pat/Will/Hopper)",
+			callback: async () => {
+				const m = await import("./src/innovations/ghost-mentor");
+				new m.GhostMentorModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "cross-pollination",
+			name: "🌸 Cross-Pollination AI (pontes entre áreas)",
+			callback: async () => {
+				const m = await import("./src/innovations/cross-pollination");
+				new m.CrossPollinationModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "anti-procrastination",
+			name: "🛑 Anti-Procrastination (quebrar tasks adiadas)",
+			callback: async () => {
+				const m = await import("./src/innovations/work-rhythm");
+				new m.AntiProcrastinationModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "habit-streaks",
+			name: "🔥 Habit Streaks (auto-detect dos daily logs)",
+			callback: async () => {
+				const m = await import("./src/innovations/work-rhythm");
+				new m.HabitStreaksModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "future-self-letter",
+			name: "🕰️ Future Self Letter (carta selada)",
+			callback: async () => {
+				const m = await import("./src/innovations/future-self-letter");
+				new m.FutureSelfLetterModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
 			id: "create-reminder",
 			name: "🔔 Criar reminder com data",
 			callback: async () => {

@@ -2391,3 +2391,278 @@
 	justify-content: flex-end;
 	margin-top: 16px;
 }
+
+/* v0.12 — Ghost Mentor */
+.atlas-mentor-title { margin: 0 0 4px 0; }
+.atlas-mentor-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 12px; }
+
+.atlas-mentor-personas {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 8px;
+	margin-bottom: 12px;
+}
+.atlas-mentor-persona-card {
+	padding: 10px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	cursor: pointer;
+	border: 2px solid transparent;
+	transition: border-color 120ms;
+	text-align: center;
+}
+.atlas-mentor-persona-card.is-selected {
+	border-color: var(--atlas-accent, var(--interactive-accent));
+	background: var(--background-modifier-hover);
+}
+.atlas-mentor-persona-emoji { font-size: 28px; }
+.atlas-mentor-persona-name { font-weight: bold; font-size: 12px; margin-top: 4px; }
+.atlas-mentor-persona-role { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+
+.atlas-mentor-expertise {
+	padding: 8px 12px;
+	background: var(--background-secondary-alt);
+	border-radius: 4px;
+	margin-bottom: 12px;
+	font-size: 11px;
+}
+.atlas-mentor-expertise-label { font-weight: bold; opacity: 0.7; }
+.atlas-mentor-expertise-chip {
+	display: inline-block;
+	padding: 2px 6px;
+	background: var(--background-modifier-hover);
+	border-radius: 3px;
+	margin: 2px;
+	font-size: 10px;
+}
+.atlas-mentor-style-note { font-style: italic; opacity: 0.65; margin-top: 4px; }
+
+.atlas-mentor-q-wrap { margin-bottom: 12px; }
+.atlas-mentor-q-label { font-size: 12px; font-weight: bold; opacity: 0.8; display: block; margin-bottom: 6px; }
+.atlas-mentor-q-input {
+	width: 100%;
+	min-height: 100px;
+	padding: 10px;
+	font-size: 13px;
+	border-radius: 6px;
+}
+.atlas-mentor-from-active-btn { margin-top: 6px; font-size: 11px; }
+
+.atlas-mentor-action { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
+.atlas-mentor-response {
+	padding: 12px;
+	background: var(--background-secondary);
+	border-radius: 8px;
+	min-height: 80px;
+	border-left: 4px solid var(--atlas-accent, var(--interactive-accent));
+}
+.atlas-mentor-response.is-loading { opacity: 0.7; }
+.atlas-mentor-loading { padding: 8px; font-style: italic; }
+.atlas-mentor-response-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+.atlas-mentor-response-emoji { font-size: 22px; }
+.atlas-mentor-response-name { font-weight: bold; font-size: 14px; }
+.atlas-mentor-response-body {
+	white-space: pre-wrap;
+	line-height: 1.6;
+	font-size: 13px;
+}
+.atlas-mentor-save-row { margin-top: 12px; text-align: right; }
+.atlas-mentor-error { color: var(--color-red); }
+
+/* v0.12 — Cross-Pollination */
+.atlas-crosspoll-title { margin: 0 0 4px 0; }
+.atlas-crosspoll-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+
+.atlas-crosspoll-field { margin-bottom: 10px; }
+.atlas-crosspoll-label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 4px; }
+.atlas-crosspoll-input {
+	width: 100%;
+	padding: 8px 10px;
+	font-size: 13px;
+	border-radius: 4px;
+}
+
+.atlas-crosspoll-suggestions {
+	margin-bottom: 12px;
+	padding: 8px;
+	background: var(--background-secondary-alt);
+	border-radius: 4px;
+}
+.atlas-crosspoll-suggestions-label { font-size: 10px; opacity: 0.7; margin-bottom: 4px; }
+.atlas-crosspoll-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.atlas-crosspoll-chip {
+	font-size: 10px;
+	padding: 3px 8px;
+	border-radius: 12px;
+	cursor: pointer;
+	background: var(--background-modifier-hover);
+}
+.atlas-crosspoll-chip:hover { background: var(--interactive-accent); color: var(--text-on-accent); }
+
+.atlas-crosspoll-action { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
+.atlas-crosspoll-result {
+	min-height: 80px;
+}
+.atlas-crosspoll-result.is-loading { opacity: 0.6; padding: 24px; text-align: center; }
+.atlas-crosspoll-result-header {
+	padding: 8px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	margin-bottom: 8px;
+	font-size: 12px;
+}
+.atlas-crosspoll-result-body {
+	padding: 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	font-size: 13px;
+	line-height: 1.6;
+}
+.atlas-crosspoll-save-row { margin-top: 12px; text-align: right; }
+.atlas-crosspoll-error { color: var(--color-red); padding: 12px; }
+.atlas-crosspoll-loading { padding: 12px; opacity: 0.7; }
+
+/* v0.12 — Anti-Procrastination */
+.atlas-procrast-title { margin: 0 0 4px 0; }
+.atlas-procrast-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.atlas-procrast-loading { padding: 16px; opacity: 0.6; }
+.atlas-procrast-empty { padding: 24px; text-align: center; opacity: 0.6; }
+
+.atlas-procrast-card {
+	padding: 12px;
+	margin-bottom: 8px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	border-left: 3px solid var(--color-orange);
+}
+.atlas-procrast-task { font-weight: 500; font-size: 13px; }
+.atlas-procrast-meta { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+.atlas-procrast-actions { margin-top: 8px; }
+.atlas-procrast-break-btn { font-size: 12px; padding: 6px 12px; }
+
+/* v0.12 — Habit Streaks */
+.atlas-streaks-title { margin: 0 0 4px 0; }
+.atlas-streaks-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+.atlas-streaks-loading { padding: 16px; opacity: 0.6; }
+.atlas-streaks-empty { padding: 24px; text-align: center; opacity: 0.6; }
+
+.atlas-streaks-card {
+	padding: 12px;
+	margin-bottom: 8px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	border-left: 3px solid var(--color-orange);
+}
+.atlas-streaks-card-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+.atlas-streaks-card-emoji { font-size: 18px; }
+.atlas-streaks-card-name { font-weight: bold; font-size: 14px; }
+.atlas-streaks-card-streak {
+	font-size: 13px;
+	color: var(--color-orange);
+	font-weight: bold;
+}
+.atlas-streaks-card-days { font-size: 22px; }
+.atlas-streaks-card-days-label { opacity: 0.7; font-size: 12px; }
+.atlas-streaks-card-meta { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+.atlas-streaks-card-bar {
+	height: 6px;
+	background: var(--background-modifier-border);
+	border-radius: 3px;
+	margin-top: 8px;
+	overflow: hidden;
+}
+.atlas-streaks-card-bar-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--color-orange), var(--color-red));
+}
+
+/* v0.12 — Future Self Letter */
+.atlas-fsl-title { margin: 0 0 4px 0; }
+.atlas-fsl-subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 16px; }
+
+.atlas-fsl-mode-row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+.atlas-fsl-mode-btn {
+	flex-grow: 1;
+	padding: 12px;
+	font-size: 13px;
+	cursor: pointer;
+	border-radius: 6px;
+	border: 2px solid transparent;
+	transition: border-color 120ms;
+}
+.atlas-fsl-mode-btn.is-active {
+	border-color: var(--atlas-accent, var(--interactive-accent));
+	background: var(--background-modifier-hover);
+}
+
+.atlas-fsl-time-row {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+	padding: 8px;
+	background: var(--background-secondary-alt);
+	border-radius: 4px;
+}
+.atlas-fsl-time-label { font-size: 12px; font-weight: bold; }
+.atlas-fsl-time-btn {
+	font-size: 12px;
+	padding: 4px 10px;
+	cursor: pointer;
+	border-radius: 4px;
+}
+.atlas-fsl-time-btn.is-active {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.atlas-fsl-prompts {
+	padding: 8px;
+	background: var(--background-secondary-alt);
+	border-radius: 4px;
+	margin-bottom: 12px;
+}
+.atlas-fsl-prompts-label { font-size: 11px; font-weight: bold; opacity: 0.7; margin-bottom: 6px; }
+.atlas-fsl-prompt-chip {
+	display: inline-block;
+	font-size: 11px;
+	padding: 4px 10px;
+	margin: 2px;
+	cursor: pointer;
+	border-radius: 12px;
+	background: var(--background-modifier-hover);
+}
+.atlas-fsl-prompt-chip:hover { background: var(--interactive-accent); color: var(--text-on-accent); }
+
+.atlas-fsl-letter-label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 6px; }
+.atlas-fsl-letter-textarea {
+	width: 100%;
+	min-height: 240px;
+	padding: 12px;
+	font-size: 14px;
+	line-height: 1.6;
+	font-family: var(--font-text);
+	border-radius: 6px;
+}
+.atlas-fsl-wordcount { font-size: 11px; opacity: 0.6; margin-top: 4px; text-align: right; }
+
+.atlas-fsl-action { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
