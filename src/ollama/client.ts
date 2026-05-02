@@ -71,6 +71,35 @@ export class OllamaClient {
 		return models.some((m) => m === model || m.startsWith(model + ":"));
 	}
 
+	/**
+	 * v0.7.5: Hot-swap modelo runtime.
+	 * Descarrega modelo antigo + carrega novo sem reload do plugin.
+	 */
+	async swapModel(fromModel: string, toModel: string): Promise<void> {
+		try {
+			// Unload via /api/generate com keep_alive: 0 (Ollama trick)
+			await fetch(`${this.config.baseUrl}/api/generate`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ model: fromModel, prompt: "", keep_alive: 0 }),
+			}).catch(() => undefined);
+			// Preload toModel com chamada warmup
+			await fetch(`${this.config.baseUrl}/api/generate`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					model: toModel,
+					prompt: "ok",
+					stream: false,
+					options: { num_predict: 1 },
+				}),
+			});
+			logger.info("ollama: swap model", { from: fromModel, to: toModel });
+		} catch (e) {
+			logger.warn("ollama: swap falhou (não-bloqueante)", { error: String(e) });
+		}
+	}
+
 	async pullModel(model: string, onProgress?: (status: string, pct: number) => void): Promise<void> {
 		// fetch API + ReadableStream — funciona em Electron renderer.
 		// Axios com responseType:"stream" NAO funciona aqui (devolve Blob, não Node Readable).

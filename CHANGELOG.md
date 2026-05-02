@@ -4,6 +4,41 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.7.5] — 2026-05-02 — "Animações Contínuas + 8 Modelos Novos"
+
+Combinação de Sprint 23 (Animações) + Sprint 25 (Modelos novos).
+
+### Added — Animações contínuas
+
+- Tab content fade-in + slide horizontal (200ms cubic-bezier) ao trocar de tab
+- Badges com novidades (overdue, flashcards due, systems down) recebem class `.atlas-badge-new` que pulsa contínuo via `atlas-pulse-soft` keyframe (2s loop)
+- Logo do header continua breathing, glow durante chat streaming (já em v0.7.1)
+
+### Added — +8 modelos no catálogo (total 23)
+
+- **DeepSeek R1 7b** (~5 GB RAM, reasoning state-of-art)
+- **DeepSeek R1 14b** (~9 GB RAM, premium reasoning, recomendado)
+- **Mistral 7B** (~5 GB RAM, alternativa qwen tom natural)
+- **Mixtral 8x7B MoE** (~26 GB RAM, premium quality 47B params/13B ativos)
+- **Codestral 22B** (~13 GB RAM, code specialist 80+ linguagens, perfil TI)
+- **Granite 3.0 8B** (~5.5 GB RAM, IBM enterprise, perfil Compliance/Jurídico)
+- **Llama 3.3 70B Q4** (~40 GB RAM, top tier 2025)
+- **Aya Expanse 8B** (~5.5 GB RAM, Cohere multilingual 23 línguas, PT-BR forte)
+
+### Added — Hot-swap modelo runtime
+
+- `OllamaClient.swapModel(from, to)` descarrega modelo antigo (keep_alive: 0) + warmup do novo
+- Sub-tab Catálogo → "Usar como default" agora chama swap automaticamente
+- Próximo chat usa novo modelo SEM reload do plugin
+
+### Métricas
+
+| | v0.7.4 | v0.7.5 |
+|---|---|---|
+| main.js | 1.79 MB | 1.79 MB |
+| Modelos no catálogo | 15 | **23** |
+| Arquivos .ts | 140 | 140 |
+
 ## [0.7.4] — 2026-05-02 — "Voice Jarvis Real"
 
 Sprint 24 — Atlas finalmente vira Jarvis com voz.

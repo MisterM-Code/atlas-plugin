@@ -105,6 +105,18 @@ export class AtlasMasterSidebarView extends ItemView {
 
 		try {
 			await tab.render(tabBody, this.plugin);
+			// v0.7.3: animação fadeIn + slide pra body do tab inteiro
+			tabBody.animate(
+				[
+					{ opacity: 0, transform: "translateX(8px)" },
+					{ opacity: 1, transform: "translateX(0)" },
+				],
+				{
+					duration: 200,
+					easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+					fill: "forwards",
+				}
+			);
 		} catch (e) {
 			tabBody.empty();
 			const err = tabBody.createEl("div");
@@ -173,10 +185,11 @@ export class AtlasMasterSidebarView extends ItemView {
 				btn.setText(tab.icon);
 			}
 
-			// Badge
+			// Badge — pulsa contínuo se há novidade
 			const badge = tab.badge?.();
 			if (badge) {
 				const b = btn.createDiv();
+				b.addClass("atlas-badge-new");
 				b.style.position = "absolute";
 				b.style.top = "0";
 				b.style.right = "0";

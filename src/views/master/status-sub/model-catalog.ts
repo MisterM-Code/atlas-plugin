@@ -356,13 +356,25 @@ function renderModelCard(
 		useBtn.style.fontSize = "10px";
 		useBtn.style.padding = "4px 10px";
 		useBtn.addEventListener("click", async () => {
+			const fromModel =
+				m.kind === "generation"
+					? plugin.settings.ollama.generationModel
+					: plugin.settings.ollama.smallModel;
 			if (m.kind === "generation") {
 				plugin.settings.ollama.generationModel = m.tag;
 			} else {
 				plugin.settings.ollama.smallModel = m.tag;
 			}
 			await plugin.saveSettings();
-			new Notice(`Atlas: ${m.name} é o novo default.`);
+			// v0.7.5: hot-swap runtime sem reload
+			useBtn.setText("Trocando...");
+			useBtn.disabled = true;
+			try {
+				await plugin.ollama.swapModel(fromModel, m.tag);
+				new Notice(`✓ Atlas: ${m.name} ativo agora (sem reload).`, 5000);
+			} catch {
+				new Notice(`Atlas: ${m.name} é o novo default (próximo chat usa).`);
+			}
 			onChange();
 		});
 	}
