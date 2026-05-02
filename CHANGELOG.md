@@ -4,6 +4,52 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.30.0] — 2026-05-02 — "Polish CRUD modals: TabsTour + CourseEdit + TemplateEditor + Picker"
+
+Polish dos modais CRUD que aparecem em fluxos importantes (post-onboarding + edit de templates/courses).
+
+### Sprint A — TabsTourModal (post-onboarding overview)
+- 1px top accent line cosmic gradient
+- Title 22px gradient cyan→indigo (era 20px indigo→purple)
+- Header com border-bottom + bottom-fade-line
+- Cards com staggered entrance animation 30ms each (fade + scale + translate)
+- Card hover: translateY(-4px) + scale(1.02) + cyan glow + accent line top edge animado
+- Card icon scale + rotate(-5deg) on parent hover (playful)
+- Footer com gradient line top + primary btn hover lift
+- Custom scrollbar cyan
+
+### Sprint B — CourseEditModal + Form Modal Reusable Wrapper
+- Wrapper class `.atlas-form-modal` reusável para todo CRUD edit (Person/System/Product/Role/Course)
+- 1px top accent line + gradient bg
+- Header com title gradient cyan→indigo + subtitle
+- Header bottom-border com fade-line gradient
+- Inputs/selects/textareas focus state com cyan border + soft glow
+- Labels com font-weight 600 + letter-spacing
+
+### Sprint C — TemplateEditorModal + TemplatePickerModal
+- Header gradient title + bottom fade-line cosmic
+- Save button hover translateY + cyan shadow
+- Reset button hover orange
+- Two-pane (blocks | preview) com gradient bg + cyan scrollbar
+- Pane headers com cyan left-border (consistente)
+- Block rows: hover translateX + box-shadow cyan + border-left animado (cyan→indigo)
+- Block kind badge pill rounded
+- Drag handle hover scale 1.15 + opacity 1
+- Add-bar com gradient bg + premium border + hover btn fills with cyan
+- Picker cards com animated accent line top edge + hover translateY + cyan glow + scale icon
+
+### CSS additions
+- TabsTour upgrade: ~80 LOC enhanced (was ~95 LOC simpler)
+- Form Modal reusable: ~70 LOC novas
+- Template editor refresh: ~120 LOC enhanced
+- Picker refresh: ~75 LOC enhanced
+- TOTAL: ~345 LOC enhanced/added
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- atlas-form-modal class é OPT-IN (só Course usa hoje, futuras edits podem reaproveitar)
+
 ## [0.29.0] — 2026-05-02 — "Polish high-visibility surfaces: Onboarding + Spotlight + Settings"
 
 Polish dos surfaces de alta visibilidade que o user vê com mais frequência (first impression + everyday).

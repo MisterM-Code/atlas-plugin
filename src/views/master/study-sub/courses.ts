@@ -369,8 +369,18 @@ class CourseEditModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 640 });
-		contentEl.createEl("h3", {
+		contentEl.addClass("atlas-form-modal", "atlas-course-edit-modal");
+
+		const header = contentEl.createDiv({ cls: "atlas-form-modal-header" });
+		header.createEl("h3", {
+			cls: "atlas-form-modal-title",
 			text: this.existing ? `🎓 Editar: ${this.existing.name}` : "🎓 Novo curso",
+		});
+		header.createEl("div", {
+			cls: "atlas-form-modal-subtitle",
+			text: this.existing
+				? "Atualize informações + módulos. Status reflect no card."
+				: "Configure curso novo. Atlas cria nota automática + tracking de módulos.",
 		});
 
 		fieldInput(contentEl, "Nome *", this.draft.name, (v) => (this.draft.name = v), {
