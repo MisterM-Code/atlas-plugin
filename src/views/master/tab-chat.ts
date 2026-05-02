@@ -162,24 +162,72 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		messagesEl.scrollTop = messagesEl.scrollHeight;
 
 		try {
-			const r = await agent.run({ query: text });
+			// v0.7.1 P0 fix: streaming chat REAL (token-by-token via fetch+ReadableStream)
+			// Cria assistant message vazia + cursor; tokens vão sendo appended live.
 			thinkingWrap.remove();
-			// Typing effect (opcional via settings)
-			const typingEnabled = plugin.settings.animations?.typingEffect ?? true;
-			if (typingEnabled && r.answer.length < 800) {
-				const wrap = renderTurn("assistant", "", r.citations);
-				const bodyEl = wrap.querySelector(".atlas-msg-body") as HTMLElement | null;
-				if (bodyEl) {
-					const { typeWriter } = await import("../../ui/animations");
-					await typeWriter(bodyEl, r.answer, { charDelay: 14 });
-				} else {
-					wrap.setText(r.answer);
-				}
-			} else {
-				renderTurn("assistant", r.answer, r.citations);
+			const wrap = renderTurn("assistant", "", []);
+			const bodyEl = wrap.querySelector(".atlas-msg-body") as HTMLElement | null;
+			const cursor = bodyEl?.createSpan({ text: "▎" }) ?? null;
+			if (cursor) {
+				cursor.style.opacity = "0.6";
+				cursor.style.animation = "atlas-cursor-blink 1s steps(2) infinite";
 			}
+
+			// Trigger logo glow durante streaming
+			document
+				.querySelectorAll(".atlas-header-logo")
+				.forEach((el) => el.classList.add("atlas-thinking"));
+
+			let textBuf = "";
+			const r = await agent.run({
+				query: text,
+				streamCallback: (token: string) => {
+					textBuf += token;
+					if (bodyEl) {
+						// Substitui texto + recoloca cursor no fim
+						bodyEl.empty();
+						bodyEl.appendText(textBuf);
+						if (cursor) bodyEl.appendChild(cursor);
+					}
+					messagesEl.scrollTop = messagesEl.scrollHeight;
+				},
+			});
+
+			// Stream terminou — remove cursor, render citations finais
+			cursor?.remove();
+			document
+				.querySelectorAll(".atlas-header-logo")
+				.forEach((el) => el.classList.remove("atlas-thinking"));
+
+			if (r.citations.length > 0 && wrap) {
+				const citWrap = wrap.createDiv();
+				citWrap.style.marginTop = "6px";
+				citWrap.style.fontSize = "10px";
+				const seen = new Set<string>();
+				for (const c of r.citations) {
+					if (seen.has(c.notePath)) continue;
+					seen.add(c.notePath);
+					const chip = citWrap.createEl("span", {
+						text: `📄 ${c.notePath.split("/").pop()?.replace(/\.md$/, "")}`,
+					});
+					chip.style.display = "inline-block";
+					chip.style.padding = "2px 6px";
+					chip.style.margin = "2px 4px 2px 0";
+					chip.style.background = "var(--background-modifier-hover)";
+					chip.style.borderRadius = "3px";
+					chip.style.cursor = "pointer";
+					chip.addEventListener("click", () => {
+						const f = plugin.app.vault.getAbstractFileByPath(c.notePath);
+						if (f instanceof TFile) plugin.app.workspace.getLeaf().openFile(f);
+					});
+				}
+			}
+
 			if (r.toolsUsed.length > 0) statusEl.setText(`Tools: ${r.toolsUsed.join(", ")}`);
 		} catch (e) {
+			document
+				.querySelectorAll(".atlas-header-logo")
+				.forEach((el) => el.classList.remove("atlas-thinking"));
 			thinkingWrap.remove();
 			const ae = e as { humanMessage?: string };
 			renderTurn(

@@ -2,6 +2,14 @@ import axios, { AxiosInstance } from "axios";
 import { logger } from "../utils/logger";
 import { classifyOllamaError } from "../automation/error-classifier";
 
+/** Hook que permite OllamaClient pedir um modelo menor quando OOM. */
+export interface OOMFallbackHook {
+	/** Retorna nome de modelo menor recomendado, ou null se já está no menor. */
+	recommendSmaller(currentModel: string): string | null;
+	/** Callback quando troca de modelo ocorre (UX feedback). */
+	onSwitch?: (from: string, to: string) => void;
+}
+
 export interface OllamaConfig {
 	baseUrl: string;
 	timeout_ms: number;
@@ -22,6 +30,12 @@ export interface GenerateOptions {
 
 export class OllamaClient {
 	private http: AxiosInstance;
+	private oomFallback: OOMFallbackHook | null = null;
+
+	/** Setter usado pelo plugin pra registrar hook de auto-fallback OOM. */
+	setOOMFallback(hook: OOMFallbackHook | null): void {
+		this.oomFallback = hook;
+	}
 
 	constructor(private config: OllamaConfig) {
 		this.http = axios.create({
@@ -139,7 +153,7 @@ export class OllamaClient {
 		}
 	}
 
-	async chat(messages: ChatMessage[], opts: GenerateOptions): Promise<string> {
+	async chat(messages: ChatMessage[], opts: GenerateOptions, _retryCount = 0): Promise<string> {
 		try {
 			const r = await this.http.post("/api/chat", {
 				model: opts.model,
@@ -159,7 +173,124 @@ export class OllamaClient {
 			}
 			return r.data?.message?.content ?? "";
 		} catch (e) {
-			throw classifyOllamaError(e);
+			const classified = classifyOllamaError(e);
+			// v0.7.1 P0 fix: OOM auto-switch com 1 retry
+			if (
+				classified.code === "ollama-oom" &&
+				_retryCount === 0 &&
+				this.oomFallback
+			) {
+				const smaller = this.oomFallback.recommendSmaller(opts.model);
+				if (smaller && smaller !== opts.model) {
+					logger.warn("OOM auto-switch", { from: opts.model, to: smaller });
+					this.oomFallback.onSwitch?.(opts.model, smaller);
+					return this.chat(messages, { ...opts, model: smaller }, _retryCount + 1);
+				}
+			}
+			throw classified;
+		}
+	}
+
+	/**
+	 * v0.7.1 NEW: Streaming chat token-by-token via fetch + ReadableStream.
+	 * onToken é chamado a cada chunk recebido. Retorna texto completo no final.
+	 */
+	async chatStream(
+		messages: ChatMessage[],
+		opts: GenerateOptions,
+		onToken: (chunk: string) => void,
+		signal?: AbortSignal,
+		_retryCount = 0
+	): Promise<string> {
+		try {
+			const response = await fetch(`${this.config.baseUrl}/api/chat`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					model: opts.model,
+					messages,
+					stream: true,
+					options: {
+						temperature: opts.temperature ?? 0.3,
+						num_predict: opts.max_tokens ?? -1,
+					},
+					format: opts.format,
+				}),
+				signal,
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP ${response.status}`);
+			}
+			if (!response.body) {
+				throw new Error("Sem response.body");
+			}
+
+			const reader = response.body.getReader();
+			const decoder = new TextDecoder("utf-8");
+			let buf = "";
+			let fullText = "";
+
+			try {
+				// eslint-disable-next-line no-constant-condition
+				while (true) {
+					const { value, done } = await reader.read();
+					if (done) break;
+					buf += decoder.decode(value, { stream: true });
+					const lines = buf.split("\n");
+					buf = lines.pop() ?? "";
+
+					for (const line of lines) {
+						const trimmed = line.trim();
+						if (!trimmed) continue;
+						try {
+							const parsed = JSON.parse(trimmed) as {
+								message?: { content?: string };
+								done?: boolean;
+								error?: string;
+							};
+							if (parsed.error) {
+								throw classifyOllamaError({
+									response: { status: 500, data: { error: parsed.error } },
+								});
+							}
+							const token = parsed.message?.content;
+							if (token) {
+								fullText += token;
+								onToken(token);
+							}
+						} catch (parseErr) {
+							if (parseErr && typeof parseErr === "object" && "code" in parseErr) {
+								throw parseErr;
+							}
+							// JSON parse error mid-stream — skip
+						}
+					}
+				}
+			} finally {
+				try {
+					reader.releaseLock();
+				} catch {
+					// already released
+				}
+			}
+
+			return fullText;
+		} catch (e) {
+			const classified = classifyOllamaError(e);
+			if (
+				classified.code === "ollama-oom" &&
+				_retryCount === 0 &&
+				this.oomFallback
+			) {
+				const smaller = this.oomFallback.recommendSmaller(opts.model);
+				if (smaller && smaller !== opts.model) {
+					logger.warn("OOM auto-switch (stream)", { from: opts.model, to: smaller });
+					this.oomFallback.onSwitch?.(opts.model, smaller);
+					return this.chatStream(messages, { ...opts, model: smaller }, onToken, signal, _retryCount + 1);
+				}
+			}
+			throw classified;
 		}
 	}
 

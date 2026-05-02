@@ -88,6 +88,7 @@ import { TemplatePickerModal } from "./src/templates/visual-editor/editor-ui";
 import { logger } from "./src/utils/logger";
 import { injectGlobalAnimationStyles, confettiBurst } from "./src/ui/animations";
 import { SplashScreen } from "./src/ui/splash";
+import { applyAtlasTheme, removeAtlasTheme } from "./src/ui/theme-applier";
 
 const ATLAS_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="50" r="38"/><path d="M50 12 L50 88 M12 50 L88 50 M22 22 L78 78 M78 22 L22 78"/></svg>`;
 
@@ -225,10 +226,40 @@ export default class AtlasPlugin extends Plugin {
 		// v0.7 Sprint 12: animations
 		injectGlobalAnimationStyles();
 
+		// v0.7.1 P0 fix: Atlas theme aplicado dinamicamente (fix bug "color theme não aplica")
+		applyAtlasTheme(this);
+
 		// Core services
 		this.ollama = new OllamaClient({
 			baseUrl: this.settings.ollama.baseUrl,
 			timeout_ms: this.settings.ollama.timeout_ms,
+		});
+
+		// v0.7.1 P0 fix: OOM auto-switch — registra hook que recomenda modelo menor
+		this.ollama.setOOMFallback({
+			recommendSmaller: (currentModel: string) => {
+				// Tabela hardcoded de fallback (do maior pro menor)
+				const fallbacks: Record<string, string> = {
+					"qwen2.5:32b": "qwen2.5:14b",
+					"qwen2.5:14b": "qwen2.5:7b-instruct",
+					"qwen2.5:7b-instruct": "qwen2.5:1.5b",
+					"qwen2.5:1.5b": "qwen2.5:0.5b",
+					"qwen2.5-coder:32b": "qwen2.5-coder:14b",
+					"qwen2.5-coder:14b": "qwen2.5:7b-instruct",
+					"phi4": "phi4-mini",
+					"llama3.1:8b-instruct-q4_K_M": "llama3.2:3b",
+					"llama3.2:3b": "llama3.2:1b",
+				};
+				return fallbacks[currentModel] ?? null;
+			},
+			onSwitch: (from, to) => {
+				new Notice(
+					`⚠️ Atlas: ${from} estourou RAM. Trocando automaticamente para ${to}...`,
+					6000
+				);
+				this.settings.ollama.generationModel = to;
+				void this.saveSettings();
+			},
 		});
 
 		this.kg = new KGStore(this.app, this.settings.folders.atlas);
@@ -425,13 +456,26 @@ export default class AtlasPlugin extends Plugin {
 				new OnboardingWizard(this.app, this).open();
 			}, 600);
 		} else if (!this.tutorialSystem.hasCompleted("first-steps") && !this.tutorialSystem.hasSkipped("first-steps")) {
-			// Onboarding já feito mas tour não — sugerir
+			// v0.7.1 P0 fix: dispara tour AUTOMATICAMENTE baseado em initialGoal
+			const initialGoal =
+				(this.settings.profile as Record<string, unknown> | undefined)?.initialGoal as string | undefined;
+			const goalToTour: Record<string, string> = {
+				"weekly-report": "weekly-report",
+				"1on1-prep": "one-on-one",
+				research: "flashcards",
+				personal: "first-steps",
+			};
+			const tourId = (initialGoal && goalToTour[initialGoal]) ?? "first-steps";
 			window.setTimeout(() => {
-				new Notice(
-					"💡 Atlas: comece com o tour 'Primeiros passos' (2 min). Use Cmd+P → 'Atlas: Tour: Primeiros passos'.",
-					12000
-				);
-			}, 3000);
+				try {
+					this.startTutorial(tourId);
+				} catch {
+					new Notice(
+						"💡 Atlas: rode 'Atlas: Tour: Primeiros passos' (Cmd+P) quando quiser.",
+						10000
+					);
+				}
+			}, 3500);
 		}
 
 		// Custom URL handler for atlas:// links
@@ -493,6 +537,7 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 	onunload(): void {
 		logger.info("Atlas plugin descarregando...");
 		this.scheduler?.cancelAll();
+		removeAtlasTheme();
 	}
 
 	async loadSettings(): Promise<void> {
@@ -502,6 +547,8 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
+		// v0.7.1: re-apply theme (cor accent pode ter mudado)
+		applyAtlasTheme(this);
 		// Refresh dependent services
 		this.notifier?.updateConfig({
 			desktopEnabled: this.settings.notifications.desktopEnabled,

@@ -145,12 +145,25 @@ export class Agent {
 				: query,
 		});
 
-		// Generate — propaga AtlasError pra UI mostrar Modal humanizado
-		const answer = await this.ollama.chat(messages, {
-			model: this.model,
-			temperature: 0.4,
-			max_tokens: 1500,
-		});
+		// v0.7.1: streaming se streamCallback fornecido
+		let answer: string;
+		if (input.streamCallback) {
+			answer = await this.ollama.chatStream(
+				messages,
+				{
+					model: this.model,
+					temperature: 0.4,
+					max_tokens: 1500,
+				},
+				input.streamCallback
+			);
+		} else {
+			answer = await this.ollama.chat(messages, {
+				model: this.model,
+				temperature: 0.4,
+				max_tokens: 1500,
+			});
+		}
 
 		// Persist turn
 		this.memory.addTurn({ role: "user", content: query });

@@ -4,6 +4,40 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.7.1] — 2026-05-02 — "P0 Fixes"
+
+Sprint 21 — corrige features-fantasma críticas detectadas em auditoria honesta de v0.7.
+
+### Fixed — features fantasma
+
+- **Color theme do perfil agora APLICA dinamicamente** — settings.profile.colorAccent → CSS variables `--atlas-accent`/`--atlas-accent-glow`/`--atlas-accent-soft` injetadas via `<style id="atlas-theme">`. Antes salvava mas só aplicava após reload Obsidian. Now: re-aplica em onload + saveSettings + onboarding complete sem reload.
+- **OOM auto-switch real** — quando `OllamaOOMError` capturado em `chat()` ou `chatStream()`, plugin troca automaticamente pra modelo menor (qwen 32b→14b→7b→1.5b→0.5b cascade) e faz retry com mesma query. Notice mostra a troca. 1 retry máximo.
+- **Streaming chat token-by-token REAL** — `OllamaClient.chatStream()` novo via fetch + ReadableStream. Tab Chat usa streaming real (não typing simulado). Cursor `▎` piscando + tokens chegam ao vivo. Logo do header recebe glow durante geração.
+- **Sound effects implementados** — `src/ui/sound-fx.ts` Web Audio API (zero KB). 4 sons sintetizados: ding (tab switch), whoosh (action), success (achievement arpeggio C4→E4→G4), error (descending square). Toggle via settings.animations.soundEffects.
+- **Tutorial auto-trigger** — após onboarding, plugin lê `settings.profile.initialGoal` e dispara tour correspondente automaticamente em 3.5s. weekly-report→weekly tour, 1on1-prep→one-on-one, research→flashcards, personal→first-steps.
+
+### Added — Atlas theme system
+
+- CSS variables `--atlas-accent/--atlas-accent-glow/--atlas-accent-soft/--atlas-accent-strong/--atlas-radius-sm/md/lg/--atlas-shadow-sm/md/lg/--atlas-transition-fast/normal/slow`
+- Card category classes `.atlas-card-action-overdue/today/future`, `.atlas-card-system-down/degraded`, `.atlas-card-knowledge`, `.atlas-card-report`
+- Logo breathing animation `.atlas-header-logo` + glow durante thinking `.atlas-thinking`
+- HUD floating CSS `.atlas-hud` (preparado pra v0.7.4)
+- Status bar indicator `.atlas-statusbar-indicator` com states green/red/orange (preparado pra v0.7.2)
+
+### Métricas
+
+| | v0.7.0 | v0.7.1 |
+|---|---|---|
+| main.js | 1.76 MB | 1.77 MB |
+| Arquivos .ts | 135 | 137 |
+
+### Próximas versões
+
+- **v0.7.2** — Identidade Visual Premium (logo header, 15 Lucide icons, status bar, empty states)
+- **v0.7.3** — Animações Contínuas (logo glow integrado, tab transitions, stagger cards)
+- **v0.7.4** — Voice Jarvis Real (whisper input + Piper output + comandos + HUD)
+- **v0.7.5/6/7** — Modelos novos + Settings Profile + Vosk hotword + integrations
+
 ## [0.7.0] — 2026-05-01 — "Jarvis Edition"
 
 Lançamento beta consolidado com 7 sprints (11, 12, 13, 14, 15, 18, 19). Pulou v0.2-v0.6 unificando.
