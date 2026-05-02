@@ -67,6 +67,7 @@ export const Person = z.object({
 	type: PersonType.default("other"),
 	manager: z.string().optional(),
 	startDate: z.string().optional(),
+	email: z.string().email().optional(), // v0.9: email pra integration
 	encrypted: z.boolean().default(false),
 	notePath: z.string().optional(), // 06_People/[name]/_person.md
 	createdAt: z.string(),

@@ -4,6 +4,7 @@ export type TabId =
 	| "today"
 	| "chat"
 	| "hub"
+	| "reminders"
 	| "suggest"
 	| "knowledge"
 	| "systems"

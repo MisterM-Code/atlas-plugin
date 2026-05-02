@@ -1,9 +1,9 @@
 {
 	"id": "atlas",
 	"name": "Atlas",
-	"version": "0.8.4",
+	"version": "0.9.0",
 	"minAppVersion": "1.5.0",
-	"description": "Seu segundo cérebro local. Captura zero-fricção, knowledge graph, weekly reports automáticos, analytics ECharts, 8 tools IA TI, 15 perfis profissionais. 100% local via Ollama.",
+	"description": "Seu segundo cérebro local com Jarvis voz, KG, weekly reports, analytics ECharts, 12 tools IA mutadoras, 15 perfis. Chat com tool calling. Voice commands criam pessoa/sistema/produto. 100% local via Ollama.",
 	"author": "Miguel Veríssimo",
 	"authorUrl": "https://github.com/MisterM-Code",
 	"fundingUrl": "https://github.com/sponsors/MisterM-Code",

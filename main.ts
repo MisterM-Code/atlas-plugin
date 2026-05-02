@@ -215,7 +215,7 @@ export default class AtlasPlugin extends Plugin {
 	lastAtlasError: AtlasError | null = null;
 	private capsuleWatcher!: CapsuleWatcher;
 	private audit!: AuditLog;
-	private reminderWatcher!: ReminderWatcher;
+	reminderWatcher!: ReminderWatcher;
 	proactive!: ProactiveDetector;
 	private statusBar: HTMLElement | null = null;
 
@@ -795,6 +795,82 @@ captured_via: webhook
 			name: "Quick capture",
 			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "a" }],
 			callback: () => new QuickCaptureModal(this.app, this).open(),
+		});
+
+		this.addCommand({
+			id: "atlas-jarvis",
+			name: "🧠 Jarvis (voice + tool calls)",
+			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "j" }],
+			callback: async () => {
+				const m = await import("./src/ui/jarvis-overlay");
+				new m.JarvisOverlay(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "atlas-compose-email",
+			name: "📧 Compose email",
+			callback: async () => {
+				const m = await import("./src/innovations/compose-email");
+				new m.ComposeEmailModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "atlas-create-reminder",
+			name: "🔔 Criar reminder com data",
+			callback: async () => {
+				const tr = await import("./src/agent/tool-registry");
+				const u = await import("./src/ui/prompt-modal");
+				const text = await u.promptText(this.app, "Texto do reminder:");
+				if (!text) return;
+				const datetime = await u.promptText(this.app, "Data/hora (ex: 'amanhã 14h', 'sexta 9h'):");
+				if (!datetime) return;
+				const r = await tr.executeTool("create_reminder", { text, datetime }, this);
+				new Notice(`Atlas: ${r.message}`, 8000);
+			},
+		});
+
+		this.addCommand({
+			id: "atlas-create-course",
+			name: "📚 Criar curso",
+			callback: async () => {
+				const tr = await import("./src/agent/tool-registry");
+				const u = await import("./src/ui/prompt-modal");
+				const name = await u.promptText(this.app, "Nome do curso:");
+				if (!name) return;
+				const provider = await u.promptText(this.app, "Provider (Coursera/Udemy/livro/etc):");
+				const r = await tr.executeTool("create_course", { name, provider: provider || undefined }, this);
+				new Notice(`Atlas: ${r.message}`, 8000);
+			},
+		});
+
+		this.addCommand({
+			id: "atlas-voice-capture",
+			name: "🎙️ Voice capture (gravar + transcrever)",
+			callback: async () => {
+				const m = await import("./src/automation/voice-input");
+				const recording = await m.startVoiceRecording();
+				const notice = new Notice("🎙️ Gravando... clique pra parar.", 0);
+				notice.noticeEl.addEventListener("click", async () => {
+					notice.hide();
+					const result = await recording.stop();
+					if (result?.tempFile) {
+						try {
+							const text = await m.transcribeAudio(result.tempFile, {
+								whisperBinaryPath: this.settings.voice?.whisperBinaryPath ?? "",
+								whisperModelPath: this.settings.voice?.whisperModelPath ?? "",
+								language: this.settings.voice?.language ?? "pt",
+							});
+							const tr = await import("./src/agent/tool-registry");
+							const r = await tr.executeTool("create_action_item", { text }, this);
+							new Notice(`🎙️ "${text.substring(0, 40)}…" → ${r.message}`, 8000);
+						} catch (e) {
+							new Notice(`Atlas: voice falhou — ${String(e)}`, 8000);
+						}
+					}
+				});
+			},
 		});
 
 		this.addCommand({

@@ -3,7 +3,7 @@ import { Notifier } from "./notify";
 import { Indexer } from "../retrieval/indexer";
 import { logger } from "../utils/logger";
 
-interface ReminderEntry {
+export interface ReminderEntry {
 	notePath: string;
 	taskText: string;
 	dueAt: Date;

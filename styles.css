@@ -72,3 +72,116 @@
 	color: var(--color-red);
 	font-weight: bold;
 }
+
+/* ───────────────────────────────────────────────────
+ * v0.9 Sprint 28.4 — JarvisOverlay orb animations
+ */
+
+.atlas-jarvis-modal {
+	border: none !important;
+	border-radius: 0 !important;
+}
+
+@keyframes atlas-orb-breathe {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.04); }
+}
+
+@keyframes atlas-orb-listen {
+	0%, 100% { transform: scale(1.08); }
+	50% { transform: scale(1.14); }
+}
+
+@keyframes atlas-orb-think {
+	0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 4px var(--atlas-accent, #6366f1)); }
+	50% { transform: scale(1.05) rotate(180deg); filter: drop-shadow(0 0 18px var(--atlas-accent-glow, rgba(251,191,36,0.7))); }
+	100% { transform: scale(1) rotate(360deg); filter: drop-shadow(0 0 4px var(--atlas-accent, #6366f1)); }
+}
+
+@keyframes atlas-orb-speak {
+	0%, 100% { transform: scale(1.05); }
+	50% { transform: scale(1.10); }
+}
+
+.atlas-jarvis-orb:hover {
+	cursor: grab;
+}
+
+.atlas-jarvis-orb:active {
+	cursor: grabbing;
+}
+
+/* ───────────────────────────────────────────────────
+ * v0.9 Sprint 29.3 — Card unification + polish
+ */
+
+.atlas-card-interactive {
+	transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+	cursor: pointer;
+}
+
+.atlas-card-interactive:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
+	border-color: var(--atlas-accent, var(--interactive-accent));
+}
+
+.atlas-card-action {
+	border-left: 3px solid var(--color-blue, #6366f1);
+}
+.atlas-card-action.is-overdue {
+	border-left-color: var(--color-red);
+	animation: atlas-pulse-soft 2s ease-in-out infinite;
+}
+.atlas-card-action.is-today {
+	border-left-color: var(--color-orange);
+}
+
+.atlas-card-system.is-down {
+	animation: atlas-pulse-soft 1.6s ease-in-out infinite;
+	border-left: 3px solid var(--color-red);
+}
+.atlas-card-system.is-degraded {
+	border-left: 3px solid var(--color-orange);
+}
+.atlas-card-system.is-healthy {
+	border-left: 3px solid var(--color-green);
+}
+
+.atlas-card-knowledge {
+	background: linear-gradient(135deg, var(--background-secondary), var(--background-secondary-alt));
+}
+
+.atlas-card-report {
+	font-style: normal;
+}
+.atlas-card-report .atlas-card-title {
+	font-weight: 600;
+}
+
+@keyframes atlas-pulse-soft {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.65; }
+}
+
+.atlas-empty-state {
+	animation: atlas-fade-in 320ms ease-out;
+}
+
+@keyframes atlas-fade-in {
+	from { opacity: 0; transform: translateY(8px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* FAB rotation polish */
+.atlas-fab {
+	transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 220ms ease;
+}
+.atlas-fab:hover {
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28), 0 0 0 4px var(--atlas-accent-glow, rgba(99,102,241,0.18));
+}
+
+/* FAB row hover (icon-row inside popover) */
+.atlas-fab-row:hover .atlas-fab-row-icon {
+	transform: scale(1.1);
+}

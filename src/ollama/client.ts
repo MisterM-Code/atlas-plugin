@@ -16,8 +16,34 @@ export interface OllamaConfig {
 }
 
 export interface ChatMessage {
-	role: "system" | "user" | "assistant";
+	role: "system" | "user" | "assistant" | "tool";
 	content: string;
+	tool_calls?: ToolCall[];
+}
+
+export interface ToolCall {
+	function: {
+		name: string;
+		arguments: Record<string, unknown>;
+	};
+}
+
+export interface ToolSpec {
+	type: "function";
+	function: {
+		name: string;
+		description: string;
+		parameters: {
+			type: "object";
+			properties: Record<string, { type: string; description: string; enum?: string[] }>;
+			required: string[];
+		};
+	};
+}
+
+export interface ChatWithToolsResult {
+	content: string;
+	toolCalls: ToolCall[];
 }
 
 export interface GenerateOptions {
@@ -317,6 +343,56 @@ export class OllamaClient {
 					logger.warn("OOM auto-switch (stream)", { from: opts.model, to: smaller });
 					this.oomFallback.onSwitch?.(opts.model, smaller);
 					return this.chatStream(messages, { ...opts, model: smaller }, onToken, signal, _retryCount + 1);
+				}
+			}
+			throw classified;
+		}
+	}
+
+	/**
+	 * v0.9 Sprint 28: Ollama function calling (tools API).
+	 * LLM decide se chama uma tool ou responde direto. Retorna content + toolCalls.
+	 * Modelos suportados: qwen2.5, llama3.1+, mistral-nemo.
+	 */
+	async chatWithTools(
+		messages: ChatMessage[],
+		tools: ToolSpec[],
+		opts: GenerateOptions,
+		_retryCount = 0
+	): Promise<ChatWithToolsResult> {
+		try {
+			const r = await this.http.post("/api/chat", {
+				model: opts.model,
+				messages,
+				tools,
+				stream: false,
+				options: {
+					temperature: opts.temperature ?? 0.3,
+					num_predict: opts.max_tokens ?? -1,
+				},
+			});
+			if (r.data?.error) {
+				throw classifyOllamaError({
+					response: { status: 500, data: { error: r.data.error } },
+				});
+			}
+			const msg = r.data?.message ?? {};
+			return {
+				content: msg.content ?? "",
+				toolCalls: Array.isArray(msg.tool_calls) ? msg.tool_calls : [],
+			};
+		} catch (e) {
+			const classified = classifyOllamaError(e);
+			if (
+				classified.code === "ollama-oom" &&
+				_retryCount === 0 &&
+				this.oomFallback
+			) {
+				const smaller = this.oomFallback.recommendSmaller(opts.model);
+				if (smaller && smaller !== opts.model) {
+					logger.warn("OOM auto-switch (tools)", { from: opts.model, to: smaller });
+					this.oomFallback.onSwitch?.(opts.model, smaller);
+					return this.chatWithTools(messages, tools, { ...opts, model: smaller }, _retryCount + 1);
 				}
 			}
 			throw classified;

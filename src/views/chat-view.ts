@@ -114,6 +114,7 @@ export class AtlasChatView extends ItemView {
 			this.plugin.embedder,
 			this.plugin.settings.ollama.generationModel
 		);
+		this.agent.setPlugin(this.plugin);
 
 		// Restore last session turns
 		this.restoreSession();

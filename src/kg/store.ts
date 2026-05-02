@@ -98,7 +98,17 @@ export class KGStore {
 	// ─────────────────────────────────────────────────────────────
 	// Upsert helpers — match by ID or alias
 
-	upsertPerson(input: { name: string; aliases?: string[]; role?: string; notePath?: string; type?: PersonT["type"] }): PersonT {
+	upsertPerson(input: {
+		name: string;
+		aliases?: string[];
+		role?: string;
+		team?: string;
+		manager?: string;
+		startDate?: string;
+		email?: string;
+		notePath?: string;
+		type?: PersonT["type"];
+	}): PersonT {
 		const id = slugify(input.name);
 		const now = new Date().toISOString();
 		let p = this.graph.people.find(
@@ -107,6 +117,10 @@ export class KGStore {
 		if (p) {
 			if (input.aliases) p.aliases = Array.from(new Set([...p.aliases, ...input.aliases]));
 			if (input.role && !p.role) p.role = input.role;
+			if (input.team && !p.team) p.team = input.team;
+			if (input.manager && !p.manager) p.manager = input.manager;
+			if (input.startDate && !p.startDate) p.startDate = input.startDate;
+			if (input.email && !p.email) p.email = input.email;
 			if (input.notePath && !p.notePath) p.notePath = input.notePath;
 			if (input.type && p.type === "other") p.type = input.type;
 			p.updatedAt = now;
@@ -116,6 +130,10 @@ export class KGStore {
 				name: input.name,
 				aliases: input.aliases ?? [],
 				role: input.role,
+				team: input.team,
+				manager: input.manager,
+				startDate: input.startDate,
+				email: input.email,
 				type: input.type ?? "other",
 				encrypted: false,
 				notePath: input.notePath,

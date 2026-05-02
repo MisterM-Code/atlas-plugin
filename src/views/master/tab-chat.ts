@@ -12,13 +12,16 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	(container as HTMLElement).style.flexDirection = "column";
 	(container as HTMLElement).style.height = "100%";
 
-	// Header
+	// Header — v0.9 Sprint 30: tagline diferenciada de Jarvis
 	const header = container.createDiv();
 	header.style.display = "flex";
 	header.style.justifyContent = "space-between";
 	header.style.alignItems = "center";
-	header.style.marginBottom = "8px";
-	header.createEl("h3", { text: "💬 Atlas Chat" }).style.margin = "0";
+	header.style.marginBottom = "4px";
+	const titleWrap = header.createDiv();
+	const titleEl = titleWrap.createEl("h3", { text: "💬 Atlas Chat" });
+	titleEl.style.margin = "0";
+	titleEl.style.fontSize = "16px";
 
 	const headerActions = header.createDiv();
 	headerActions.style.display = "flex";
@@ -27,6 +30,24 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	newBtn.style.fontSize = "11px";
 	const clearBtn = headerActions.createEl("button", { text: "Limpar" });
 	clearBtn.style.fontSize = "11px";
+
+	// Subtitle: differentiate from Jarvis
+	const subtitle = container.createDiv();
+	subtitle.style.fontSize = "11px";
+	subtitle.style.opacity = "0.55";
+	subtitle.style.marginBottom = "8px";
+	subtitle.style.lineHeight = "1.5";
+	subtitle.createSpan({ text: "Pergunte sobre seu vault — respondo com citações [Nota: x.md] e memória de 20 turnos. " });
+	const jarvisHintBtn = subtitle.createEl("a", { text: "Prefere falar? Use Jarvis (Cmd+Shift+J) →" });
+	jarvisHintBtn.style.color = "var(--atlas-accent, var(--interactive-accent))";
+	jarvisHintBtn.style.cursor = "pointer";
+	jarvisHintBtn.addEventListener("click", async (e) => {
+		e.preventDefault();
+		const apiAny = plugin.app as unknown as {
+			commands?: { executeCommandById?: (id: string) => void };
+		};
+		apiAny.commands?.executeCommandById?.("atlas:atlas-jarvis");
+	});
 
 	// Messages
 	const messagesEl = container.createDiv() as HTMLDivElement;
@@ -129,6 +150,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		plugin.embedder,
 		plugin.settings.ollama.generationModel
 	);
+	agent.setPlugin(plugin);
 
 	const renderTurn = (
 		role: "user" | "assistant",
@@ -292,6 +314,21 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 			}
 
 			if (r.toolsUsed.length > 0) statusEl.setText(`Tools: ${r.toolsUsed.join(", ")}`);
+
+			// v0.9 Sprint 30: meta info de tool calls executados (mutações)
+			if (r.toolCalls && r.toolCalls.length > 0 && wrap) {
+				const meta = wrap.createDiv();
+				meta.style.marginTop = "6px";
+				meta.style.padding = "6px 8px";
+				meta.style.background = "var(--background-modifier-success)";
+				meta.style.borderLeft = "2px solid var(--color-green)";
+				meta.style.borderRadius = "4px";
+				meta.style.fontSize = "10px";
+				for (const tc of r.toolCalls) {
+					const line = meta.createDiv();
+					line.setText(`${tc.ok ? "🛠️ ✓" : "🛠️ ✗"} ${tc.name}: ${tc.message}`);
+				}
+			}
 		} catch (e) {
 			document
 				.querySelectorAll(".atlas-header-logo")

@@ -5,6 +5,7 @@ import { renderAtlasHeader, AtlasHeaderHandle } from "../../ui/atlas-header";
 import { renderTodayTab } from "./tab-today";
 import { renderChatTab } from "./tab-chat";
 import { renderHubTab } from "./tab-hub";
+import { renderRemindersTab } from "./tab-reminders";
 import { renderKnowledgeTab } from "./tab-knowledge";
 import { renderReportsTab } from "./tab-reports";
 import { renderStudyTab } from "./tab-study";
@@ -279,6 +280,24 @@ export class AtlasMasterSidebarView extends ItemView {
 					return overdue > 0 ? String(overdue) : null;
 				},
 				render: renderHubTab,
+			},
+			{
+				id: "reminders",
+				icon: "🔔",
+				lucideIcon: "bell",
+				label: "Reminders",
+				description: "Lembretes com countdown + snooze",
+				badge: () => {
+					try {
+						const w = (plugin as unknown as { reminderWatcher?: { lastOverdueCount?: number } })
+							.reminderWatcher;
+						const c = w?.lastOverdueCount ?? 0;
+						return c > 0 ? String(c) : null;
+					} catch {
+						return null;
+					}
+				},
+				render: renderRemindersTab,
 			},
 			{
 				id: "suggest",

@@ -61,6 +61,8 @@ export class PiperTTS {
 
 	async play(filePath: string): Promise<void> {
 		const platform = process.platform;
+		// v0.9 Sprint 28.5: emit speaking events pro JarvisOverlay sincronizar orb
+		emitTTSEvent("atlas:tts-start");
 		try {
 			if (platform === "darwin") {
 				await pexec(`afplay "${filePath}"`);
@@ -72,6 +74,8 @@ export class PiperTTS {
 			}
 		} catch (e) {
 			logger.warn("tts: play falhou", { error: String(e) });
+		} finally {
+			emitTTSEvent("atlas:tts-stop");
 		}
 	}
 
@@ -79,5 +83,13 @@ export class PiperTTS {
 		const out = await this.synthesize(text);
 		this.play(out).catch(() => {});
 		return out;
+	}
+}
+
+function emitTTSEvent(name: "atlas:tts-start" | "atlas:tts-stop"): void {
+	try {
+		document.dispatchEvent(new CustomEvent(name));
+	} catch {
+		// non-renderer context, ignore
 	}
 }

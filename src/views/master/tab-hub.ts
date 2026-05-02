@@ -1,6 +1,7 @@
 import { TFile, Notice, MarkdownView } from "obsidian";
 import type AtlasPlugin from "../../../main";
 import { getExcludedFolders, getInclusiveFolders } from "../../coach/scope";
+import { renderEmptyState } from "../../ui/empty-states";
 
 interface VaultTask {
 	notePath: string;
@@ -124,10 +125,7 @@ export async function renderHubTab(container: HTMLElement, plugin: AtlasPlugin):
 			return ad - bd;
 		});
 		if (filtered.length === 0) {
-			const empty = listEl.createEl("div", { text: "🎉 Nada aqui!" });
-			empty.style.opacity = "0.6";
-			empty.style.padding = "16px";
-			empty.style.textAlign = "center";
+			renderEmptyState(listEl, "hub-empty");
 			return;
 		}
 		const byNote = new Map<string, VaultTask[]>();

@@ -6,17 +6,21 @@ import { Indexer } from "../retrieval/indexer";
 import { HybridSearcher, SearchResult } from "../retrieval/search";
 import { Embedder } from "../retrieval/embedder";
 import { Prepare1on1Tool } from "../tools/prepare-1on1";
+import { executeTool, getOllamaToolsSpec } from "./tool-registry";
 import { logger } from "../utils/logger";
+import type AtlasPlugin from "../../main";
 
 export interface AgentResponse {
 	answer: string;
 	citations: { notePath: string; snippet: string }[];
 	toolsUsed: string[];
+	toolCalls?: { name: string; ok: boolean; message: string }[];
 }
 
 export interface AgentInput {
 	query: string;
 	streamCallback?: (token: string) => void;
+	enableTools?: boolean;
 }
 
 const SYSTEM_PROMPT = `Você é o Atlas, assistente pessoal de um coordenador de TI bancário que também é coach e estudante.
@@ -27,6 +31,13 @@ Sua personalidade:
 - Português Brasil
 - Honesto quando não sabe
 - Proativo: se vê padrão, menciona
+
+Você TAMBÉM tem permissão para EXECUTAR ações no vault dele via tools (function calling):
+- create_person / create_system / create_product / create_role / create_course
+- create_action_item / create_reminder / schedule_meeting
+- compose_email (abre modal, não envia direto)
+- switch_profile / index_vault / forget_person
+Se ele pedir pra criar/cadastrar/agendar/lembrar/mandar email — CHAME a tool apropriada (não simule). Se a tool tiver sucesso, confirme em 1 frase. forget_person é destrutiva e exige confirmação UI automática.
 
 Contexto: você tem acesso ao Knowledge Graph dele (pessoas, sessões, action items, commitments, temas) e às notas (markdown).
 
@@ -40,6 +51,8 @@ Quando responder:
 Formato: parágrafos curtos. Listas quando faz sentido. Citações inline.`;
 
 export class Agent {
+	private plugin: AtlasPlugin | null = null;
+
 	constructor(
 		private app: App,
 		private ollama: OllamaClient,
@@ -48,6 +61,11 @@ export class Agent {
 		private embedder: Embedder,
 		private model: string
 	) {}
+
+	/** v0.9: registra plugin pra permitir tool calls (mutações no KG/vault). */
+	setPlugin(plugin: AtlasPlugin): void {
+		this.plugin = plugin;
+	}
 
 	async run(input: AgentInput): Promise<AgentResponse> {
 		const { query } = input;
@@ -145,6 +163,53 @@ export class Agent {
 				: query,
 		});
 
+		// v0.9 Sprint 28.2: function calling — LLM decide se chama tool
+		const toolCallsExecuted: { name: string; ok: boolean; message: string }[] = [];
+		const toolsEnabled = (input.enableTools ?? true) && this.plugin !== null;
+		if (toolsEnabled && this.plugin && this.intentSuggestsMutation(query)) {
+			try {
+				const toolsSpec = getOllamaToolsSpec();
+				const tcRes = await this.ollama.chatWithTools(messages, toolsSpec, {
+					model: this.model,
+					temperature: 0.2,
+					max_tokens: 800,
+				});
+				if (tcRes.toolCalls.length > 0) {
+					for (const call of tcRes.toolCalls) {
+						const name = call.function?.name;
+						let args = call.function?.arguments ?? {};
+						if (typeof args === "string") {
+							try {
+								args = JSON.parse(args);
+							} catch {
+								args = {};
+							}
+						}
+						const result = await executeTool(name, args as Record<string, unknown>, this.plugin);
+						toolsUsed.push(`tool:${name}`);
+						toolCallsExecuted.push({ name, ok: result.ok, message: result.message });
+						messages.push({
+							role: "assistant",
+							content: tcRes.content || "",
+							tool_calls: [call],
+						});
+						messages.push({
+							role: "tool",
+							content: JSON.stringify(result),
+						});
+					}
+					// Pede LLM compor resposta final usando resultados das tools
+					messages.push({
+						role: "user",
+						content:
+							"Componha resposta final em PT-BR usando os resultados acima. Seja conciso (1-3 frases). Confirme o que foi feito.",
+					});
+				}
+			} catch (e) {
+				logger.warn("agent: tool calling falhou", { error: String(e) });
+			}
+		}
+
 		// v0.7.1: streaming se streamCallback fornecido
 		let answer: string;
 		if (input.streamCallback) {
@@ -173,7 +238,18 @@ export class Agent {
 			citations: allCitations.map((c) => c.notePath),
 		});
 
-		return { answer, citations: allCitations, toolsUsed };
+		return {
+			answer,
+			citations: allCitations,
+			toolsUsed,
+			toolCalls: toolCallsExecuted.length > 0 ? toolCallsExecuted : undefined,
+		};
+	}
+
+	/** v0.9: heurística rápida — query sugere uma ação mutadora (criar/agendar/lembrar/etc)? */
+	private intentSuggestsMutation(query: string): boolean {
+		const q = query.toLowerCase();
+		return /\b(cria(r)?|cadastr(a|e|ar)|adicion(a|e|ar)|agend(a|e|ar)|lembr(a|e|ar|ete)|marc(a|e|ar)|mand(a|e|ar)|envi(a|e|ar)|delet(a|e|ar)|apag(a|e|ar)|esquec|forget|trocar perfil|switch profile|index|reindex|nova pessoa|novo sistema|novo produto|novo cargo|novo curso|nova reunião|email para|tarefa)\b/.test(q);
 	}
 
 	private classifyIntent(query: string): string {
