@@ -4,6 +4,43 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.32.0] — 2026-05-02 — "Polish always-visible: Activity Bar + Today hero + Jarvis HUD"
+
+Polish dos elementos sempre visíveis (Activity Bar todo dia o user vê + Today hero abre Atlas + Jarvis usado constantemente).
+
+### Sprint A — Activity Bar tabs (sempre visível, 17 tabs)
+- Background gradient cyan-tinted vertical
+- Right edge cosmic line gradient (cyan→indigo, vertical)
+- Active tab: animated left bar (3px cyan→indigo) + cyan glow halo + drop-shadow no icon + inset cyan border
+- Hover state: bg cyan-tinted + translateX(1px) + 3px left bar growing + cyan glow
+- Active state: scale(0.94) feedback
+- Badge: gradient red + 2px white border + pop animation + tabular-nums
+
+### Sprint B — Today hero refinements
+- Background gradient triple-layer (cyan/indigo/purple) com 80px outer cyan glow shadow
+- 2px top accent line cosmic 4-color (transparent/cyan/indigo/purple/transparent)
+- Animated background blob: radial-gradient float 8s alternate (subtle ambient glow)
+- Clock 32px (era 28px) com gradient text cyan→indigo + drop-shadow pulse 2.4s
+- Stats numbers gradient text + tabular-nums (mais polished/quantified)
+
+### Sprint C — Jarvis HUD details
+- Title dot: cyan #00e5e5 (era green) + dual box-shadow + pulse-scale animation 1→1.25 com glow intensifying
+- Title text: gradient cyan→indigo (era plain accent) + text-shadow + letter-spacing 0.25em (era 0.2)
+- Header buttons: backdrop-filter blur(6px) + cyan border + hover scale(1.08) + cyan glow shadow + active feedback scale(0.95)
+- Subtitle: cosmic text-shadow cyan + 15px fullscreen (era 14px) + letter-spacing refinado
+
+### CSS additions
+- Activity Bar: ~85 LOC enhanced (refactored existing)
+- Today hero: ~70 LOC enhanced (refactored)
+- Jarvis HUD: ~60 LOC enhanced
+- TOTAL: ~215 LOC polished
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Animations performant (transform/opacity only, no layout thrashing)
+- Backdrop-filter requires modern browser (Electron always supports)
+
 ## [0.31.0] — 2026-05-02 — "Polish global helpers: form-fields + ConfirmModal + Master Header"
 
 Polish dos componentes universais que aparecem em TODA edição/confirmação no Atlas.
