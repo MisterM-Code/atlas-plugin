@@ -89,6 +89,7 @@ import { logger } from "./src/utils/logger";
 import { injectGlobalAnimationStyles, confettiBurst } from "./src/ui/animations";
 import { SplashScreen } from "./src/ui/splash";
 import { applyAtlasTheme, removeAtlasTheme } from "./src/ui/theme-applier";
+import { AtlasHUD } from "./src/ui/atlas-hud";
 
 const ATLAS_ICON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><circle cx="50" cy="50" r="38"/><path d="M50 12 L50 88 M12 50 L88 50 M22 22 L78 78 M78 22 L22 78"/></svg>`;
 
@@ -210,6 +211,7 @@ export default class AtlasPlugin extends Plugin {
 	ruleEngine!: RuleEngine;
 	systemDetectorWatcher!: SystemDetectorWatcher;
 	templateStore!: TemplateStore;
+	hud!: AtlasHUD;
 	lastAtlasError: AtlasError | null = null;
 	private capsuleWatcher!: CapsuleWatcher;
 	private audit!: AuditLog;
@@ -421,6 +423,9 @@ export default class AtlasPlugin extends Plugin {
 		this.templateStore = new TemplateStore(this.app, this.settings.folders.atlas);
 		await this.templateStore.load();
 
+		// v0.7.4: HUD floating Jarvis
+		this.hud = new AtlasHUD(this);
+
 		// Saved views schedule (v0.5 Sprint 8) — re-agenda jobs ao iniciar
 		try {
 			rescheduleAllSavedViews(this);
@@ -537,6 +542,7 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 	onunload(): void {
 		logger.info("Atlas plugin descarregando...");
 		this.scheduler?.cancelAll();
+		this.hud?.hide();
 		removeAtlasTheme();
 	}
 
@@ -987,6 +993,24 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		});
 
 		// ─── v0.5 Sprint 9: Visual Template Editor ───
+
+		// ─── v0.7.4: Voice Jarvis ───
+
+		this.addCommand({
+			id: "atlas-hud-toggle",
+			name: "🧠 HUD: toggle (Cmd+Shift+H)",
+			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "h" }],
+			callback: () => this.hud.toggle(),
+		});
+
+		this.addCommand({
+			id: "atlas-voice-record-cmd",
+			name: "🎙️ Falar com Atlas (gravar voz + transcrever + dispatch comando)",
+			callback: () => {
+				if (!this.hud.isVisible()) this.hud.show();
+				new Notice("🎙️ Atlas: HUD aberto. Click no botão 🎙️ pra começar gravar.", 6000);
+			},
+		});
 
 		this.addCommand({
 			id: "atlas-templates-picker",

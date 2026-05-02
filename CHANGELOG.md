@@ -4,6 +4,63 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.7.4] — 2026-05-02 — "Voice Jarvis Real"
+
+Sprint 24 — Atlas finalmente vira Jarvis com voz.
+
+### Added — Voice input (whisper.cpp wired)
+
+- `src/automation/voice-input.ts` — MediaRecorder API + getUserMedia + audio analyser pra waveform
+- `startVoiceRecording()` retorna handle com stop/cancel/getElapsedMs/getAudioLevel
+- `transcribeAudio()` exec whisper.cpp com modelo configurado, retorna texto PT-BR
+- Settings → voice.whisperBinaryPath + voice.whisperModelPath usados de verdade
+
+### Added — Voice commands parser
+
+- `src/automation/voice-commands.ts` — detecta prefixo "Atlas," / "Ei Atlas" / "Atlas olha"
+- 8 comandos suportados:
+  1. **Atlas, capturar [texto]** → cria task em Inbox com tag #voice-reminder
+  2. **Atlas, abrir chat** → ativa Master Sidebar Chat tab
+  3. **Atlas, daily** → abre/cria daily log
+  4. **Atlas, lembrar [texto] [data]** → reminder com chrono-node parsing PT-BR
+  5. **Atlas, ler último weekly** → Piper TTS lê o weekly mais recente
+  6. **Atlas, status** → Piper fala briefing curto (tasks, atrasadas, flashcards)
+  7. **Atlas, próximo um a um** → dispatcher prepare-1on1
+  8. **Atlas, pesquisar [texto]** → abre Atlas Spotlight com query
+- Feedback Piper TTS automático quando comando reconhecido
+
+### Added — HUD floating Jarvis
+
+- `src/ui/atlas-hud.ts` — overlay draggable Cmd+Shift+H toggle
+- Componentes:
+  - Logo Atlas SVG 32px (breathing animation contínua, glow pulse durante recording)
+  - Status Ollama live: ✓ ready / ✗ down / ⚡ thinking (atualiza 5s)
+  - Modelo atual + RAM livre
+  - Voice waveform canvas (live durante recording, scroll horizontal)
+  - 4 quick action buttons: 🎙️ Falar / 💬 Chat / 🎯 Capture / ⚙️ Settings
+- Backdrop blur 20px + accent glow border
+- Position persistida em localStorage (`atlas-hud-position`)
+- Drag handle no header
+
+### Added — Comandos novos
+
+- `Atlas: 🧠 HUD: toggle` (Cmd+Shift+H)
+- `Atlas: 🎙️ Falar com Atlas` (abre HUD direto)
+
+### Métricas
+
+| | v0.7.2 | v0.7.4 |
+|---|---|---|
+| main.js | 1.78 MB | 1.79 MB |
+| Arquivos .ts | 138 | 140 |
+
+### Como usar
+
+1. Configure whisper.cpp em Settings → Atlas → Voice (binary path + model path)
+2. Cmd+Shift+H abre HUD
+3. Click 🎙️ → fala "Atlas, capturar comprar leite amanhã 9h"
+4. Click 🎙️ de novo pra parar → whisper transcreve → comando despacha automaticamente
+
 ## [0.7.2] — 2026-05-02 — "Visual Identity"
 
 Sprint 22 — eleva nota da identidade visual de 3.9/10 → 7+/10.
