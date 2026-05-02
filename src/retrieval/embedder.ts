@@ -1,6 +1,7 @@
 import { App, normalizePath, TFile } from "obsidian";
 import { OllamaClient } from "../ollama/client";
 import { logger } from "../utils/logger";
+import type { LLMService } from "../providers/llm-service";
 
 interface EmbeddingCacheEntry {
 	hash: string; // sha256 of text+context
@@ -19,6 +20,8 @@ export class Embedder {
 	private cache: EmbeddingCache;
 	private dirty = false;
 	private flushTimer: number | null = null;
+	// v0.18: optional LLMService — when set, route embeddings through cloud-or-ollama
+	private llm: LLMService | null = null;
 
 	constructor(
 		private app: App,
@@ -27,6 +30,11 @@ export class Embedder {
 		private cachePath: string
 	) {
 		this.cache = { version: 1, model, dim: 0, entries: {} };
+	}
+
+	/** v0.18: wire LLMService for cloud embedding auto-route. */
+	setLLMService(llm: LLMService): void {
+		this.llm = llm;
 	}
 
 	async load(): Promise<void> {
@@ -80,7 +88,10 @@ export class Embedder {
 			return cached.vector;
 		}
 
-		const vectors = await this.ollama.embed(fullText, this.model);
+		// v0.18: route through LLMService (cloud auto if OpenAI key configured) or fallback to ollama
+		const vectors = this.llm
+			? await this.llm.embed([fullText], { feature: "embedder.chunk" })
+			: await this.ollama.embed(fullText, this.model);
 		const v = vectors[0] ?? [];
 		if (v.length === 0) throw new Error("Embed retornou vetor vazio");
 		if (this.cache.dim === 0) this.cache.dim = v.length;

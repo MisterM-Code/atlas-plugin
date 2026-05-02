@@ -120,11 +120,20 @@ Formato:
 - Encerramento profissional + assinatura "Atenciosamente,"
 
 Responda APENAS com o corpo do email (sem assunto, sem cabeçalho).`;
-			const text = await this.plugin.ollama.generate(prompt, {
-				model: this.plugin.settings.ollama.generationModel,
-				temperature: 0.5,
-				max_tokens: 800,
-			});
+			// v0.18: route through LLMService (cloud generates better professional tone)
+			const llm = this.plugin.llm;
+			const text = llm
+				? await llm.generate(prompt, {
+						feature: "innovation.compose-email",
+						taskKind: "chat",
+						temperature: 0.5,
+						maxTokens: 1200,
+				  })
+				: await this.plugin.ollama.generate(prompt, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: 0.5,
+						max_tokens: 800,
+				  });
 			this.bodyEl.setValue(text.trim());
 			new Notice("Atlas: rascunho gerado. Revise e envie.");
 		} catch (e) {

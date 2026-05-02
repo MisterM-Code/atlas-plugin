@@ -257,11 +257,20 @@ ${question}
 
 Sua resposta (em primeira pessoa, como ${this.selectedPersona.name}):`;
 
-			const result = await this.plugin.ollama.generate(fullPrompt, {
-				model: this.plugin.settings.ollama.generationModel,
-				temperature: 0.7,
-				max_tokens: 1500,
-			});
+			// v0.18: route through LLMService — cloud benefits with deeper persona embodiment + more context
+			const llm = this.plugin.llm;
+			const result = llm
+				? await llm.generate(fullPrompt, {
+						feature: `innovation.ghost-mentor.${this.selectedPersona.name.toLowerCase().replace(/\s+/g, "-")}`,
+						taskKind: "chat",
+						temperature: 0.7,
+						maxTokens: llm.willUseCloud("chat") ? 4000 : 1500,
+				  })
+				: await this.plugin.ollama.generate(fullPrompt, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: 0.7,
+						max_tokens: 1500,
+				  });
 
 			loadingMsg.remove();
 			this.responseEl.removeClass("is-loading");

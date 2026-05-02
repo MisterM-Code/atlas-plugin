@@ -464,11 +464,20 @@ INCONSISTENCIA: [descrição em 1-2 frases do que contradiz]
 Resposta:`;
 
 		try {
-			const result = await this.plugin.ollama.generate(prompt, {
-				model: this.plugin.settings.ollama.generationModel,
-				temperature: 0.2,
-				max_tokens: 200,
-			});
+			// v0.18: route through LLMService
+			const llm = this.plugin.llm;
+			const result = llm
+				? await llm.generate(prompt, {
+						feature: "innovation.pattern-detector.inconsistency",
+						taskKind: "extraction",
+						temperature: 0.2,
+						maxTokens: 200,
+				  })
+				: await this.plugin.ollama.generate(prompt, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: 0.2,
+						max_tokens: 200,
+				  });
 			const trimmed = result.trim();
 			if (trimmed.startsWith("INCONSISTENCIA")) {
 				return {

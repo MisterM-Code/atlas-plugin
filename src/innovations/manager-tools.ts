@@ -20,6 +20,76 @@ Princípios:
 
 Sem lugares-comuns ("trabalho em equipe é importante"). Seja específico baseado nas notas.`;
 
+// v0.18 PREMIUM — Cloud Manager README com mais seções (Lara Hogan + Camille Fournier + Pat Kua frameworks)
+const MGR_README_PROMPT_PREMIUM = `Você é Atlas em modo deep analysis. Está gerando um Manager README enterprise-grade combinando frameworks de Lara Hogan, Camille Fournier, Pat Kua e Will Larson. Use a profundidade total do modelo cloud.
+
+ESTRUTURA OBRIGATÓRIA (PT-BR, primeira pessoa, markdown):
+
+# Manager README — <nome>
+
+## 🎯 Mode of Operation
+Como eu opero no dia-a-dia: horários produtivos, deep work blocks, contexto de trabalho remoto/escritório, ritmo preferido.
+
+## 💬 Comunicação
+- **Síncrono vs Assíncrono**: o que prefiro pra cada tipo de assunto
+- **Slack/Email/Reunião**: SLA esperado de resposta para cada
+- **Quiet hours**: quando NÃO me incomodar (a menos que P0)
+- **Channels**: canais que monitoro de verdade
+
+## 🤝 1:1s — meu estilo
+- Cadência (semanal/quinzenal)
+- Quem dirige a agenda (você ou eu)
+- O que ESPERO que você traga (top 3, blockers, careers, feedback pra mim)
+- Estrutura típica: GROW / CLEAR / freestyle
+
+## 📣 Feedback — como dou e como recebo
+- **Como dou**: timing (imediato vs 1:1), formato (SBI/COIN), contexto público vs privado
+- **Como recebo**: prefiro que você seja direto comigo, sem rodeios. Confirme entendimento depois.
+- **Frequência**: feedback contínuo (não só em review formal)
+
+## 🧭 Decision-making
+- Decisões reversíveis (one-way vs two-way doors — Bezos)
+- DACI: como atribuo Driver/Approver/Contributor/Informed
+- Quando uso voto vs decisão executiva
+- Tolerância a risco
+
+## 🚨 O que me incomoda (deal-breakers)
+3-5 specifics observados nas notas. Tom: factual, não punitivo.
+
+## 🌟 O que valorizo profundamente
+3-5 specifics. Comportamentos que noto e amplifico.
+
+## 🛠️ Como lidamos com erros
+- Postmortems blameless
+- Quando promover bug pra incident
+- "Move fast and document" vs "measure twice"
+
+## 🎓 Carreira & Crescimento
+- Como discuto promoções
+- Como ajudo crescimento técnico vs gerencial
+- IDP — quem dirige (você)
+
+## 🤝 O que espero do time
+- Direto na semana 1
+- Comportamentos não-negociáveis
+
+## 📅 Como me usar bem
+- Quando me trazer X vs resolver Y sozinho
+- Como preparar pra escalations
+- Quando puxar autoridade vs deixar a decisão pra você
+
+## 💡 Misc — quirks pessoais (humor)
+2-3 traços leves observados (não-críticos profissionais — café preto, prefere reuniões em pé, etc).
+
+PRINCÍPIOS:
+- TUDO baseado em padrões REAIS do histórico (notas) — não inventar
+- 1ª pessoa, PT-BR
+- Honesto e específico (não "dou feedback construtivo" — "dou feedback dentro de 24h após observar, sempre 1:1, em formato SBI")
+- Use exemplos concretos quando possível ("nas últimas 5 1:1s comecei pelo X")
+- Sem lugares-comuns / corporate-speak
+
+Tom: humano, direto, transparente. Como Lara Hogan escreveria.`;
+
 export class ManagerReadmeTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
@@ -65,17 +135,34 @@ Gere o Manager README dele.`;
 
 		const notice = new Notice("Atlas: gerando Manager README...", 0);
 		try {
-			const raw = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: MGR_README_PROMPT },
-					{ role: "user", content: userPrompt },
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.5,
-					max_tokens: 3000,
-				}
-			);
+			// v0.18: route through LLMService — premium prompt when cloud (deep frameworks)
+			const llm = this.plugin.llm;
+			const isCloud = llm?.willUseCloud("chat") ?? false;
+			const sysPrompt = isCloud ? MGR_README_PROMPT_PREMIUM : MGR_README_PROMPT;
+			const raw = llm
+				? await llm.chat(
+						[
+							{ role: "system", content: sysPrompt },
+							{ role: "user", content: userPrompt },
+						],
+						{
+							feature: "innovation.manager-readme",
+							taskKind: "chat",
+							temperature: 0.5,
+							maxTokens: isCloud ? 6000 : 3000,
+						}
+				  )
+				: await this.plugin.ollama.chat(
+						[
+							{ role: "system", content: MGR_README_PROMPT },
+							{ role: "user", content: userPrompt },
+						],
+						{
+							model: this.plugin.settings.ollama.generationModel,
+							temperature: 0.5,
+							max_tokens: 3000,
+						}
+				  );
 			notice.hide();
 
 			const userName = this.plugin.settings.user.displayName || "Coordenador";
@@ -139,6 +226,61 @@ Estrutura:
 
 PT-BR. Direto. Sem invenções. Use evidências do histórico quando relevante.`;
 
+// v0.18 PREMIUM — 8-perspective pre-mortem (Kahneman/Klein + Murphy + multi-stakeholder)
+const PREMORTEM_PROMPT_PREMIUM = `Você é Atlas em modo "Pre-mortem Oracle Deep". Use a profundidade total do modelo cloud.
+
+Aplique pre-mortem de Gary Klein + reasoning de Kahneman + 8 perspectivas independentes de risco.
+
+ESTRUTURA OBRIGATÓRIA:
+
+## 🎬 Cenário-zero: 6 meses no futuro
+Parágrafo vívido (5-7 linhas) descrevendo o pior cenário realista. Não exagerado, mas honestamente catastrófico. Cite consequências concretas (KPIs, pessoas, regulatório).
+
+## 🔮 Análise por 8 perspectivas
+Para CADA perspectiva, identifique 3 modos de falha + 1 sinal precoce + 1 mitigação:
+
+### 1. **Technical** (arquitetura, infra, code)
+- 3 modos de falha
+- Sinal precoce (métrica/alarme/comportamento)
+- Mitigação concreta com owner
+
+### 2. **Market** (concorrência, demanda, timing)
+### 3. **Regulatory / Compliance** (LGPD, BACEN, SOX, ANPD)
+### 4. **Team** (skills, capacity, churn, ownership)
+### 5. **Customer** (UX, satisfação, churn rate)
+### 6. **Financial** (orçamento, ROI, cost overrun)
+### 7. **Security** (data breach, attack vectors, audit)
+### 8. **Operational** (ops/SRE, monitoring, on-call burden)
+
+## 📊 Risk Matrix (priorização)
+Tabela:
+| # | Risco | Perspectiva | Probabilidade | Impacto | Reversível? | Score | Owner |
+
+Score = Prob (1-5) × Impact (1-5). Top 5 com prioridade explícita.
+
+## 🚨 Top 5 Earliest Warning Signs
+Sinais que aparecerão ANTES do problema escalar. Ordem cronológica esperada.
+
+## 🛡️ Mitigation Plan (priorizado)
+- **Pre-launch** (antes de começar): 3 ações com owner + prazo
+- **In-flight monitoring**: KPIs + thresholds que disparam revisão
+- **Bail-out criteria**: condições que indicam descontinuar/pivotar
+
+## 🧪 Stress Test das suas premissas
+Liste as 3 premissas centrais do projeto. Para cada, descreva o que aconteceria se ela for falsa. Recomende validação ANTES de comprometer recursos.
+
+## 🎯 Recomendação Final
+- Go / No-Go / Go-with-conditions
+- Confidence level (low/medium/high) + justificativa
+- Top 3 ações ANTES de comprometer recursos
+
+PRINCÍPIOS:
+- Use evidências do histórico do KG quando aparecerem
+- Sem floreio. Tom factual, levemente cético
+- Honesto sobre incerteza ("não sei se X — recomendo descobrir")
+- PT-BR mas mantenha termos técnicos
+- Cite analogias REAIS (incidents passados na mesma indústria)`;
+
 export class PreMortemOracle {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
@@ -192,17 +334,34 @@ Aplique o método Pre-mortem Oracle.`;
 
 		const notice = new Notice("Atlas: rodando pre-mortem...", 0);
 		try {
-			const raw = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: PREMORTEM_PROMPT },
-					{ role: "user", content: userPrompt },
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.6,
-					max_tokens: 2500,
-				}
-			);
+			// v0.18: route through LLMService — premium 8-perspective when cloud
+			const llm = this.plugin.llm;
+			const isCloud = llm?.willUseCloud("reasoning") ?? false;
+			const sysPrompt = isCloud ? PREMORTEM_PROMPT_PREMIUM : PREMORTEM_PROMPT;
+			const raw = llm
+				? await llm.chat(
+						[
+							{ role: "system", content: sysPrompt },
+							{ role: "user", content: userPrompt },
+						],
+						{
+							feature: "innovation.pre-mortem",
+							taskKind: "reasoning",
+							temperature: 0.6,
+							maxTokens: isCloud ? 6000 : 2500,
+						}
+				  )
+				: await this.plugin.ollama.chat(
+						[
+							{ role: "system", content: PREMORTEM_PROMPT },
+							{ role: "user", content: userPrompt },
+						],
+						{
+							model: this.plugin.settings.ollama.generationModel,
+							temperature: 0.6,
+							max_tokens: 2500,
+						}
+				  );
 			notice.hide();
 			return raw.trim();
 		} catch (e) {

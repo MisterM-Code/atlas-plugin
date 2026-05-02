@@ -169,11 +169,20 @@ export class Agent {
 		if (toolsEnabled && this.plugin && this.intentSuggestsMutation(query)) {
 			try {
 				const toolsSpec = getOllamaToolsSpec();
-				const tcRes = await this.ollama.chatWithTools(messages, toolsSpec, {
-					model: this.model,
-					temperature: 0.2,
-					max_tokens: 800,
-				});
+				// v0.18: route through LLMService (cloud or ollama auto)
+				const llm = this.plugin.llm;
+				const tcRes = llm
+					? await llm.chatWithTools(messages, toolsSpec, {
+							feature: "agent.tool-calling",
+							taskKind: "tool-calling",
+							temperature: 0.2,
+							maxTokens: 800,
+					  })
+					: await this.ollama.chatWithTools(messages, toolsSpec, {
+							model: this.model,
+							temperature: 0.2,
+							max_tokens: 800,
+					  });
 				if (tcRes.toolCalls.length > 0) {
 					for (const call of tcRes.toolCalls) {
 						const name = call.function?.name;
@@ -211,23 +220,30 @@ export class Agent {
 		}
 
 		// v0.7.1: streaming se streamCallback fornecido
+		// v0.18: route through LLMService (cloud or ollama auto + cost tracking)
+		const llm = this.plugin?.llm;
 		let answer: string;
 		if (input.streamCallback) {
-			answer = await this.ollama.chatStream(
-				messages,
-				{
-					model: this.model,
-					temperature: 0.4,
-					max_tokens: 1500,
-				},
-				input.streamCallback
-			);
+			answer = llm
+				? await llm.chatStream(
+						messages,
+						{ feature: "agent.chat", taskKind: "chat", temperature: 0.4, maxTokens: 1500 },
+						input.streamCallback
+				  )
+				: await this.ollama.chatStream(
+						messages,
+						{ model: this.model, temperature: 0.4, max_tokens: 1500 },
+						input.streamCallback
+				  );
 		} else {
-			answer = await this.ollama.chat(messages, {
-				model: this.model,
-				temperature: 0.4,
-				max_tokens: 1500,
-			});
+			answer = llm
+				? await llm.chat(messages, {
+						feature: "agent.chat",
+						taskKind: "chat",
+						temperature: 0.4,
+						maxTokens: 1500,
+				  })
+				: await this.ollama.chat(messages, { model: this.model, temperature: 0.4, max_tokens: 1500 });
 		}
 
 		// Persist turn

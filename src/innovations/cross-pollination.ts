@@ -139,11 +139,20 @@ Critérios:
 
 Responda em PT-BR.`;
 
-			const result = await this.plugin.ollama.generate(prompt, {
-				model: this.plugin.settings.ollama.generationModel,
-				temperature: 0.8, // higher for creative cross-pollination
-				max_tokens: 2000,
-			});
+			// v0.18: route through LLMService (cloud or ollama auto)
+			const llm = this.plugin.llm;
+			const result = llm
+				? await llm.generate(prompt, {
+						feature: "innovation.cross-pollination",
+						taskKind: "chat",
+						temperature: 0.8,
+						maxTokens: llm.willUseCloud("chat") ? 4000 : 2000,
+				  })
+				: await this.plugin.ollama.generate(prompt, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: 0.8,
+						max_tokens: 2000,
+				  });
 
 			this.resultEl.empty();
 			this.resultEl.removeClass("is-loading");

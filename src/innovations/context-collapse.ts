@@ -143,18 +143,34 @@ ${mentions
 Aplique o método Context Collapse — destile o insight central + sub-padrões.`;
 
 		try {
-			const raw = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: SYSTEM_PROMPT },
-					{ role: "user", content: userPrompt },
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.5,
-					format: "json",
-					max_tokens: 2000,
-				}
-			);
+			// v0.18: route through LLMService (cloud handles 1M context for many sessions)
+			const llm = this.plugin.llm;
+			const raw = llm
+				? await llm.chat(
+						[
+							{ role: "system", content: SYSTEM_PROMPT },
+							{ role: "user", content: userPrompt },
+						],
+						{
+							feature: "innovation.context-collapse",
+							taskKind: "summarization",
+							temperature: 0.5,
+							maxTokens: llm.willUseCloud("summarization") ? 4000 : 2000,
+							jsonFormat: true,
+						}
+				  )
+				: await this.plugin.ollama.chat(
+						[
+							{ role: "system", content: SYSTEM_PROMPT },
+							{ role: "user", content: userPrompt },
+						],
+						{
+							model: this.plugin.settings.ollama.generationModel,
+							temperature: 0.5,
+							format: "json",
+							max_tokens: 2000,
+						}
+				  );
 
 			const cleaned = cleanJson(raw);
 			const parsed = JSON.parse(cleaned);

@@ -124,11 +124,20 @@ Quebre em EXATAMENTE 3 micro-ações de 5 minutos cada. Cada uma deve ser:
 
 Formato: lista numerada com bullets, cada item em 1 linha. PT-BR.`;
 		try {
-			const result = await this.plugin.ollama.generate(prompt, {
-				model: this.plugin.settings.ollama.generationModel,
-				temperature: 0.5,
-				max_tokens: 400,
-			});
+			// v0.18: route through LLMService
+			const llm = this.plugin.llm;
+			const result = llm
+				? await llm.generate(prompt, {
+						feature: "innovation.work-rhythm",
+						taskKind: "chat",
+						temperature: 0.5,
+						maxTokens: 400,
+				  })
+				: await this.plugin.ollama.generate(prompt, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: 0.5,
+						max_tokens: 400,
+				  });
 			new Notice(`Atlas: ${result}`, 16000);
 			// Append micro-actions to source note
 			const f = this.plugin.app.vault.getAbstractFileByPath(d.notePath);

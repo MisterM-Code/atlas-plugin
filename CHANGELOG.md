@@ -4,6 +4,83 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.18.0] — 2026-05-02 — "Cloud-Native Atlas: Router Wiring + Premium Prompts"
+
+### Context
+v0.17 entregou infraestrutura completa de cloud providers (Settings UI, 9 providers, registry de 25+ modelos com pricing, Spend dashboard) MAS nenhuma feature do plugin chamava o `ProviderRouter`. Quando user configurava key OpenAI/Anthropic, dashboard funcionava mas Chat / Embedder / Tools IA TI / Reasoning continuavam só Ollama. v0.18 wira tudo + adiciona prompts premium quando cloud detectado.
+
+### Added — `LLMService` façade ([src/providers/llm-service.ts](src/providers/llm-service.ts))
+- Single entry point para TODAS as chamadas LLM no plugin (`plugin.llm`).
+- Métodos: `chat()`, `chatStream()`, `chatWithTools()`, `generate()`, `embed()`, `vision()`.
+- Auto-routing: se `providerRouter.resolveTask(taskKind)?.provider !== "ollama"` → cloud path; else → fallback Ollama.
+- **Auto-fallback transparente**: se cloud falha (rate-limit/network/auth/unknown), tenta Ollama. NÃO faz fallback em `budget-exceeded` (respeita intent do user).
+- `willUseCloud(taskKind)` exposto para call-sites enriquecerem prompts quando cloud detectado.
+- Cada call carrega `feature` tag para cost tracking + budget enforcement granular.
+
+### Wired — Core (Fase 2)
+- **Agent.run** ([src/agent/agent.ts](src/agent/agent.ts)) — 3 sites (chatStream + chatWithTools + chat) agora roteiam via `plugin.llm` com features `agent.chat` + `agent.tool-calling`.
+- **Embedder** ([src/retrieval/embedder.ts](src/retrieval/embedder.ts)) — `embedChunk` rotea via `llm.embed({ feature: "embedder.chunk" })`. `setLLMService()` wireado em main.ts.
+- **Auto-cloud embedding**: se OpenAI key configurada e routing.embedding não setado, main.ts auto-default `text-embedding-3-small` ($0.02/1M tokens). Decisão do user.
+
+### Wired — ReasoningModal + Vision (Fase 3)
+- **ReasoningModal** ([src/views/reasoning-modal.ts](src/views/reasoning-modal.ts)) — `generate` → `llm.chat({ taskKind: "reasoning" })`. Premium prompt combina DACI + RAID + first-principles + 2nd-order consequences + assumption stress-test + risk-reward matrix. maxTokens 2500 → 4500 quando cloud.
+- **Vision** ([src/innovations/vision.ts](src/innovations/vision.ts)) — raw fetch → `llm.vision({ feature: "vision.X" })`. GPT-4o / Claude Sonnet >>> llama3.2-vision quando cloud configurado. Detecta MIME type automaticamente. Mantém fallback para Ollama llama3.2-vision se ambos falharem.
+
+### Wired + Premium Prompts — 8 TI Tools (Fase 4) ⭐
+Helper `runTITool()` em [src/innovations/ti-tools.ts](src/innovations/ti-tools.ts) — auto-detecta cloud e injeta prompt premium. Todos os 7 sites de chat wireados.
+
+| Tool | Premium Prompt Enrichment (cloud only) |
+|---|---|
+| **Architecture C4** | 4 artefatos: diagrama Mermaid + tabela relacionamentos + stack tecnológico + deployment view |
+| **ADR Generator** | Full Nygard estendido + alternatives matrix (3 opções × pros/cons) + stakeholders + compliance + reversal cost |
+| **Tech Debt Scanner** | Categorização + severity matrix (impact × effort × risk) + story points + dependencies + sprint priority + blast radius |
+| **Runbook Generator** | Detection + Triage decision tree + Mitigation com gates + Rollback + Escalation chain + SLA calculator + dashboards links |
+| **Postmortem Builder** | Impact assessment table + 5-whys + ReASON analysis + blast radius + regulatory implications + blameless RCA |
+| **Flow Chart Gen** | Multi-swimlane + decision criteria explícito + error/exception flows + parallel branches + idempotency markers |
+| **API Doc Extractor** | OpenAPI 3.1 snippet + auth schemes + error codes table + multi-language examples (curl/JS/Python) + breaking changes |
+| **Capacity Planner** | (sem premium — não usa LLM, é heurístico) |
+
+### Wired — 14 Innovations (Fase 5)
+- **manager-tools.ts** — Manager README + Pre-mortem Oracle: AMBOS com premium prompts.
+  - Manager README premium: 13 seções (Mode of Operation / Comunicação / 1:1s / Feedback / Decision-making / Deal-breakers / Valores / Erros / Carreira / Expectations / Como me usar bem / Quirks pessoais).
+  - Pre-mortem premium: 8 perspectivas (Technical / Market / Regulatory / Team / Customer / Financial / Security / Operational), cada uma com 3 modos de falha + sinal precoce + mitigação. Mais Risk Matrix priorizado + Top 5 Earliest Warning Signs + Stress Test + Recomendação Final com confidence level.
+- **ghost-mentor.ts** — agora aceita 4000 tokens quando cloud (maior persona depth).
+- **context-collapse.ts** — usa `taskKind: "summarization"` + JSON format + 4000 tokens cloud.
+- **podcast-generator.ts** — `taskKind: "summarization"` (modelos cheaper).
+- **cross-pollination.ts** — 4000 tokens cloud para creativity.
+- **tone-bifold.ts** — cloud writes more naturally.
+- **compose-email.ts** — cloud generates better professional tone.
+- **work-rhythm.ts** + **pattern-detectors.ts** — wired via `llm.generate`.
+
+### Architecture details
+- **Failover** preservado: cada provider error com code retriable (network, rate-limit, auth, model-not-found, unknown) → falls back to Ollama. `budget-exceeded` NÃO triggera failover (respeita user intent).
+- **Cost tracking automático**: cada call cloud loga em `.atlas/spend-log.jsonl` com feature tag → Spend Dashboard em Status → 💰 Spend mostra breakdown granular (por feature, por provider, por dia).
+- **Budget pre-flight**: `router.preflightBudget` checa antes de gastar. Se hard cutoff + over budget → `AIProviderError(code: "budget-exceeded")` com mensagem humana.
+
+### Files modified (16 + 1 new)
+- **NEW**: `src/providers/llm-service.ts` (~270 linhas)
+- `main.ts` — `this.llm = createLLMService(this)` + auto-cloud embedding
+- `src/agent/agent.ts` — 3 sites
+- `src/retrieval/embedder.ts` — `setLLMService` setter + chunk wiring
+- `src/views/reasoning-modal.ts` — premium prompt + llm wire
+- `src/innovations/vision.ts` — `llm.vision` + MIME detection + Ollama fallback
+- `src/innovations/ti-tools.ts` — helper + 7 wired sites + 6 premium prompts
+- `src/innovations/manager-tools.ts` — 2 sites + 2 premium prompts (Manager README + Pre-mortem)
+- `src/innovations/ghost-mentor.ts`, `context-collapse.ts`, `cross-pollination.ts`, `podcast-generator.ts`, `pattern-detectors.ts`, `tone-bifold.ts`, `compose-email.ts`, `work-rhythm.ts` — wired
+- `manifest.json`, `package.json`, `versions.json`, `CHANGELOG.md` — bumped 0.18.0
+
+### Verification (E2E)
+1. **Setup cloud**: Settings → ☁️ Cloud AI Providers → cole Anthropic key → routing.chat = `claude-sonnet-4-6`.
+2. **Chat**: Atlas Chat tab → "Liste pessoas do KG" → resposta streama do Anthropic. Status → 💰 Spend incrementa.
+3. **ADR**: Lab → Tools IA → ADR Generator → "Migrar Postgres pra ScyllaDB?" → cloud gera ADR full Nygard com Alternatives Matrix + Compliance + Reversal cost — dramaticamente mais rico que Ollama.
+4. **Reasoning** (Cmd+Shift+R): "Devemos descontinuar API legada?" → CoT com DACI + RAID + first-principles + 2nd-order + Risk Register + Decision Criteria.
+5. **Pre-mortem** (Lab → Pre-mortem Oracle): "Lançar produto Y em Q3" → 8 perspectivas com 3 modos de falha cada, Risk Matrix priorizado, Top 5 Warning Signs.
+6. **Postmortem**: Lab → Postmortem Builder → cloud gera Impact Assessment table + 5-whys + ReASON + Blast Radius + Regulatory section.
+7. **Embedder**: configurar OpenAI key → re-indexar → Spend mostra calls com `feature: "embedder.chunk"`.
+8. **Failover**: desligar internet → chat cai pra Ollama transparente.
+9. **Budget**: setar `dailyUSD: 0.01` + `hardCutoff: true` → próxima call lança erro "Budget diário excedido".
+10. **Local-only path**: zerar todas API keys → tudo continua funcionando como v0.17.
+
 ## [0.17.0] — 2026-05-02 — "Multi-Provider AI + Cost Control"
 
 ### Added — Multi-Provider AI infrastructure (huge new system)

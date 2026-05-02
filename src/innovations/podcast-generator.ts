@@ -44,14 +44,21 @@ export class PodcastGeneratorTool {
 				.replace(/```mermaid[\s\S]*?```/g, "")
 				.substring(0, 6000);
 
-			const script = await this.plugin.ollama.generate(
-				`${NPR_PROMPT}\n\nWeekly report:\n"""\n${cleaned}\n"""\n\nRoteiro do podcast (texto puro PT-BR):`,
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.6,
-					max_tokens: 800,
-				}
-			);
+			// v0.18: route through LLMService (summarization task — auto-cheaper model when cloud)
+			const llm = this.plugin.llm;
+			const promptText = `${NPR_PROMPT}\n\nWeekly report:\n"""\n${cleaned}\n"""\n\nRoteiro do podcast (texto puro PT-BR):`;
+			const script = llm
+				? await llm.generate(promptText, {
+						feature: "innovation.podcast",
+						taskKind: "summarization",
+						temperature: 0.6,
+						maxTokens: 1200,
+				  })
+				: await this.plugin.ollama.generate(promptText, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: 0.6,
+						max_tokens: 800,
+				  });
 
 			notice.hide();
 			const cleanedScript = script.trim();

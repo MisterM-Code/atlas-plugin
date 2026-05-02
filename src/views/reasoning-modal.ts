@@ -2,6 +2,7 @@ import { App, Modal, Notice, Setting } from "obsidian";
 import type AtlasPlugin from "../../main";
 import { applyResponsiveModal } from "../ui/modal-helpers";
 
+// v0.18: Standard prompt (Ollama-friendly) — keeps cost/context low
 const SYSTEM_PROMPT = `Você é o Atlas em "modo raciocínio". O usuário traz um problema (decisão, análise de causa-raiz, planejamento, dilema).
 
 Sua resposta TEM 2 PARTES:
@@ -20,6 +21,37 @@ Princípios:
 - Reconhece limitações ("não sei X" é válido)
 - Foca no que ajuda o usuário a decidir/agir
 - Português Brasil`;
+
+// v0.18: PREMIUM prompt — used when cloud detected (Claude Opus / GPT-4o / R1).
+// Combines DACI + RAID + first-principles + 2nd-order + assumption stress-test.
+const SYSTEM_PROMPT_PREMIUM = `Você é o Atlas em "deep reasoning mode". Use TODA a profundidade do modelo cloud disponível (Claude Opus 4.7 / GPT-4o / DeepSeek R1).
+
+ESTRUTURA OBRIGATÓRIA da resposta:
+
+1. **<thinking>** chain-of-thought longo e honesto **</thinking>** — combine MÚLTIPLOS frameworks:
+   - **First principles**: dispense premissas óbvias; o que é verdade fundamental?
+   - **DACI**: quem decide / quem aprova / quem contribui / quem é informado
+   - **RAID**: Risks / Assumptions / Issues / Dependencies
+   - **2nd-order consequences**: o que acontece DEPOIS da decisão? Que comportamentos novos emergem?
+   - **Assumption stress-test**: quais 3 premissas, se falsas, derrubam toda recomendação?
+   - **Risk-reward matrix** (impacto × probabilidade × reversibilidade)
+   - Considere 3+ ângulos opostos. Seja explicitamente cético com sua própria conclusão.
+
+2. **Resposta final** estruturada em PT-BR:
+   - **TLDR** (2 frases máx)
+   - **Análise multi-framework** (3-5 frameworks com 1-3 bullets cada)
+   - **Recomendação clara** com nível de confiança (low/medium/high) e justificativa
+   - **Risk register** — top 5 riscos em formato | Risco | Prob | Impacto | Reversível? | Mitigação |
+   - **Decision criteria** — se qualquer X mudar, revisitar
+   - **Próximos passos** com owners + prazos sugeridos
+   - **Assumptions to validate** — o que precisa ser confirmado ANTES de executar
+
+Princípios:
+- Use markdown tables livremente (modelos cloud renderizam bem)
+- Cite trade-offs explicitamente, não esconda ambiguidade
+- Quando 2+ caminhos são razoáveis, mostre matrix comparativa
+- Português Brasil, mas use termos técnicos (DACI, RAID) sem traduzir
+- NÃO invente dados; se não souber X, seja claro`;
 
 const MODES = [
 	{
@@ -239,17 +271,25 @@ class ReasoningStreamModal extends Modal {
 	}
 
 	private async runReasoning(): Promise<void> {
-		const ok = await this.plugin.ollama.ping();
-		if (!ok) {
-			this.thinkingEl.setText("❌ Ollama offline.");
-			this.answerEl.setText("Inicie o Ollama e tente novamente.");
-			return;
+		// v0.18: route through LLMService — auto-cloud (Claude Opus / R1) when configured
+		const llm = this.plugin.llm;
+		const useCloud = llm?.willUseCloud("reasoning") ?? false;
+
+		if (!useCloud) {
+			// Local path requires Ollama daemon
+			const ok = await this.plugin.ollama.ping();
+			if (!ok) {
+				this.thinkingEl.setText("❌ Ollama offline.");
+				this.answerEl.setText("Inicie o Ollama e tente novamente — ou configure cloud reasoning em Settings → ☁️ Cloud AI Providers.");
+				return;
+			}
 		}
 
-		// Use small model for reasoning (phi-4-mini fits in 8GB) — substitui R1 14B que não cabe
-		const model = this.plugin.settings.ollama.smallModel || this.plugin.settings.ollama.generationModel;
+		// Premium prompt when cloud (Claude Opus / R1 can handle 1500+ token system prompts richly)
+		const systemPrompt = useCloud ? SYSTEM_PROMPT_PREMIUM : SYSTEM_PROMPT;
+		const maxTokens = useCloud ? 4500 : 2500;
 
-		const prompt = `${SYSTEM_PROMPT}
+		const prompt = `${systemPrompt}
 
 Pergunta do usuário (modo: ${this.modeLabel}):
 """
@@ -259,11 +299,18 @@ ${this.question}
 Comece com <thinking>:`;
 
 		try {
-			const out = await this.plugin.ollama.generate(prompt, {
-				model,
-				temperature: 0.5,
-				max_tokens: 2500,
-			});
+			const out = llm
+				? await llm.generate(prompt, {
+						feature: "reasoning-modal",
+						taskKind: "reasoning",
+						temperature: 0.5,
+						maxTokens,
+				  })
+				: await this.plugin.ollama.generate(prompt, {
+						model: this.plugin.settings.ollama.smallModel || this.plugin.settings.ollama.generationModel,
+						temperature: 0.5,
+						max_tokens: 2500,
+				  });
 			this.parseAndRender(out);
 		} catch (e) {
 			this.thinkingEl.setText(`Erro: ${String(e)}`);

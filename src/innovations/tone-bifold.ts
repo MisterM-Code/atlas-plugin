@@ -192,11 +192,21 @@ ${text}
 
 Responda APENAS com a reescrita (sem prefácio, sem explicação, sem marcadores).`;
 
-			const result = await this.plugin.ollama.generate(prompt, {
-				model: this.plugin.settings.ollama.generationModel,
-				temperature: 0.6,
-				max_tokens: Math.max(800, text.length * 2),
-			});
+			// v0.18: route through LLMService (cloud writes more naturally in different tones)
+			const llm = this.plugin.llm;
+			const maxOut = Math.max(800, text.length * 2);
+			const result = llm
+				? await llm.generate(prompt, {
+						feature: "innovation.tone-bifold",
+						taskKind: "chat",
+						temperature: 0.6,
+						maxTokens: maxOut,
+				  })
+				: await this.plugin.ollama.generate(prompt, {
+						model: this.plugin.settings.ollama.generationModel,
+						temperature: 0.6,
+						max_tokens: maxOut,
+				  });
 			this.rightEl.value = result.trim();
 			this.rightEl.disabled = false;
 

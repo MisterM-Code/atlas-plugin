@@ -214,6 +214,8 @@ export default class AtlasPlugin extends Plugin {
 	hud!: AtlasHUD;
 	// v0.17 — Cloud AI providers + cost tracking
 	providerRouter: import("./src/providers/router").ProviderRouter | null = null;
+	// v0.18 — LLMService façade (single entry point for ALL LLM calls)
+	llm!: import("./src/providers/llm-service").LLMService;
 	lastAtlasError: AtlasError | null = null;
 	private capsuleWatcher!: CapsuleWatcher;
 	private audit!: AuditLog;
@@ -311,6 +313,35 @@ export default class AtlasPlugin extends Plugin {
 			});
 		} catch (e) {
 			logger.warn("Atlas: provider router falhou ao iniciar", { error: String(e) });
+		}
+
+		// v0.18 — LLMService façade (single entry point: cloud-or-ollama auto)
+		try {
+			const { createLLMService } = await import("./src/providers/llm-service");
+			this.llm = createLLMService(this);
+			// Wire LLMService into Embedder so all chunk embeddings route via router
+			this.embedder.setLLMService(this.llm);
+
+			// v0.18: auto-default embeddings to OpenAI when OpenAI key configured
+			// (decisão do user: "Cloud auto se key configurada")
+			if (
+				this.providerRouter &&
+				this.settings.providers?.apiKeys?.openaiEncrypted &&
+				!this.settings.providers?.routing?.embedding
+			) {
+				if (!this.settings.providers.routing) this.settings.providers.routing = {};
+				this.settings.providers.routing.embedding = {
+					provider: "openai",
+					model: "text-embedding-3-small",
+				};
+				await this.saveSettings();
+				this.providerRouter.updateConfig({ routing: this.settings.providers.routing as never });
+				logger.info("Atlas v0.18: auto-routed embeddings to OpenAI text-embedding-3-small");
+			}
+
+			logger.info("Atlas v0.18: llm service initialized");
+		} catch (e) {
+			logger.warn("Atlas: LLMService falhou ao iniciar — fallback ollama-only", { error: String(e) });
 		}
 
 		this.embedder = new Embedder(

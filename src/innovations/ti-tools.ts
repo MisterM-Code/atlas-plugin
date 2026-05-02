@@ -59,6 +59,49 @@ function slugify(s: string): string {
 }
 
 // ──────────────────────────────────────────────────────────────────
+// v0.18 helper: route via LLMService with cloud-aware prompt selection
+// ──────────────────────────────────────────────────────────────────
+
+interface TIToolCallParams {
+	plugin: AtlasPlugin;
+	systemStandard: string;
+	systemPremium: string;
+	userMessage: string;
+	feature: string;
+	taskKind?: "chat" | "extraction" | "summarization" | "reasoning";
+	temperature?: number;
+	maxTokensStandard?: number;
+	maxTokensPremium?: number;
+}
+
+async function runTITool(p: TIToolCallParams): Promise<string> {
+	const llm = p.plugin.llm;
+	const isCloud = llm?.willUseCloud(p.taskKind ?? "chat") ?? false;
+	const systemPrompt = isCloud ? p.systemPremium : p.systemStandard;
+	const maxTokens = isCloud ? (p.maxTokensPremium ?? 4500) : (p.maxTokensStandard ?? 1500);
+
+	const messages = [
+		{ role: "system" as const, content: systemPrompt },
+		{ role: "user" as const, content: p.userMessage },
+	];
+
+	if (llm) {
+		return llm.chat(messages, {
+			feature: p.feature,
+			taskKind: p.taskKind ?? "chat",
+			temperature: p.temperature ?? 0.4,
+			maxTokens,
+		});
+	}
+	// Fallback (shouldn't happen post-init)
+	return p.plugin.ollama.chat(messages, {
+		model: p.plugin.settings.ollama.generationModel,
+		temperature: p.temperature ?? 0.4,
+		max_tokens: maxTokens,
+	});
+}
+
+// ──────────────────────────────────────────────────────────────────
 // 1. ARCHITECTURE DIAGRAM (Mermaid C4)
 // ──────────────────────────────────────────────────────────────────
 
@@ -77,26 +120,52 @@ NÃO use C4-PlantUML ou syntax inválida no Mermaid.
 
 Responda APENAS com o bloco mermaid + 3 frases de explicação abaixo. Nada mais.`;
 
+// v0.18 PREMIUM — usado quando cloud (Claude Opus / GPT-4o) está configurado
+const C4_SYSTEM_PROMPT_PREMIUM = `Você é um arquiteto de software sênior produzindo documentação enterprise-grade C4 (Simon Brown). Use o máximo da capacidade do modelo cloud (Claude Opus 4.7 / GPT-4o).
+
+ENTREGUE 4 ARTEFATOS na resposta (markdown):
+
+## 1. Diagrama C4 (level solicitado)
+Mermaid \`graph TD\` válido, com:
+- IDs curtos + labels descritivos
+- Tecnologias entre colchetes: \`API[API REST<br/>Node.js<br/>Express + Zod]\`
+- Trust boundaries indicadas com subgraph (ex: \`subgraph "DMZ"\` / \`subgraph "VPC privada"\`)
+- Estilos por tipo: classe \`:::ext\` para externos, \`:::db\` para databases, \`:::queue\` para filas
+- Definir classes ao final: \`classDef ext fill:#fff4e6,stroke:#ff9933\`, etc.
+
+## 2. Tabela de Relacionamentos
+Markdown table com colunas: | Source | Target | Protocol | Sync/Async | Auth | Notas |
+
+## 3. Stack Tecnológico
+Lista por container: linguagem, framework, banco/persistência, mensageria, observabilidade.
+
+## 4. Deployment View
+Onde cada container roda: cloud provider (AWS/GCP/Azure), região, tipo (Lambda/ECS/K8s/EC2), HA strategy.
+
+PRINCÍPIOS:
+- Tom: técnico, factual, sem buzzword bingo
+- Indique pontos de atenção (single point of failure, latência, custos)
+- PT-BR mas mantenha termos técnicos (sync, queue, idempotency)
+- Cite trade-offs explícitos quando há escolhas arquiteturais
+
+Responda apenas com o markdown estruturado, sem preâmbulo.`;
+
 export class ArchitectureDiagramTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
 	async run(description: string, level: "context" | "container" | "component" = "container"): Promise<{ notePath: string } | null> {
 		const notice = new Notice("Atlas: gerando diagrama...", 0);
 		try {
-			const out = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: C4_SYSTEM_PROMPT },
-					{
-						role: "user",
-						content: `Nível: ${level}\n\nDescrição:\n${description}\n\nGere o Mermaid C4 ${level} agora:`,
-					},
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.3,
-					max_tokens: 1500,
-				}
-			);
+			const out = await runTITool({
+				plugin: this.plugin,
+				systemStandard: C4_SYSTEM_PROMPT,
+				systemPremium: C4_SYSTEM_PROMPT_PREMIUM,
+				userMessage: `Nível: ${level}\n\nDescrição:\n${description}\n\nGere o Mermaid C4 ${level} agora:`,
+				feature: "ti-tools.architecture-c4",
+				temperature: 0.3,
+				maxTokensStandard: 1500,
+				maxTokensPremium: 4500,
+			});
 
 			const date = new Date().toISOString().split("T")[0];
 			const titleMatch = description.match(/^[\w\sÀ-ú]+/);
@@ -223,26 +292,76 @@ REGRAS:
 
 Responda APENAS com o markdown do ADR, sem preâmbulo. Use ## para seções principais.`;
 
+// v0.18 PREMIUM — Full Nygard + alternatives matrix + stakeholder + compliance + reversal cost
+const ADR_PROMPT_PREMIUM = `Você é arquiteto de software sênior produzindo um ADR enterprise-grade no formato Michael Nygard estendido. Use a profundidade total do modelo cloud.
+
+ESTRUTURA OBRIGATÓRIA:
+
+## Status
+[Proposed | Accepted | Deprecated | Superseded by ADR-XXXX]
+
+## Context
+3 sub-seções:
+- **Background histórico**: o que motivou esta decisão? Que decisões anteriores levaram aqui?
+- **Forças em jogo** (technical / business / regulatory / team)
+- **Constraints**: limitações de tempo, orçamento, skills, compliance
+
+## Decision
+Decisão clara em 1-2 parágrafos. Linguagem ativa: "Vamos adotar X porque Y."
+
+## Alternatives Considered (matrix)
+Tabela markdown com 3+ alternativas:
+| Alternativa | Pros | Cons | Custo (low/med/high) | Reversal cost | Decision criteria | Por que NÃO |
+
+## Consequences
+3 sub-seções:
+- **Positive** (esperadas)
+- **Negative** (esperadas — não esconda)
+- **Neutral / future implications**
+
+## Risks & Mitigations
+Tabela: | Risco | Probabilidade | Impacto | Mitigação | Owner |
+
+## Stakeholders Impactados
+Lista por área (Eng, Product, Ops, Security, Compliance, Customers) — quem precisa ser informado/consultado.
+
+## Compliance Considerations
+Indique se decisão tem implicações regulatórias (LGPD, BACEN, SOX, PCI). Se SIM, detalhe.
+
+## Reversal Cost
+[Low (revert em horas) | Medium (semanas + migração) | High (re-arquitetura)]
+Justifique.
+
+## Related Decisions
+Liste ADRs anteriores relacionados (ou diga "nenhum até esta data").
+
+## Implementation Plan (high-level)
+3-7 milestones. Inclua signal de sucesso por milestone.
+
+PRINCÍPIOS:
+- Honesto sobre trade-offs e ambiguidade
+- PT-BR (mas mantenha termos técnicos sem traduzir: "feature flag", "rollback", "idempotency")
+- Sem marketing speak. Tom factual.
+- Indique data: ${new Date().toISOString().split("T")[0]}
+
+Responda APENAS com o markdown completo, sem preâmbulo.`;
+
 export class AdrGeneratorTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
 	async run(title: string, context: string): Promise<{ notePath: string } | null> {
 		const notice = new Notice("Atlas: gerando ADR...", 0);
 		try {
-			const out = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: ADR_PROMPT },
-					{
-						role: "user",
-						content: `Título da decisão: ${title}\n\nContexto:\n${context}\n\nGere o ADR completo:`,
-					},
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.4,
-					max_tokens: 2000,
-				}
-			);
+			const out = await runTITool({
+				plugin: this.plugin,
+				systemStandard: ADR_PROMPT,
+				systemPremium: ADR_PROMPT_PREMIUM,
+				userMessage: `Título da decisão: ${title}\n\nContexto:\n${context}\n\nGere o ADR completo:`,
+				feature: "ti-tools.adr",
+				temperature: 0.4,
+				maxTokensStandard: 2000,
+				maxTokensPremium: 6000,
+			});
 
 			const date = new Date().toISOString().split("T")[0];
 			const slug = slugify(title);
@@ -383,6 +502,38 @@ Se NÃO for débito (apenas nota normal), retorne:
 
 Responda APENAS o JSON, sem texto extra.`;
 
+// v0.18 PREMIUM — Categorização + impact/effort matrix + dependencies + sprint planning
+const DEBT_PROMPT_PREMIUM = `Você é arquiteto sênior fazendo classificação rigorosa de débito técnico. Use raciocínio cloud profundo.
+
+Receberá trecho de nota. Se for DÉBITO (TODO/FIXME/HACK/workaround/limitação conhecida/dívida arquitetural), retorne JSON estrito ESTENDIDO:
+
+{
+  "is_debt": true,
+  "title": "<resumo até 80 chars>",
+  "category": "technical" | "design" | "documentation" | "infrastructure" | "security" | "performance",
+  "severity": "low" | "medium" | "high" | "critical",
+  "impact": <1-5>,
+  "effort_story_points": <1, 2, 3, 5, 8, 13, ou 21>,
+  "estimate_hours": <horas reais>,
+  "risk_score": <1-5> (combinação impact × probability of materializing),
+  "reversal_complexity": "trivial" | "easy" | "medium" | "hard" | "epic",
+  "dependencies": ["<lista de outros débitos/sistemas/migrations bloqueantes>"],
+  "blast_radius": "<qual área/time/cliente é afetado se materializar>",
+  "rationale": "<por que é débito + cenários onde quebra + custo de inação>",
+  "sprint_priority": "next-sprint" | "this-quarter" | "this-year" | "backlog",
+  "tags": ["<2-4 tags pra agrupar com outros débitos similares>"]
+}
+
+Se NÃO for débito: { "is_debt": false }
+
+Critérios de severity:
+- critical: produção pode cair / dado pode corromper / compliance violado
+- high: impacto sério na operação ou velocidade do time, prazo curto
+- medium: degrada qualidade/manutenção mas tolerável por meses
+- low: melhoria desejável, sem custo direto imediato
+
+Responda APENAS o JSON, sem texto extra.`;
+
 export class TechDebtScannerTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
@@ -416,22 +567,31 @@ export class TechDebtScannerTool {
 						);
 					if (!hasDebtMarkers) continue;
 
-					// LLM classifies
-					const out = await this.plugin.ollama.chat(
-						[
-							{ role: "system", content: DEBT_PROMPT },
-							{
-								role: "user",
-								content: `Note: ${file.basename}\n\nTrecho:\n${body.substring(0, 2000)}`,
-							},
-						],
+					// LLM classifies — v0.18: route through LLMService
+					const llm = this.plugin.llm;
+					const isCloud = llm?.willUseCloud("extraction") ?? false;
+					const sysPrompt = isCloud ? DEBT_PROMPT_PREMIUM : DEBT_PROMPT;
+					const messages = [
+						{ role: "system" as const, content: sysPrompt },
 						{
-							model: this.plugin.settings.ollama.smallModel,
-							temperature: 0.2,
-							max_tokens: 200,
-							format: "json",
-						}
-					);
+							role: "user" as const,
+							content: `Note: ${file.basename}\n\nTrecho:\n${body.substring(0, 2000)}`,
+						},
+					];
+					const out = llm
+						? await llm.chat(messages, {
+								feature: "ti-tools.tech-debt-scan",
+								taskKind: "extraction",
+								temperature: 0.2,
+								maxTokens: isCloud ? 600 : 200,
+								jsonFormat: true,
+						  })
+						: await this.plugin.ollama.chat(messages, {
+								model: this.plugin.settings.ollama.smallModel,
+								temperature: 0.2,
+								max_tokens: 200,
+								format: "json",
+						  });
 
 					try {
 						const parsed = JSON.parse(out);
@@ -591,26 +751,85 @@ ESTRUTURA OBRIGATÓRIA (markdown):
 
 Em PT-BR. Tom: profissional, factual. Use code blocks para comandos.`;
 
+// v0.18 PREMIUM — Production-grade runbook (severity classification, escalation, SLA, dashboards)
+const RUNBOOK_PROMPT_PREMIUM = `Você é Staff SRE produzindo runbook production-grade. Use a profundidade total do modelo cloud para gerar runbook utilizável às 3am pelo oncall.
+
+ESTRUTURA OBRIGATÓRIA:
+
+## 🚨 Detection
+- Alerts esperados (nome do alert + canal: PagerDuty/OpsGenie/etc + threshold)
+- Symptoms reportáveis (o que user/cliente observa)
+- Metrics dashboards (link + métrica chave + valor anormal)
+- Logs query (Splunk/Datadog/Cloudwatch query exata em code block)
+
+## 🎯 Severity Classification
+Tabela de critérios:
+| Severity | Critério | Response time | Escalate to |
+|---|---|---|---|
+| P1 | <impact crítico> | <SLA> | <pager> |
+| P2 | ... | ... | ... |
+| P3 | ... | ... | ... |
+
+## 🩺 Triage (decision tree)
+Árvore de decisão markdown (use \`\`\`mermaid flowchart\`\`\` se >5 ramos):
+1. Se **X** → diagnose com comando \`Y\`
+2. Se Y retornar **Z** → vai pra mitigação A
+3. Senão → vai pra mitigação B
+[etc]
+
+## 🔧 Mitigation Steps
+Cada passo numerado com:
+- **Comando** exato em code block
+- **Expected output** (o que validar)
+- **Gate**: critério para passar pro próximo passo
+- **Tempo estimado**
+
+## 🔄 Rollback
+- **Decisão**: quando rollback é necessário (critério explícito)
+- **Sequência exata** com gates
+- **Validação pós-rollback** (queries/checks)
+- **Communication**: quem notificar
+
+## 📞 Escalation Chain
+1. Primary oncall — <role>, response em N min
+2. Backup oncall — <role>, escalate se primary não responde em M min
+3. SRE Lead — escalate se Sev=P1 e não resolvido em X min
+4. Engineering Manager + Director — incident bridge se Sev=P0 e ≥30 min
+
+## 📊 SLA Impact Calculator
+- SLA: 99.9% → margem mensal de Z minutos
+- Estimativa de impacto: <fórmula simples>
+- Quando ativar status page externa
+
+## 🛡️ Prevention (root cause prevention)
+- 3-5 actions concretas com **owner** + **deadline** + **success metric**
+
+## 📚 Related Resources
+- Dashboards: <link>
+- Recent post-mortems: <link>
+- Architecture docs: <link>
+
+## 🔗 Keywords for search
+[5-8 keywords pra futuras buscas]
+
+Tom: profissional, factual, ZERO floreio. Use code blocks generosos. PT-BR mas mantenha termos técnicos.`;
+
 export class RunbookGeneratorTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
 	async run(scenario: string): Promise<{ notePath: string } | null> {
 		const notice = new Notice("Atlas: gerando runbook...", 0);
 		try {
-			const out = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: RUNBOOK_PROMPT },
-					{
-						role: "user",
-						content: `Cenário/incidente: ${scenario}\n\nGere o runbook completo:`,
-					},
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.3,
-					max_tokens: 2500,
-				}
-			);
+			const out = await runTITool({
+				plugin: this.plugin,
+				systemStandard: RUNBOOK_PROMPT,
+				systemPremium: RUNBOOK_PROMPT_PREMIUM,
+				userMessage: `Cenário/incidente: ${scenario}\n\nGere o runbook completo:`,
+				feature: "ti-tools.runbook",
+				temperature: 0.3,
+				maxTokensStandard: 2500,
+				maxTokensPremium: 6000,
+			});
 
 			const date = new Date().toISOString().split("T")[0];
 			const slug = slugify(scenario.substring(0, 60));
@@ -741,26 +960,100 @@ ESTRUTURA OBRIGATÓRIA:
 
 Tom: blameless (sem culpar pessoas). Em PT-BR. Use code blocks pra comandos/queries.`;
 
+// v0.18 PREMIUM — Full SRE incident review (5-whys + ReASON + blast radius + regulatory)
+const POSTMORTEM_PROMPT_PREMIUM = `Você é Staff SRE conduzindo postmortem blameless enterprise-grade. Use a profundidade total do modelo cloud.
+
+ESTRUTURA OBRIGATÓRIA:
+
+## 📌 Sumário Executivo
+- 2-3 frases (TL;DR para diretoria)
+- Severidade: P0/P1/P2/P3
+- Status: resolved / monitoring / ongoing
+
+## 📊 Impact Assessment
+| Dimensão | Métrica | Valor |
+|---|---|---|
+| Usuários afetados | # / % do total | … |
+| Duração | minutos | … |
+| Receita perdida estimada | USD / BRL | … |
+| SLO breach | sim/não + qual | … |
+| Reputational | low/medium/high | … |
+| Regulatório | LGPD/BACEN/SOX afetado? | … |
+| Customer support tickets | # | … |
+
+## ⏱️ Timeline (decision points marcados ⚡)
+Eventos cronológicos HH:mm com:
+- Quem agiu, qual ação, qual sinal observado, qual decisão tomada
+- ⚡ marca decision points (poderia ter sido outra coisa)
+
+## 🎯 5 Whys
+**Why 1**: <symptom>
+**Why 2**: <next layer>
+... até **Why 5**: <root cause raiz>
+
+## 🧪 ReASON Analysis
+- **Reason** (por que aconteceu): <causa técnica>
+- **Anticipation** (poderia ter previsto?): <signs ignorados>
+- **Symptom** (como manifestou): <user impact>
+- **Origin** (onde nasceu): <componente/PR/decisão prévia>
+- **Notification** (como soube): <alerta/cliente reportou/manual)
+
+## 🔍 Contributing Factors
+- Technical: <ex: rate limit ausente>
+- Process: <ex: PR mergeado sem review on-call>
+- Organizational: <ex: knowledge gap>
+- Tooling: <ex: dashboard X estava broken>
+
+## 💥 Blast Radius
+- Sistemas afetados (lista)
+- Downstream effects (cascade)
+- Customer segments (B2B / B2C / interno)
+- Compliance implications (LGPD breach? Notify ANPD?)
+
+## ✅ What Went Well
+- Strong points (uso de detecção automática, comunicação rápida, etc)
+
+## ⚠️ What Went Wrong
+- Friction points (alerta tardio, runbook outdated, etc)
+
+## 🔧 Action Items (priorizadas)
+| # | Ação | Categoria | Owner | Prazo | Sucesso medido por |
+|---|---|---|---|---|---|
+| 1 | … | prevent/detect/mitigate | <pessoa> | <ISO date> | <métrica> |
+
+## 📚 Learnings (organizational + technical)
+- **Technical**: 3-5 insights
+- **Organizational**: 2-4 insights (process, comms, on-call)
+
+## 🔗 Related
+- Runbook: <link>
+- Monitoring dashboard: <link>
+- ADRs relacionados: <link>
+- Postmortems anteriores similares: <link>
+
+PRINCÍPIOS:
+- BLAMELESS — atacar o sistema, não as pessoas
+- Honesto sobre o que NÃO sabemos ainda (vs especulação)
+- Quantificar quando possível
+- PT-BR mas mantenha termos técnicos
+- Sem floreio executivo — fatos`;
+
 export class PostmortemBuilderTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
 	async run(summary: string, timeline: string): Promise<{ notePath: string } | null> {
 		const notice = new Notice("Atlas: gerando postmortem...", 0);
 		try {
-			const out = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: POSTMORTEM_PROMPT },
-					{
-						role: "user",
-						content: `Sumário do incidente:\n${summary}\n\nTimeline (livre):\n${timeline}\n\nGere o postmortem completo:`,
-					},
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.3,
-					max_tokens: 3000,
-				}
-			);
+			const out = await runTITool({
+				plugin: this.plugin,
+				systemStandard: POSTMORTEM_PROMPT,
+				systemPremium: POSTMORTEM_PROMPT_PREMIUM,
+				userMessage: `Sumário do incidente:\n${summary}\n\nTimeline (livre):\n${timeline}\n\nGere o postmortem completo:`,
+				feature: "ti-tools.postmortem",
+				temperature: 0.3,
+				maxTokensStandard: 3000,
+				maxTokensPremium: 7000,
+			});
 
 			const date = new Date().toISOString().split("T")[0];
 			const slug = slugify(summary.substring(0, 60));
@@ -878,23 +1171,53 @@ REGRAS:
 
 Responda APENAS com o bloco mermaid + 2 frases de explicação. Nada mais.`;
 
+// v0.18 PREMIUM — Multi-swimlane + decision criteria + error handling + BPMN-lite
+const FLOWCHART_PROMPT_PREMIUM = `Você é analista de processos sênior. Use a profundidade do modelo cloud pra produzir fluxograma rico.
+
+ENTREGUE 3 ARTEFATOS:
+
+## 1. Diagrama Mermaid (use o melhor: flowchart TD/LR ou subgraph swimlanes)
+- **Swimlanes** se ≥2 atores (ex: \`subgraph User\` / \`subgraph System\` / \`subgraph External\`)
+- **Decision points** com critérios EXPLÍCITOS: \`B{Tem saldo?}\` → label \`B -->|saldo >= valor| C\`
+- **Error/exception flows** com nodes vermelhos (\`:::error\`) e classDef ao final
+- **Parallel branches** com \`fork/join\` quando aplicável
+- **Start/End**: \`((Início))\` / \`((Fim))\`
+- **Idempotency markers**: anotação no node se ação tem efeito colateral
+
+## 2. Tabela de Decision Points
+| Decision | Critério | Caminho A | Caminho B | Default | Owner |
+
+## 3. Lista de Exception Paths
+- Para cada caminho de erro, indique:
+  - Quando ocorre
+  - User-facing message
+  - Recovery: retry / rollback / manual intervention
+  - SLA / response time esperado
+
+PRINCÍPIOS:
+- ZERO ambiguidade — todo decision point com critério explícito
+- Use code blocks markdown para queries/comandos quando aparecem no fluxo
+- PT-BR
+- Tom: técnico, factual
+
+Responda apenas com markdown estruturado.`;
+
 export class FlowChartTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
 	async run(description: string): Promise<{ notePath: string } | null> {
 		const notice = new Notice("Atlas: gerando fluxograma...", 0);
 		try {
-			const out = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: FLOWCHART_PROMPT },
-					{ role: "user", content: `Fluxo:\n${description}\n\nGere o Mermaid:` },
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.3,
-					max_tokens: 1200,
-				}
-			);
+			const out = await runTITool({
+				plugin: this.plugin,
+				systemStandard: FLOWCHART_PROMPT,
+				systemPremium: FLOWCHART_PROMPT_PREMIUM,
+				userMessage: `Fluxo:\n${description}\n\nGere o Mermaid:`,
+				feature: "ti-tools.flowchart",
+				temperature: 0.3,
+				maxTokensStandard: 1200,
+				maxTokensPremium: 4000,
+			});
 
 			const date = new Date().toISOString().split("T")[0];
 			const slug = slugify(description.substring(0, 50));
@@ -955,26 +1278,83 @@ Se não houver endpoints HTTP, documente as funções públicas como API SDK.
 
 Em PT-BR. Use tabelas onde fizer sentido. Code blocks marcados.`;
 
+// v0.18 PREMIUM — OpenAPI 3.1 + auth schemes + error codes + multi-language examples + breaking changes
+const API_DOC_PROMPT_PREMIUM = `Você é Lead Technical Writer + DX engineer produzindo documentação API enterprise-grade. Use a profundidade total do modelo cloud.
+
+ENTREGUE 6 ARTEFATOS em markdown:
+
+## 1. Visão Geral
+- Propósito da API
+- Ambiente base URL (prod/staging)
+- Versionamento strategy (URL path / header)
+
+## 2. Authentication
+Tabela de schemes suportados:
+| Scheme | How | Example header |
+|---|---|---|
+| Bearer JWT | … | \`Authorization: Bearer <token>\` |
+| API Key | … | \`X-API-Key: <key>\` |
+| OAuth2 | … | flow + scopes |
+
+## 3. Endpoints
+Para cada:
+### \`METHOD /path\`
+- **Descrição** + caso de uso típico
+- **Path params** (tabela): name | type | required | description | example
+- **Query params** (tabela): mesma estrutura
+- **Headers** customizados
+- **Request body** (JSON schema com exemplo)
+- **Response 2xx** (status + JSON exemplo)
+- **Errors** (4xx / 5xx com códigos específicos da API + ação user)
+- **Rate limit** específico do endpoint
+- **Idempotency** (suporta header \`Idempotency-Key\`?)
+- **Examples** em 3 linguagens:
+  \`\`\`bash
+  curl -X METHOD ...
+  \`\`\`
+  \`\`\`javascript
+  fetch(...)
+  \`\`\`
+  \`\`\`python
+  requests.post(...)
+  \`\`\`
+
+## 4. OpenAPI 3.1 Snippet
+Para os principais endpoints, inclua \`\`\`yaml openapi: 3.1.0\`\`\` válido.
+
+## 5. Error Codes Reference
+Tabela exaustiva:
+| Code | HTTP | Mensagem | Quando ocorre | Ação user |
+
+## 6. Breaking Changes / Versioning
+- Política de deprecation
+- Mudanças entre versões (se múltiplas)
+- Migration guide (se aplicável)
+
+PRINCÍPIOS:
+- Examples REAIS e copy-paste-able
+- Indique limitações conhecidas (rate limits, payload size, timeout)
+- PT-BR (mas mantenha keywords em inglês)
+- Tom: factual, sem floreio
+
+Responda apenas com markdown estruturado.`;
+
 export class ApiDocExtractorTool {
 	constructor(private app: App, private plugin: AtlasPlugin) {}
 
 	async run(code: string, language?: string): Promise<{ notePath: string } | null> {
 		const notice = new Notice("Atlas: extraindo API docs...", 0);
 		try {
-			const out = await this.plugin.ollama.chat(
-				[
-					{ role: "system", content: API_DOC_PROMPT },
-					{
-						role: "user",
-						content: `Linguagem: ${language ?? "auto-detectar"}\n\nCódigo:\n\`\`\`${language ?? ""}\n${code.substring(0, 6000)}\n\`\`\`\n\nGere a documentação API:`,
-					},
-				],
-				{
-					model: this.plugin.settings.ollama.generationModel,
-					temperature: 0.3,
-					max_tokens: 2500,
-				}
-			);
+			const out = await runTITool({
+				plugin: this.plugin,
+				systemStandard: API_DOC_PROMPT,
+				systemPremium: API_DOC_PROMPT_PREMIUM,
+				userMessage: `Linguagem: ${language ?? "auto-detectar"}\n\nCódigo:\n\`\`\`${language ?? ""}\n${code.substring(0, 12000)}\n\`\`\`\n\nGere a documentação API:`,
+				feature: "ti-tools.api-doc",
+				temperature: 0.3,
+				maxTokensStandard: 2500,
+				maxTokensPremium: 6500,
+			});
 
 			const date = new Date().toISOString().split("T")[0];
 			const folder = `${this.plugin.settings.folders.knowledge}/api-docs`;

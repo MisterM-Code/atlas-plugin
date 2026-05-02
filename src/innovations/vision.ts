@@ -54,6 +54,24 @@ export class VisionTool {
 
 		const prompt = opts.prompt ?? PROMPT_BY_TASK[opts.taskKind ?? "describe"];
 
+		// v0.18: route through LLMService when configured (GPT-4o / Claude Sonnet vision >>> llama3.2-vision)
+		const llm = this.plugin.llm;
+		if (llm?.willUseCloud("vision")) {
+			try {
+				const mimeType = this.detectMimeType(filePath);
+				const result = await llm.vision(prompt, base64, {
+					feature: `vision.${opts.taskKind ?? "describe"}`,
+					mimeType,
+				});
+				logger.info("vision: cloud analyzed", { file: filePath, length: result.length });
+				return result;
+			} catch (e) {
+				logger.warn("vision: cloud failed, falling back to ollama", { error: String(e) });
+				// fall through to ollama path
+			}
+		}
+
+		// Ollama llama3.2-vision fallback (8 GB RAM, opt-in)
 		const baseUrl = this.plugin.settings.ollama.baseUrl;
 		try {
 			const { requestUrl } = await import("obsidian");
@@ -66,10 +84,7 @@ export class VisionTool {
 					prompt,
 					images: [base64],
 					stream: false,
-					options: {
-						temperature: 0.3,
-						num_predict: 2000,
-					},
+					options: { temperature: 0.3, num_predict: 2000 },
 				}),
 				throw: false,
 			});
@@ -77,23 +92,33 @@ export class VisionTool {
 			if (response.status !== 200) {
 				if (response.status === 404) {
 					throw new Error(
-						`Atlas Vision: modelo ${VISION_MODEL} não encontrado. Faça pull primeiro: Status → Catálogo → ${VISION_MODEL}.`
+						`Atlas Vision: modelo ${VISION_MODEL} não encontrado. Faça pull em Status → Catálogo → ${VISION_MODEL}, OU configure cloud vision em Settings → ☁️ Cloud AI Providers (GPT-4o / Claude Sonnet).`
 					);
 				}
 				throw new Error(`HTTP ${response.status}`);
 			}
 
 			const json = response.json as { response?: string; error?: string };
-			if (json.error) {
-				throw new Error(`Ollama: ${json.error}`);
-			}
+			if (json.error) throw new Error(`Ollama: ${json.error}`);
 
-			logger.info("vision: analyzed", { file: filePath, length: json.response?.length ?? 0 });
+			logger.info("vision: ollama analyzed", { file: filePath, length: json.response?.length ?? 0 });
 			return json.response ?? "";
 		} catch (e) {
 			logger.error("vision: falha", { error: String(e) });
 			throw e;
 		}
+	}
+
+	private detectMimeType(filePath: string): string {
+		const ext = filePath.toLowerCase().split(".").pop() ?? "";
+		const map: Record<string, string> = {
+			png: "image/png",
+			jpg: "image/jpeg",
+			jpeg: "image/jpeg",
+			webp: "image/webp",
+			gif: "image/gif",
+		};
+		return map[ext] ?? "image/png";
 	}
 
 	/**
