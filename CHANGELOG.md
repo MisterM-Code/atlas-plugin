@@ -4,6 +4,48 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.39.0] — 2026-05-02 — "Polish wellbeing + future modals: FutureSelfLetter + Burnout + Overload + Promise + PromptModal"
+
+### Sprint A — FutureSelfLetter (📜 Future)
+- 1px top accent 4-color (blue/violet/cyan)
+- Title gradient blue→violet
+- Mode buttons: animated accent line top + active gradient blue/violet
+- Time row pills 999px com gradient active
+- Prompts box gradient blue + chips 999px gradient hover blue→violet
+- Letter textarea blue focus glow + serif font
+- Word count tabular-nums + monospace
+- **Cor: blue/violet (future/dream)**
+
+### Sprint B — Wellbeing Detectors (3 modals)
+**Burnout** ❤️ — rose/red health: title gradient rose→red, loading pulse animation
+**Capacity Overload** 📊 — orange/red: empty state celebrating green, cards with severity badge 999px pill, projects font-mono, tip italic
+**Promise Tracker** 🤝 — indigo/cyan commitment: cards 4px indigo border + hover translateX, converted state green, ignored fade out, action buttons hover lift
+
+### Sprint C — PromptModal (universal text prompt)
+- Pop-in spring animation
+- 1px top accent cosmic
+- Title gradient cyan→indigo
+- Input cyan focus glow + hover border-tint
+- Buttons row gradient line + hover translateY + cyan glow
+
+### CSS additions
+- FutureSelfLetter: ~210 LOC enhanced
+- Burnout/Overload/Promise: ~250 LOC enhanced
+- PromptModal: ~85 LOC novas
+- TOTAL: ~545 LOC
+
+### Visual identity matrix expandida (19 modais Innovation/Tool)
+- 🧠 Reasoning · 🔮 Pre-mortem · 👁️ Vision
+- 👻 Ghost Mentor · 🕰️ Time Capsule · ✍️ Tone Bifold
+- 🌸 CrossPollination · 🛑 AntiProcrastination · 🔥 HabitStreaks
+- 📡 PatternDetectors · 🌀 MemoryLoop · 📋 SmartPaste
+- 📊 CoacheePlateau · 🟡 Inconsistency · ⏰ StaleOkrAlert
+- 📜 FutureSelfLetter · ❤️ Burnout · 📈 Overload · 🤝 Promise
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+
 ## [0.38.0] — 2026-05-02 — "Polish innovation modals 4: CoacheePlateau + Inconsistency + StaleOkrAlert"
 
 ### Sprint A — CoacheePlateau (📊 Coaching)

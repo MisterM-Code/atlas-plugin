@@ -1,6 +1,6 @@
 {
 	"name": "atlas",
-	"version": "0.38.0",
+	"version": "0.39.0",
 	"description": "Atlas v0.7 Jarvis Edition — segundo cérebro local Obsidian. 15 perfis profissionais, 15 tools IA, analytics ECharts, course manager, integrations iCal+bookmarklet. 100% local via Ollama.",
 	"main": "main.js",
 	"scripts": {

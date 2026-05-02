@@ -30,6 +30,7 @@ class PromptModal extends Modal {
 		const { contentEl } = this;
 		applyResponsiveModal(contentEl, { preferredWidth: 480 });
 		contentEl.empty();
+		contentEl.addClass("atlas-prompt-modal");
 
 		contentEl.createEl("h3", { text: this.label, cls: "atlas-prompt-label" });
 
@@ -37,13 +38,16 @@ class PromptModal extends Modal {
 		this.input.type = "text";
 		this.input.value = this.defaultValue;
 
-		const btnRow = contentEl.createDiv({ cls: "atlas-modal-button-row" });
-		const cancel = btnRow.createEl("button", { text: "Cancelar" });
+		const btnRow = contentEl.createDiv({ cls: "atlas-prompt-buttons" });
+		const cancel = btnRow.createEl("button", { cls: "atlas-prompt-btn-cancel", text: "Cancelar" });
 		cancel.addEventListener("click", () => {
 			this.commit(null);
 		});
 
-		const ok = btnRow.createEl("button", { text: "OK", cls: "mod-cta" });
+		const ok = btnRow.createEl("button", {
+			cls: "atlas-prompt-btn-ok mod-cta",
+			text: "OK",
+		});
 		ok.addEventListener("click", () => {
 			this.commit(this.input.value.trim() || null);
 		});
