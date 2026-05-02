@@ -4,6 +4,53 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.2] — 2026-05-02 — "Jarvis Sci-Fi: sidebar default + conversational + Web Speech"
+
+### Added — Sprint 32.1: Jarvis sidebar tab (default)
+- New 🤖 **Jarvis** tab in Master Sidebar — first tab user sees, replaces Today as default
+- Compact mode (orb 120px) inside sidebar; expand button opens fullscreen overlay (Cmd+Shift+J)
+- Jarvis state shared between sidebar and fullscreen — same orb, same conversation history
+
+### Added — Sprint 32.2: Sci-fi visual upgrade (Iron Man HUD aesthetic)
+- **Animated particle network** background (35-70 nodes with connection lines, color-changes per state)
+- **Hex grid** subtle pattern overlay (SVG data URL)
+- **Multi-layer orb** with 4 distinct gradients per state (idle blue, listening red, thinking amber, speaking green)
+- **Reflective highlight** + inner core pulse animation
+- **Concentric ripples** emanating during listening/speaking
+- **Live waveform** circular around orb during listening (96 segments, RMS-driven noise)
+- **Scanning line** during thinking (rotating ray from orb center)
+- **Decorative outer ring** rotating slowly (30s loop)
+- Title text "ATLAS · JARVIS" with monospace font + green status dot pulsing
+
+### Added — Sprint 32.3: Web Speech API fallback (zero-config voice)
+- New `src/automation/web-speech.ts` — browser-native voice recognition
+- **Auto-fallback**: when whisper.cpp not configured, Atlas uses Web Speech API automatically
+- Real-time partial transcripts shown live in subtitle while user speaks
+- PT-BR support (default `pt-BR`, configurable via `settings.voice.language`)
+- Status bar shows current input mode: `INPUT: WHISPER.CPP` or `INPUT: WEB SPEECH API`
+
+### Added — Sprint 32.4: Conversational tool calling (Jarvis asks for missing fields)
+- Voice command "Atlas, criar pessoa" (sem nome) → Jarvis pergunta nome → pergunta tipo → cria
+- "Atlas, criar pessoa João" (sem tipo) → Jarvis pergunta tipo → cria
+- "Atlas, criar sistema" → pergunta nome → vendor → cria
+- "Atlas, agendar reunião com Maria" (sem data) → pergunta quando → cria 1:1 GROW
+- "Atlas, lembrar" → pergunta texto → quando → cria reminder
+- "Atlas, mandar email" → pergunta destinatário → assunto → abre modal pré-preenchido
+- New `detectPartialIntent()` in voice-commands.ts identifies bare commands and triggers conversation flow
+- `JarvisCore.startToolConversation()` manages stateful multi-turn collection
+- TTS speaks each follow-up question; user can answer by voice in same flow
+
+### Added — Sprint 32.5: Interactive tutorial (first-time)
+- New `src/ui/jarvis-tutorial.ts` — 5-step modal coach mark walkthrough
+- Auto-shown the first time user opens Jarvis tab; persisted via `settings.onboarding.jarvisTutorialSeen`
+- Steps: intro → how to talk → Jarvis CRIA coisas → Jarvis AGENDA coisas → compact vs fullscreen
+- Each step has "Tente:" CTA with example phrase
+- Progress dots, smooth slide transitions, skip button
+
+### Refactored
+- `src/ui/jarvis-overlay.ts` slim 49-line wrapper — delegates to `JarvisCore` shared component
+- `src/ui/jarvis-core.ts` (new, 700 LOC) handles all rendering, state machine, voice IO, conversations
+
 ## [0.9.1] — 2026-05-02 — "Publication readiness for obsidian-releases"
 
 ### Changed

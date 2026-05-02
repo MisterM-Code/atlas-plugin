@@ -1,0 +1,132 @@
+/**
+ * Atlas v0.9.2 — Web Speech API fallback for voice input.
+ *
+ * Used when whisper.cpp not configured. Browser-native (Electron supports it).
+ * Real-time partial + final transcription. Zero install/config.
+ *
+ * Limits:
+ * - macOS Chrome/Electron: works great in PT-BR
+ * - Linux: requires Google Speech proxy (Electron may not support fully)
+ * - Windows: works
+ *
+ * Reference: https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API
+ */
+
+import { logger } from "../utils/logger";
+
+export interface WebSpeechHandle {
+	stop: () => void;
+}
+
+export interface WebSpeechOpts {
+	language?: string; // "pt-BR" / "en-US" / etc.
+	continuous?: boolean;
+	interimResults?: boolean;
+	onPartial?: (text: string) => void;
+	onFinal: (text: string) => void;
+	onError?: (err: string) => void;
+}
+
+interface SpeechRecognitionType {
+	new (): SpeechRecognitionInstance;
+}
+
+interface SpeechRecognitionInstance {
+	lang: string;
+	continuous: boolean;
+	interimResults: boolean;
+	start(): void;
+	stop(): void;
+	abort(): void;
+	onresult: ((ev: SpeechRecognitionEventLike) => void) | null;
+	onerror: ((ev: { error?: string }) => void) | null;
+	onend: (() => void) | null;
+}
+
+interface SpeechRecognitionEventLike {
+	results: ArrayLike<{
+		isFinal: boolean;
+		0: { transcript: string };
+	}>;
+	resultIndex: number;
+}
+
+export function isWebSpeechAvailable(): boolean {
+	const w = window as unknown as Record<string, unknown>;
+	return Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition);
+}
+
+/**
+ * Starts a Web Speech recognition session.
+ * Returns handle. Call .stop() when user finishes speaking.
+ */
+export function startWebSpeech(opts: WebSpeechOpts): WebSpeechHandle {
+	const w = window as unknown as Record<string, unknown>;
+	const Ctor = (w.SpeechRecognition ?? w.webkitSpeechRecognition) as SpeechRecognitionType | undefined;
+	if (!Ctor) {
+		throw new Error("Web Speech API não disponível neste browser/Electron.");
+	}
+
+	const rec = new Ctor();
+	rec.lang = opts.language ?? "pt-BR";
+	rec.continuous = opts.continuous ?? false;
+	rec.interimResults = opts.interimResults ?? true;
+
+	let finalText = "";
+
+	rec.onresult = (ev) => {
+		let interim = "";
+		for (let i = ev.resultIndex; i < ev.results.length; i++) {
+			const result = ev.results[i];
+			const transcript = result[0]?.transcript ?? "";
+			if (result.isFinal) {
+				finalText += transcript;
+			} else {
+				interim += transcript;
+			}
+		}
+		if (interim && opts.onPartial) {
+			opts.onPartial(finalText + interim);
+		}
+	};
+
+	rec.onerror = (ev) => {
+		const code = ev.error ?? "unknown";
+		logger.warn("web-speech error", { code });
+		if (opts.onError) {
+			const msg =
+				code === "not-allowed"
+					? "Microfone bloqueado nas permissões."
+					: code === "no-speech"
+						? "Não detectei fala."
+						: code === "network"
+							? "Web Speech precisa de internet (Google API). Configure whisper.cpp em Settings pra usar 100% offline."
+							: `Erro voz: ${code}`;
+			opts.onError(msg);
+		}
+	};
+
+	rec.onend = () => {
+		if (finalText.trim()) {
+			opts.onFinal(finalText.trim());
+		} else if (opts.onError) {
+			opts.onError("Sem transcrição detectada.");
+		}
+	};
+
+	try {
+		rec.start();
+	} catch (e) {
+		throw new Error(`Falha ao iniciar Web Speech: ${String(e)}`);
+	}
+
+	return {
+		stop: () => {
+			try {
+				rec.stop();
+			} catch {
+				// ignore
+			}
+		},
+	};
+}

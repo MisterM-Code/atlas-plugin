@@ -6,6 +6,7 @@ import { renderTodayTab } from "./tab-today";
 import { renderChatTab } from "./tab-chat";
 import { renderHubTab } from "./tab-hub";
 import { renderRemindersTab } from "./tab-reminders";
+import { renderJarvisTab } from "./tab-jarvis";
 import { renderKnowledgeTab } from "./tab-knowledge";
 import { renderReportsTab } from "./tab-reports";
 import { renderStudyTab } from "./tab-study";
@@ -25,7 +26,7 @@ import { QuickAddFab } from "../../ui/quick-add-fab";
 export const ATLAS_MASTER_VIEW = "atlas-master-sidebar";
 
 export class AtlasMasterSidebarView extends ItemView {
-	private currentTab: TabId = "today";
+	private currentTab: TabId = "jarvis";
 	private activityBarEl!: HTMLDivElement;
 	private tabContentEl!: HTMLDivElement;
 	private tabs: TabDef[];
@@ -246,6 +247,14 @@ export class AtlasMasterSidebarView extends ItemView {
 	private buildTabs(): TabDef[] {
 		const plugin = this.plugin;
 		return [
+			{
+				id: "jarvis",
+				icon: "🤖",
+				lucideIcon: "sparkles",
+				label: "Jarvis",
+				description: "Assistente de voz com tool calling",
+				render: renderJarvisTab,
+			},
 			{
 				id: "today",
 				icon: "☀️",

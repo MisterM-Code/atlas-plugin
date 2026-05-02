@@ -185,3 +185,56 @@
 .atlas-fab-row:hover .atlas-fab-row-icon {
 	transform: scale(1.1);
 }
+
+/* ───────────────────────────────────────────────────
+ * v0.9.2 Sprint 32 — JARVIS sci-fi design (sidebar + fullscreen)
+ */
+
+@keyframes atlas-jarvis-breathe {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.025); }
+}
+
+@keyframes atlas-jarvis-listen {
+	0%, 100% { transform: scale(1.04); }
+	50% { transform: scale(1.10); }
+}
+
+@keyframes atlas-jarvis-think {
+	0% { transform: scale(1); filter: hue-rotate(0deg); }
+	50% { transform: scale(1.03); filter: hue-rotate(30deg); }
+	100% { transform: scale(1); filter: hue-rotate(0deg); }
+}
+
+@keyframes atlas-jarvis-speak {
+	0%, 100% { transform: scale(1.04); }
+	50% { transform: scale(1.08); }
+}
+
+@keyframes atlas-jarvis-core-pulse {
+	0%, 100% { opacity: 0.5; transform: scale(1); }
+	50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+@keyframes atlas-pulse-soft {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.5; }
+}
+
+.atlas-jarvis-root {
+	font-family: var(--font-interface), system-ui, sans-serif;
+}
+
+.atlas-jarvis-orb-v2 {
+	will-change: transform;
+}
+
+.atlas-jarvis-ring {
+	animation: atlas-jarvis-ring-rotate 30s linear infinite;
+	will-change: transform;
+}
+
+@keyframes atlas-jarvis-ring-rotate {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}

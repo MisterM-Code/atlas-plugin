@@ -116,6 +116,7 @@ export interface AtlasSettings {
 		modelsDownloaded: boolean;
 		ramProfile: "light" | "balanced" | "power" | "unknown";
 		splashSeen?: boolean; // first-run splash 5s anim
+		jarvisTutorialSeen?: boolean; // v0.9.2: Jarvis interactive tutorial first-time
 	};
 
 	// Atlas v0.7 Sprint 12 — Animation preferences

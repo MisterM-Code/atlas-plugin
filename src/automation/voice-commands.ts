@@ -24,6 +24,12 @@ export interface VoiceCommandResult {
 	matched: boolean;
 	command?: string;
 	feedback?: string; // texto pra Piper falar de volta (opcional)
+	/** v0.9.2: when a partial intent is detected, Jarvis can ask for missing fields. */
+	needsFollowUp?: {
+		tool: string;
+		params: Record<string, unknown>;
+		fieldsToAsk: { name: string; question: string }[];
+	};
 }
 
 const ATLAS_PREFIX = /^\s*(?:ei\s+|olha\s+|hey\s+)?(?:atlas|atalas|atras|atos)[,\s]+/i;
@@ -157,6 +163,16 @@ export async function dispatchVoiceCommand(
 		}
 	}
 
+	// v0.9.2 Sprint 32.4 — Partial intent detection (Jarvis asks for missing fields)
+	const partial = detectPartialIntent(lower, command);
+	if (partial) {
+		return {
+			matched: true,
+			command: `partial:${partial.tool}`,
+			needsFollowUp: partial,
+		};
+	}
+
 	// v0.9 Sprint 28.3 — 8 comandos MUTADORES via tool registry
 
 	// 9. Criar pessoa
@@ -243,6 +259,140 @@ export async function dispatchVoiceCommand(
 		command: "unknown",
 		feedback: `Não entendi: "${command.substring(0, 60)}". Tente: capturar, daily, status, lembrar, criar pessoa, criar sistema, agendar reunião, mandar email.`,
 	};
+}
+
+/**
+ * v0.9.2 Sprint 32.4 — Detect partial intents and return the conversation
+ * Jarvis should start (asking for missing fields).
+ */
+function detectPartialIntent(
+	lower: string,
+	command: string
+): { tool: string; params: Record<string, unknown>; fieldsToAsk: { name: string; question: string }[] } | null {
+	// "criar pessoa" (bare, no name) → ask name + type
+	if (/^cri[ae]r?\s+pessoa\s*$/.test(lower) || lower === "nova pessoa") {
+		return {
+			tool: "create_person",
+			params: {},
+			fieldsToAsk: [
+				{ name: "name", question: "Qual o nome completo da pessoa?" },
+				{
+					name: "type",
+					question:
+						"Qual o tipo? Diga: direct-report, peer, manager, skip-level, stakeholder, coachee ou other.",
+				},
+			],
+		};
+	}
+
+	// "criar pessoa NAME" (sem tipo) — pega o nome e pergunta tipo
+	const personNameOnly = /^cri[ae]r?\s+pessoa\s+(.+)$/.exec(command);
+	if (
+		personNameOnly &&
+		!/(direct[\s-]?report|peer|manager|skip[\s-]?level|stakeholder|coachee)/.test(lower)
+	) {
+		const name = personNameOnly[1].trim();
+		// se já é frase completa cuidadosa com info de cargo/time, deixa dispatcher principal pegar
+		if (name.length > 0 && name.length < 80 && !/cargo|time|equipe|squad/.test(name)) {
+			return {
+				tool: "create_person",
+				params: { name },
+				fieldsToAsk: [
+					{
+						name: "type",
+						question: `Qual o tipo de relação com ${name}? Direct-report, peer, manager, skip-level, stakeholder, coachee ou other?`,
+					},
+				],
+			};
+		}
+	}
+
+	// "criar sistema" (bare) — ask name
+	if (/^cri[ae]r?\s+sistema\s*$/.test(lower) || lower === "novo sistema") {
+		return {
+			tool: "create_system",
+			params: {},
+			fieldsToAsk: [
+				{ name: "name", question: "Qual o nome do sistema?" },
+				{ name: "vendor", question: "Qual o vendor ou fornecedor? (Diga 'nenhum' se interno.)" },
+			],
+		};
+	}
+
+	// "criar produto" (bare)
+	if (/^cri[ae]r?\s+produto\s*$/.test(lower) || lower === "novo produto") {
+		return {
+			tool: "create_product",
+			params: {},
+			fieldsToAsk: [{ name: "name", question: "Qual o nome do produto?" }],
+		};
+	}
+
+	// "criar cargo" (bare)
+	if (/^cri[ae]r?\s+cargo\s*$/.test(lower) || lower === "novo cargo") {
+		return {
+			tool: "create_role",
+			params: {},
+			fieldsToAsk: [
+				{ name: "title", question: "Qual o título do cargo?" },
+				{ name: "level", question: "Qual o nível? (ex: L5, Senior, Junior. Diga 'nenhum' pra pular.)" },
+			],
+		};
+	}
+
+	// "criar curso" (bare)
+	if (/^cri[ae]r?\s+curso\s*$/.test(lower) || lower === "novo curso") {
+		return {
+			tool: "create_course",
+			params: {},
+			fieldsToAsk: [
+				{ name: "name", question: "Qual o nome do curso?" },
+				{ name: "provider", question: "Qual o provider? (Coursera, Udemy, livro, etc. Diga 'nenhum' pra pular.)" },
+			],
+		};
+	}
+
+	// "agendar reunião com PERSON" sem datetime
+	const meetPersonOnly = /^(?:agend[ae]r?|marc[ae]r?)\s+(?:reuni[ãa]o|1[\s:]?1|um\s+a\s+um)\s+com\s+(.+?)$/.exec(command);
+	if (meetPersonOnly) {
+		const person = meetPersonOnly[1].trim();
+		// Deixa dispatcher pegar se person já tem datetime no fim (ex: "amanhã 14h")
+		if (!/\d|amanh[aã]|hoje|sexta|segunda|ter[cç]a|quart|quint|s[áa]bado|domingo/i.test(person)) {
+			return {
+				tool: "schedule_meeting",
+				params: { person },
+				fieldsToAsk: [
+					{ name: "datetime", question: `Quando agendar com ${person}? (ex: amanhã 14h, sexta 10h)` },
+				],
+			};
+		}
+	}
+
+	// "criar reminder" / "lembrar" (bare)
+	if (/^lembr[ae]r?\s*$/.test(lower) || lower === "novo reminder" || lower === "criar reminder") {
+		return {
+			tool: "create_reminder",
+			params: {},
+			fieldsToAsk: [
+				{ name: "text", question: "O que você quer ser lembrado?" },
+				{ name: "datetime", question: "Quando? (ex: amanhã às 9h, sexta 14h)" },
+			],
+		};
+	}
+
+	// "mandar email" (bare)
+	if (/^(?:mand[ae]r?|envi[ae]r?)\s+email\s*$/.test(lower)) {
+		return {
+			tool: "compose_email",
+			params: {},
+			fieldsToAsk: [
+				{ name: "to", question: "Para quem? (nome de pessoa do KG ou email completo)" },
+				{ name: "subject", question: "Qual o assunto?" },
+			],
+		};
+	}
+
+	return null;
 }
 
 async function captureTask(plugin: AtlasPlugin, text: string): Promise<void> {

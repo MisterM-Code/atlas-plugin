@@ -1,6 +1,7 @@
 import type AtlasPlugin from "../../../main";
 
 export type TabId =
+	| "jarvis"
 	| "today"
 	| "chat"
 	| "hub"
