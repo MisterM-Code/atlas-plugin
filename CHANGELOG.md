@@ -4,6 +4,46 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.28.0] — 2026-05-02 — "Polish shared components: SubTabBar + Course Detail + SlideOverPanel"
+
+Polish dos componentes compartilhados que aparecem em múltiplos contextos.
+
+### Sprint A — SubTabBar (componente shared usado por Reports/Study/Hub/Status/Lab/Auto)
+- Reescrito de inline styles → utility classes
+- Active tab com glow border-bottom cyan animado (0→80% width)
+- Hover translateY(-1px) com bg cyan-tinted
+- Badge com gradient red + entrance pop animation + tabular-nums
+- Content fade-in 240ms
+
+### Sprint B — Course detail slide-over inner content
+- Status badge pill rounded com box-shadow
+- Provider tag chip-style
+- Action buttons com hover translateY + cyan glow
+- Progress section com gradient bg + utility `atlas-progress-bar`
+- Section dividers com cyan left-border (consistente com outras tabs)
+- Module rows com hover translateX + done state highlighted green soft
+- Takeaway list polished
+
+### Sprint C — SlideOverPanel base (componente shared usado em todo CRUD KG)
+- Overlay com gradient + backdrop blur cyan/indigo (premium feel)
+- Panel com gradient bg + cyan glow border-left + cosmic top accent line (1px gradient cyan→indigo)
+- Header com gradient bg + title gradient text cyan→accent
+- Action buttons com hover scale 1.06
+- Body smooth scroll com cyan custom scrollbar
+- Width default 380→420px (mais espaço respiratório)
+- max-width: 95vw (garantia mobile/narrow)
+- Cubic-bezier transitions 280ms (mais fluido)
+
+### CSS additions
+- `.atlas-sub-tab-bar/btn/icon/label/badge/error` (~70 LOC)
+- `.atlas-course-detail/status-row/badge/provider-tag/actions/prog-section/modules` (~110 LOC)
+- `.atlas-slideover-overlay/panel/header/title-line/title/subtitle/actions/body/error` (~125 LOC)
+
+### Compatibility
+- Zero alteração de API. Todos signatures preservados.
+- Build TypeScript zero errors.
+- SlideOverPanel default width subiu 380→420 (improvements visuais; conteúdo existente cabe melhor).
+
 ## [0.27.0] — 2026-05-02 — "Polish sub-tabs: Status RAM + Lab + Reports Composer/Templates + Study"
 
 Continuação do polish v0.26: aplica utility classes (cyan/indigo gradient + premium cards + cubic transitions) nas sub-tabs restantes.

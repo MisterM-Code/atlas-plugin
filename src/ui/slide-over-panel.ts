@@ -3,13 +3,15 @@
  *
  * Aparece pela direita, sobreposto ao Obsidian. ESC fecha.
  * Usado para edit/view de qualquer entidade do KG.
+ *
+ * v0.28: utility classes + cyan accent header + smooth transitions.
  */
 
 export interface SlideOverConfig {
 	title: string;
 	subtitle?: string;
 	icon?: string;
-	width?: number; // px, default 380
+	width?: number; // px, default 420
 	render: (body: HTMLElement, panel: SlideOverPanel) => void | Promise<void>;
 	onClose?: () => void;
 	actions?: { icon: string; title: string; onClick: () => void }[];
@@ -27,114 +29,68 @@ export class SlideOverPanel {
 		// Backdrop sutil (clica fora pra fechar)
 		const overlay = document.createElement("div");
 		overlay.addClass("atlas-slideover-overlay");
-		overlay.style.position = "fixed";
-		overlay.style.inset = "0";
-		overlay.style.zIndex = "9990";
-		overlay.style.background = "rgba(0,0,0,0.15)";
-		overlay.style.opacity = "0";
-		overlay.style.transition = "opacity 200ms";
-		overlay.style.pointerEvents = "auto";
 		document.body.appendChild(overlay);
 		this.overlayEl = overlay;
 
 		// Panel
-		const width = this.cfg.width ?? 380;
+		const width = this.cfg.width ?? 420;
 		const panel = document.createElement("div");
 		panel.addClass("atlas-slideover-panel");
-		panel.style.position = "fixed";
-		panel.style.top = "0";
+		panel.style.setProperty("--atlas-slideover-width", `${width}px`);
 		panel.style.right = `-${width}px`;
-		panel.style.bottom = "0";
-		panel.style.width = `${width}px`;
-		panel.style.zIndex = "9991";
-		panel.style.background = "var(--background-primary)";
-		panel.style.borderLeft = "1px solid var(--background-modifier-border)";
-		panel.style.boxShadow = "-8px 0 32px rgba(0,0,0,0.2)";
-		panel.style.transition = "right 250ms cubic-bezier(0.4, 0, 0.2, 1)";
-		panel.style.display = "flex";
-		panel.style.flexDirection = "column";
-		panel.style.overflow = "hidden";
 		document.body.appendChild(panel);
 		this.panelEl = panel;
 
 		// Header
-		const header = panel.createDiv();
-		header.style.padding = "14px 16px";
-		header.style.borderBottom = "1px solid var(--background-modifier-border)";
-		header.style.display = "flex";
-		header.style.alignItems = "center";
-		header.style.gap = "8px";
-		header.style.flexShrink = "0";
+		const header = panel.createDiv({ cls: "atlas-slideover-header" });
 
-		const titleWrap = header.createDiv();
-		titleWrap.style.flexGrow = "1";
-		titleWrap.style.minWidth = "0";
+		const titleWrap = header.createDiv({ cls: "atlas-slideover-title-wrap" });
 
-		const titleLine = titleWrap.createDiv();
-		titleLine.style.display = "flex";
-		titleLine.style.alignItems = "center";
-		titleLine.style.gap = "6px";
+		const titleLine = titleWrap.createDiv({ cls: "atlas-slideover-title-line" });
 		if (this.cfg.icon) {
-			const icon = titleLine.createEl("span", { text: this.cfg.icon });
-			icon.style.fontSize = "16px";
+			titleLine.createEl("span", {
+				cls: "atlas-slideover-icon",
+				text: this.cfg.icon,
+			});
 		}
-		const titleEl = titleLine.createEl("h3", { text: this.cfg.title });
-		titleEl.style.margin = "0";
-		titleEl.style.fontSize = "15px";
-		titleEl.style.overflow = "hidden";
-		titleEl.style.textOverflow = "ellipsis";
-		titleEl.style.whiteSpace = "nowrap";
+		titleLine.createEl("h3", {
+			cls: "atlas-slideover-title",
+			text: this.cfg.title,
+		});
 
 		if (this.cfg.subtitle) {
-			const sub = titleWrap.createEl("div", { text: this.cfg.subtitle });
-			sub.style.fontSize = "11px";
-			sub.style.opacity = "0.6";
-			sub.style.marginTop = "2px";
+			titleWrap.createEl("div", {
+				cls: "atlas-slideover-subtitle",
+				text: this.cfg.subtitle,
+			});
 		}
 
 		// Actions
-		const actionsEl = header.createDiv();
-		actionsEl.style.display = "flex";
-		actionsEl.style.gap = "4px";
+		const actionsEl = header.createDiv({ cls: "atlas-slideover-actions" });
 		for (const a of this.cfg.actions ?? []) {
-			const btn = actionsEl.createEl("button", { text: a.icon });
+			const btn = actionsEl.createEl("button", {
+				cls: "atlas-slideover-action-btn",
+				text: a.icon,
+			});
 			btn.title = a.title;
-			btn.style.padding = "4px 8px";
-			btn.style.fontSize = "13px";
-			btn.style.cursor = "pointer";
-			btn.style.background = "transparent";
-			btn.style.border = "none";
-			btn.style.borderRadius = "4px";
-			btn.addEventListener("mouseenter", () => {
-				btn.style.background = "var(--background-modifier-hover)";
-			});
-			btn.addEventListener("mouseleave", () => {
-				btn.style.background = "transparent";
-			});
 			btn.addEventListener("click", a.onClick);
 		}
 
-		const closeBtn = actionsEl.createEl("button", { text: "✕" });
-		closeBtn.style.padding = "4px 10px";
-		closeBtn.style.fontSize = "13px";
-		closeBtn.style.cursor = "pointer";
-		closeBtn.style.background = "transparent";
-		closeBtn.style.border = "none";
-		closeBtn.style.borderRadius = "4px";
+		const closeBtn = actionsEl.createEl("button", {
+			cls: "atlas-slideover-action-btn atlas-slideover-close",
+			text: "✕",
+		});
 		closeBtn.title = "Fechar (Esc)";
 		closeBtn.addEventListener("click", () => this.close());
 
 		// Body
-		const body = panel.createDiv();
-		body.style.flexGrow = "1";
-		body.style.overflowY = "auto";
-		body.style.padding = "16px";
+		const body = panel.createDiv({ cls: "atlas-slideover-body" });
 		this.bodyEl = body as HTMLDivElement;
 
 		// Animation
 		requestAnimationFrame(() => {
 			panel.style.right = "0";
-			overlay.style.opacity = "1";
+			overlay.classList.add("is-visible");
 		});
 
 		// ESC + overlay click
@@ -149,8 +105,11 @@ export class SlideOverPanel {
 			await this.cfg.render(this.bodyEl, this);
 		} catch (e) {
 			this.bodyEl.empty();
-			const err = this.bodyEl.createEl("div", { text: `Erro: ${String(e)}` });
-			err.style.color = "var(--color-red)";
+			const err = this.bodyEl.createEl("div", {
+				cls: "atlas-slideover-error",
+				text: `Erro: ${String(e)}`,
+			});
+			void err;
 		}
 	}
 
@@ -160,11 +119,11 @@ export class SlideOverPanel {
 			this.escHandler = null;
 		}
 		if (this.panelEl) {
-			const width = this.cfg.width ?? 380;
+			const width = this.cfg.width ?? 420;
 			this.panelEl.style.right = `-${width}px`;
 		}
 		if (this.overlayEl) {
-			this.overlayEl.style.opacity = "0";
+			this.overlayEl.classList.remove("is-visible");
 		}
 		setTimeout(() => {
 			this.overlayEl?.remove();
@@ -172,7 +131,7 @@ export class SlideOverPanel {
 			this.overlayEl = null;
 			this.panelEl = null;
 			this.cfg.onClose?.();
-		}, 250);
+		}, 280);
 	}
 
 	rerender(): void {
@@ -181,7 +140,10 @@ export class SlideOverPanel {
 		try {
 			void this.cfg.render(this.bodyEl, this);
 		} catch (e) {
-			this.bodyEl.createEl("div", { text: `Erro: ${String(e)}` });
+			this.bodyEl.createEl("div", {
+				cls: "atlas-slideover-error",
+				text: `Erro: ${String(e)}`,
+			});
 		}
 	}
 

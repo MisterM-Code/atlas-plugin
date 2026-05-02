@@ -190,39 +190,28 @@ function openCourseDetail(plugin: AtlasPlugin, course: CourseT, onChange: () => 
 		icon: STATUS_LABELS[course.status]?.emoji ?? "🎓",
 		render: (body) => {
 			body.empty();
+			body.addClass("atlas-course-detail");
 
 			// Status header
-			const statusRow = body.createDiv();
-			statusRow.style.display = "flex";
-			statusRow.style.alignItems = "center";
-			statusRow.style.gap = "8px";
-			statusRow.style.marginBottom = "12px";
+			const statusRow = body.createDiv({ cls: "atlas-course-status-row" });
 			const statusMeta = STATUS_LABELS[course.status];
 			const badge = statusRow.createEl("span", {
+				cls: "atlas-course-status-badge",
 				text: `${statusMeta?.emoji} ${statusMeta?.label}`,
 			});
-			badge.style.padding = "3px 10px";
-			badge.style.borderRadius = "4px";
 			badge.style.background = statusMeta?.color ?? "#6b7280";
-			badge.style.color = "white";
-			badge.style.fontSize = "11px";
-			badge.style.fontWeight = "bold";
 
 			if (course.provider) {
-				const prov = statusRow.createEl("span", { text: `📚 ${course.provider}` });
-				prov.style.fontSize = "11px";
-				prov.style.opacity = "0.7";
+				statusRow.createEl("span", {
+					cls: "atlas-course-provider-tag",
+					text: `📚 ${course.provider}`,
+				});
 			}
 
 			// Action bar
-			const actions = body.createDiv();
-			actions.style.display = "flex";
-			actions.style.gap = "6px";
-			actions.style.marginBottom = "16px";
+			const actions = body.createDiv({ cls: "atlas-course-detail-actions" });
 
 			const editBtn = actions.createEl("button", { text: "✏️ Editar" });
-			editBtn.style.fontSize = "11px";
-			editBtn.style.padding = "4px 10px";
 			editBtn.addEventListener("click", () => {
 				panel.close();
 				new CourseEditModal(plugin, course, onChange).open();
@@ -230,8 +219,6 @@ function openCourseDetail(plugin: AtlasPlugin, course: CourseT, onChange: () => 
 
 			if (course.notePath) {
 				const openBtn = actions.createEl("button", { text: "📝 Abrir nota" });
-				openBtn.style.fontSize = "11px";
-				openBtn.style.padding = "4px 10px";
 				openBtn.addEventListener("click", async () => {
 					if (course.notePath) {
 						const f = plugin.app.vault.getAbstractFileByPath(course.notePath);
@@ -243,9 +230,7 @@ function openCourseDetail(plugin: AtlasPlugin, course: CourseT, onChange: () => 
 				});
 			}
 
-			const delBtn = actions.createEl("button", { text: "🗑️" });
-			delBtn.style.fontSize = "11px";
-			delBtn.style.padding = "4px 10px";
+			const delBtn = actions.createEl("button", { cls: "is-danger", text: "🗑️" });
 			delBtn.title = "Deletar curso";
 			delBtn.addEventListener("click", async () => {
 				const { confirmAsync } = await import("../../../ui/confirm-modal");
@@ -267,39 +252,28 @@ function openCourseDetail(plugin: AtlasPlugin, course: CourseT, onChange: () => 
 			const done = course.modules.filter((m) => m.status === "done").length;
 			const pct = total > 0 ? (done / total) * 100 : 0;
 
-			const progSection = body.createDiv();
-			progSection.style.padding = "10px";
-			progSection.style.background = "var(--background-secondary-alt)";
-			progSection.style.borderRadius = "6px";
-			progSection.style.marginBottom = "16px";
+			const progSection = body.createDiv({ cls: "atlas-course-detail-prog-section" });
 			progSection.createEl("div", {
+				cls: "atlas-course-detail-prog-text",
 				text: `Progresso: ${done}/${total} módulos (${pct.toFixed(0)}%)`,
-			}).style.fontSize = "12px";
-			const bar = progSection.createDiv();
-			bar.style.height = "8px";
-			bar.style.background = "var(--background-modifier-border)";
-			bar.style.borderRadius = "4px";
-			bar.style.marginTop = "6px";
-			const fill = bar.createDiv();
-			fill.style.height = "100%";
+			});
+			const bar = progSection.createDiv({ cls: "atlas-progress-bar" });
+			const fill = bar.createDiv({ cls: "atlas-progress-bar-fill" });
 			fill.style.width = `${pct}%`;
-			fill.style.background = "var(--interactive-accent)";
-			fill.style.borderRadius = "4px";
 
 			// Módulos checkable
-			const modulesHead = body.createEl("div", { text: `📦 Módulos (${total})` });
-			modulesHead.style.fontSize = "11px";
-			modulesHead.style.fontWeight = "bold";
-			modulesHead.style.opacity = "0.7";
-			modulesHead.style.marginBottom = "6px";
+			body.createEl("div", {
+				cls: "atlas-course-detail-section-head",
+				text: `📦 MÓDULOS (${total})`,
+			});
 
 			if (course.modules.length === 0) {
-				body.createEl("div", {
-					text: "Nenhum módulo. Use Editar para adicionar.",
-				}).style.opacity = "0.6";
+				const empty = body.createDiv({ cls: "atlas-course-detail-empty" });
+				empty.setText("Nenhum módulo. Use Editar para adicionar.");
 			} else {
+				const modList = body.createDiv({ cls: "atlas-course-detail-modules" });
 				for (const mod of course.modules) {
-					renderModuleRow(body, plugin, course, mod, () => {
+					renderModuleRow(modList, plugin, course, mod, () => {
 						openCourseDetail(plugin, course, onChange);
 						onChange();
 					});
@@ -308,15 +282,11 @@ function openCourseDetail(plugin: AtlasPlugin, course: CourseT, onChange: () => 
 
 			// Takeaways
 			if (course.takeaways.length > 0) {
-				const takHead = body.createEl("div", { text: "💡 Takeaways" });
-				takHead.style.fontSize = "11px";
-				takHead.style.fontWeight = "bold";
-				takHead.style.opacity = "0.7";
-				takHead.style.marginTop = "16px";
-				takHead.style.marginBottom = "6px";
-				const takList = body.createEl("ul");
-				takList.style.paddingLeft = "18px";
-				takList.style.fontSize = "12px";
+				body.createEl("div", {
+					cls: "atlas-course-detail-section-head",
+					text: "💡 TAKEAWAYS",
+				});
+				const takList = body.createEl("ul", { cls: "atlas-course-detail-takeaways" });
 				for (const t of course.takeaways) {
 					takList.createEl("li", { text: t });
 				}
@@ -333,17 +303,16 @@ function renderModuleRow(
 	mod: CourseModuleT,
 	onChange: () => void
 ): void {
-	const row = parent.createDiv();
-	row.style.display = "flex";
-	row.style.alignItems = "center";
-	row.style.gap = "8px";
-	row.style.padding = "6px 8px";
-	row.style.marginBottom = "4px";
-	row.style.background = "var(--background-secondary)";
-	row.style.borderRadius = "4px";
+	const isDone = mod.status === "done";
+	const row = parent.createDiv({
+		cls: `atlas-course-module-row ${isDone ? "is-done" : ""}`.trim(),
+	});
 
-	const checkbox = row.createEl("input", { type: "checkbox" }) as HTMLInputElement;
-	checkbox.checked = mod.status === "done";
+	const checkbox = row.createEl("input", {
+		cls: "atlas-course-module-check",
+		type: "checkbox",
+	}) as HTMLInputElement;
+	checkbox.checked = isDone;
 	checkbox.addEventListener("change", async () => {
 		const newStatus: "todo" | "done" = checkbox.checked ? "done" : "todo";
 		plugin.kg.updateCourseModule(course.id, mod.id, { status: newStatus });
@@ -351,26 +320,20 @@ function renderModuleRow(
 		onChange();
 	});
 
-	const titleEl = row.createDiv();
-	titleEl.style.flexGrow = "1";
-	titleEl.style.fontSize = "12px";
-	titleEl.setText(mod.title);
-	if (mod.status === "done") {
-		titleEl.style.textDecoration = "line-through";
-		titleEl.style.opacity = "0.65";
-	}
+	row.createDiv({ cls: "atlas-course-module-title", text: mod.title });
 
 	if (mod.estimateHours) {
-		const time = row.createEl("span", { text: `${mod.estimateHours}h` });
-		time.style.fontSize = "10px";
-		time.style.opacity = "0.6";
+		row.createEl("span", {
+			cls: "atlas-course-module-time",
+			text: `${mod.estimateHours}h`,
+		});
 	}
 
 	if (mod.completedAt) {
-		const ca = row.createEl("span", { text: `✓ ${mod.completedAt.substring(0, 10)}` });
-		ca.style.fontSize = "9px";
-		ca.style.opacity = "0.55";
-		ca.style.color = "var(--color-green)";
+		row.createEl("span", {
+			cls: "atlas-course-module-completed",
+			text: `✓ ${mod.completedAt.substring(0, 10)}`,
+		});
 	}
 }
 

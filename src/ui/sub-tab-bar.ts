@@ -1,6 +1,8 @@
 /**
  * Sub-tab bar reusable — barra horizontal de sub-abas dentro de uma tab principal.
- * Usada por Reports (Timeline/Composer/Templates), Lab (4 sub-views), Auto (4 cards).
+ * Usada por Reports (Timeline/Composer/Templates), Lab (4 sub-views), Auto (4 cards), Study, Hub, Status.
+ *
+ * v0.28: polish premium com utility classes + cyan accent active state + smooth transitions.
  */
 
 export interface SubTabDef<TId extends string = string> {
@@ -21,11 +23,6 @@ export interface SubTabBarOptions<TId extends string> {
 
 /**
  * Renderiza a barra de sub-tabs + container de conteúdo.
- *
- * @param parent  Elemento onde a barra + content serão criados
- * @param tabs    Lista de sub-tabs
- * @param opts    Configurações
- * @returns Função para ativar uma tab programaticamente
  */
 export function renderSubTabBar<TId extends string>(
 	parent: HTMLElement,
@@ -52,17 +49,10 @@ export function renderSubTabBar<TId extends string>(
 	})();
 
 	// Bar
-	const bar = parent.createDiv();
-	bar.addClass("atlas-sub-tab-bar");
-	bar.style.display = "flex";
-	bar.style.gap = "4px";
-	bar.style.borderBottom = "1px solid var(--background-modifier-border)";
-	bar.style.marginBottom = "12px";
-	bar.style.flexWrap = "wrap";
+	const bar = parent.createDiv({ cls: "atlas-sub-tab-bar" });
 
 	// Content container
-	const contentEl = parent.createDiv();
-	contentEl.addClass("atlas-sub-tab-content");
+	const contentEl = parent.createDiv({ cls: "atlas-sub-tab-content" });
 
 	const buttons = new Map<TId, HTMLDivElement>();
 
@@ -70,48 +60,17 @@ export function renderSubTabBar<TId extends string>(
 		bar.empty();
 		buttons.clear();
 		for (const tab of tabs) {
-			const btn = bar.createDiv();
-			btn.style.padding = "8px 14px";
-			btn.style.cursor = "pointer";
-			btn.style.fontSize = "12px";
-			btn.style.fontWeight = "500";
-			btn.style.borderRadius = "6px 6px 0 0";
-			btn.style.transition = "background 120ms";
-			btn.style.position = "relative";
-			btn.style.display = "flex";
-			btn.style.alignItems = "center";
-			btn.style.gap = "6px";
+			const isActive = tab.id === current;
+			const btn = bar.createDiv({
+				cls: `atlas-sub-tab-btn ${isActive ? "is-active" : ""}`.trim(),
+			});
 
-			if (tab.id === current) {
-				btn.style.background = "var(--background-modifier-hover)";
-				btn.style.borderBottom = "2px solid var(--interactive-accent)";
-				btn.style.color = "var(--text-normal)";
-				btn.style.marginBottom = "-1px";
-			} else {
-				btn.style.background = "transparent";
-				btn.style.color = "var(--text-muted)";
-				btn.addEventListener("mouseenter", () => {
-					btn.style.background = "var(--background-secondary)";
-				});
-				btn.addEventListener("mouseleave", () => {
-					btn.style.background = "transparent";
-				});
-			}
-
-			const iconEl = btn.createEl("span", { text: tab.icon });
-			iconEl.style.fontSize = "14px";
-			btn.createEl("span", { text: tab.label });
+			btn.createEl("span", { cls: "atlas-sub-tab-icon", text: tab.icon });
+			btn.createEl("span", { cls: "atlas-sub-tab-label", text: tab.label });
 
 			const badge = tab.badge?.();
 			if (badge) {
-				const b = btn.createEl("span", { text: badge });
-				b.style.background = "var(--color-red)";
-				b.style.color = "white";
-				b.style.fontSize = "9px";
-				b.style.padding = "1px 5px";
-				b.style.borderRadius = "8px";
-				b.style.marginLeft = "4px";
-				b.style.fontWeight = "bold";
+				btn.createEl("span", { cls: "atlas-sub-tab-badge", text: badge });
 			}
 
 			if (tab.description) {
@@ -143,10 +102,7 @@ export function renderSubTabBar<TId extends string>(
 			await tab.render(contentEl);
 		} catch (e) {
 			contentEl.empty();
-			const err = contentEl.createDiv();
-			err.style.padding = "12px";
-			err.style.color = "var(--color-red)";
-			err.style.fontSize = "12px";
+			const err = contentEl.createDiv({ cls: "atlas-sub-tab-error" });
 			err.setText(`Atlas: erro em sub-tab "${tab.label}" — ${String(e)}`);
 		}
 		opts.onChange?.(id);

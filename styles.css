@@ -5870,3 +5870,374 @@ button.atlas-btn:active::after,
 	opacity: 0.72;
 	flex-wrap: wrap;
 }
+
+/* ──────────────────────────────────────────────────────────────────
+   v0.28 SubTabBar (shared component — Reports/Study/Hub/Status/Lab/Auto)
+   ────────────────────────────────────────────────────────────────── */
+.atlas-sub-tab-bar {
+	display: flex;
+	gap: 2px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	margin-bottom: 14px;
+	flex-wrap: wrap;
+	position: relative;
+}
+.atlas-sub-tab-btn {
+	padding: 9px 16px;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 500;
+	border-radius: 8px 8px 0 0;
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--text-muted);
+	background: transparent;
+	transition: background 200ms cubic-bezier(0.22, 1, 0.36, 1),
+	            color 200ms ease,
+	            transform 200ms ease;
+	margin-bottom: -1px;
+	border-bottom: 2px solid transparent;
+	user-select: none;
+}
+.atlas-sub-tab-btn::before {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: 50%;
+	width: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, #00e5e5, transparent);
+	transition: width 280ms cubic-bezier(0.22, 1, 0.36, 1),
+	            left 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-sub-tab-btn:hover:not(.is-active) {
+	background: color-mix(in srgb, var(--background-secondary) 80%, var(--atlas-accent, #6366f1));
+	color: var(--text-normal);
+	transform: translateY(-1px);
+}
+.atlas-sub-tab-btn.is-active {
+	background: linear-gradient(180deg,
+		var(--background-modifier-hover),
+		color-mix(in srgb, var(--background-modifier-hover) 92%, var(--atlas-accent, #00e5e5)));
+	color: var(--text-normal);
+}
+.atlas-sub-tab-btn.is-active::before {
+	width: 80%;
+	left: 10%;
+}
+.atlas-sub-tab-icon { font-size: 14px; }
+.atlas-sub-tab-label {
+	font-weight: 600;
+	letter-spacing: 0.1px;
+}
+.atlas-sub-tab-badge {
+	background: linear-gradient(135deg, #ef4444, #dc2626);
+	color: white;
+	font-size: 9px;
+	padding: 2px 6px;
+	border-radius: 10px;
+	margin-left: 4px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+	animation: atlas-badge-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.atlas-sub-tab-content {
+	min-height: 200px;
+	animation: atlas-tab-fade-in 240ms ease;
+}
+.atlas-sub-tab-error {
+	padding: 16px;
+	color: var(--color-red);
+	font-size: 12px;
+	background: rgba(239, 68, 68, 0.08);
+	border: 1px solid rgba(239, 68, 68, 0.25);
+	border-radius: 8px;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   v0.28 Course detail slide-over panel
+   ────────────────────────────────────────────────────────────────── */
+.atlas-course-detail {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.atlas-course-status-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+.atlas-course-status-badge {
+	padding: 4px 12px;
+	border-radius: 999px;
+	color: white;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.2px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.atlas-course-provider-tag {
+	font-size: 11px;
+	opacity: 0.72;
+	padding: 4px 10px;
+	background: var(--background-secondary);
+	border-radius: 999px;
+}
+.atlas-course-detail-actions {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.atlas-course-detail-actions button {
+	font-size: 11px;
+	padding: 6px 12px;
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-course-detail-actions button:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(0, 229, 229, 0.18);
+}
+.atlas-course-detail-actions button.is-danger:hover {
+	box-shadow: 0 4px 8px rgba(239, 68, 68, 0.25);
+	color: var(--color-red);
+}
+
+.atlas-course-detail-prog-section {
+	padding: 12px 14px;
+	background: linear-gradient(180deg,
+		var(--background-secondary-alt),
+		color-mix(in srgb, var(--background-secondary-alt) 90%, var(--atlas-accent, #6366f1)));
+	border: 1px solid rgba(0, 229, 229, 0.18);
+	border-radius: 10px;
+}
+.atlas-course-detail-prog-text {
+	font-size: 12px;
+	font-weight: 500;
+	margin-bottom: 8px;
+	font-variant-numeric: tabular-nums;
+}
+
+.atlas-course-detail-section-head {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin-top: 6px;
+	padding-left: 8px;
+	border-left: 3px solid var(--atlas-accent, #00e5e5);
+	opacity: 0.85;
+}
+.atlas-course-detail-empty {
+	padding: 14px;
+	text-align: center;
+	font-size: 11px;
+	opacity: 0.6;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	border: 1px dashed var(--background-modifier-border);
+}
+
+.atlas-course-detail-modules {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+.atlas-course-module-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 10px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	border: 1px solid transparent;
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-course-module-row:hover {
+	border-color: rgba(0, 229, 229, 0.35);
+	transform: translateX(2px);
+}
+.atlas-course-module-row.is-done {
+	opacity: 0.65;
+	background: color-mix(in srgb, var(--background-secondary) 90%, var(--color-green, #22c55e));
+}
+.atlas-course-module-check {
+	cursor: pointer;
+	accent-color: var(--atlas-accent, #00e5e5);
+}
+.atlas-course-module-title {
+	flex-grow: 1;
+	font-size: 12px;
+	color: var(--text-normal);
+}
+.atlas-course-module-row.is-done .atlas-course-module-title {
+	text-decoration: line-through;
+}
+.atlas-course-module-time {
+	font-size: 10px;
+	opacity: 0.6;
+	font-variant-numeric: tabular-nums;
+}
+.atlas-course-module-completed {
+	font-size: 9px;
+	color: var(--color-green, #22c55e);
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+.atlas-course-detail-takeaways {
+	padding-left: 20px;
+	font-size: 12px;
+	margin: 6px 0 0 0;
+}
+.atlas-course-detail-takeaways li {
+	margin-bottom: 4px;
+	line-height: 1.5;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   v0.28 SlideOverPanel — premium right panel
+   ────────────────────────────────────────────────────────────────── */
+.atlas-slideover-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 9990;
+	background: linear-gradient(135deg,
+		rgba(0, 0, 0, 0.18),
+		rgba(0, 229, 229, 0.05) 50%,
+		rgba(99, 102, 241, 0.05));
+	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(2px);
+	opacity: 0;
+	pointer-events: auto;
+	transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-slideover-overlay.is-visible {
+	opacity: 1;
+}
+
+.atlas-slideover-panel {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	width: var(--atlas-slideover-width, 420px);
+	max-width: 95vw;
+	z-index: 9991;
+	background: linear-gradient(180deg,
+		var(--background-primary),
+		color-mix(in srgb, var(--background-primary) 96%, var(--atlas-accent, #6366f1)));
+	border-left: 1px solid rgba(0, 229, 229, 0.18);
+	box-shadow: -16px 0 48px rgba(0, 0, 0, 0.25),
+	            -1px 0 0 rgba(0, 229, 229, 0.12);
+	transition: right 280ms cubic-bezier(0.22, 1, 0.36, 1);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+.atlas-slideover-panel::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, #00e5e5, #6366f1, transparent);
+	pointer-events: none;
+	opacity: 0.85;
+}
+
+.atlas-slideover-header {
+	padding: 16px 18px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	flex-shrink: 0;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 90%, var(--atlas-accent, #00e5e5)));
+}
+.atlas-slideover-title-wrap {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-slideover-title-line {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.atlas-slideover-icon {
+	font-size: 18px;
+	flex-shrink: 0;
+}
+.atlas-slideover-title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	background: linear-gradient(135deg, var(--text-normal), var(--atlas-accent, #00e5e5));
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	letter-spacing: -0.2px;
+}
+.atlas-slideover-subtitle {
+	font-size: 11px;
+	opacity: 0.65;
+	margin-top: 3px;
+	line-height: 1.45;
+}
+
+.atlas-slideover-actions {
+	display: flex;
+	gap: 4px;
+	flex-shrink: 0;
+}
+.atlas-slideover-action-btn {
+	padding: 6px 10px;
+	font-size: 13px;
+	cursor: pointer;
+	background: transparent;
+	border: none;
+	border-radius: 6px;
+	color: var(--text-muted);
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-slideover-action-btn:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+	transform: scale(1.06);
+}
+.atlas-slideover-close:hover {
+	color: var(--color-red);
+}
+
+.atlas-slideover-body {
+	flex-grow: 1;
+	overflow-y: auto;
+	padding: 18px;
+}
+.atlas-slideover-body::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-slideover-body::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+.atlas-slideover-body::-webkit-scrollbar-thumb:hover {
+	background: rgba(0, 229, 229, 0.45);
+}
+
+.atlas-slideover-error {
+	padding: 14px;
+	color: var(--color-red);
+	background: rgba(239, 68, 68, 0.08);
+	border: 1px solid rgba(239, 68, 68, 0.25);
+	border-radius: 8px;
+	font-size: 12px;
+}
