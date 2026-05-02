@@ -4,6 +4,42 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.50.0] — 2026-05-02 — "Home Cosmic Complete: Próximos polish + Quick Actions premium + Knowledge categories + KG integrations"
+
+### Sprint A — Próximos compromissos polish
+- Imminent badge "🔥 IMMINENT" pulsante quando < 60min
+- Absolute time ao lado do countdown ("14:30 · em 1h 23min")
+- Person badge clickable com tooltip brief preview hover (últimas 3 sessões + temas + commitments)
+- Hover translateX + cyan glow
+
+### Sprint B — Quick Actions premium
+- 6 botões (era 4): Falar/Daily/Novo 1:1/Chat/Capturar/Weekly
+- Bigger buttons com hover lift -3px + scale 1.03 + cyan glow
+- Active state translateY(-1px) scale(0.98) com 80ms transition
+- Icon font 24px com drop-shadow cyan
+- "Novo 1:1" agora aponta pro comando `new-1on1` (cria página real, não brief)
+
+### Sprint C — Knowledge cards per-category color theming
+- 4 categorias cada com cor própria via CSS vars (--kg-accent):
+  - 👥 Pessoas → cyan #00e5e5
+  - 🖥️ Sistemas → indigo #6366f1
+  - 📦 Produtos → violet #a855f7
+  - 🎓 Cursos → amber #f59e0b
+- Top accent line gradiente animado por categoria
+- Hover box-shadow color-mix dinâmica
+- Row hover translateX + bg color tinted
+
+### Sprint D — KG integrations audit
+- `create_action_item` tool agora **upserta no KG** com personId resolvido via findPersonByName
+- Antes: só criava markdown em inbox (KG não rastreava)
+- Agora: KG.upsertActionItem com ownerId (Person.id) + dueDate ISO + sourceNotePath
+- Best-effort save (markdown é source of truth, KG é index)
+
+### Files
+- `src/views/master/tab-today.ts` — renderUpcomingMeetings + renderQuickActions + buildCard refactor
+- `src/agent/tool-registry.ts` — create_action_item upsert KG
+- `styles.css` — `.atlas-today-meeting-*` + `.atlas-today-quickact*` + `.atlas-today-knowledge-card.is-*` (~200 LOC)
+
 ## [0.49.2] — 2026-05-02 — "Vencendo + Vault Health interactive"
 
 ### Vencendo widget — clickable + countdown

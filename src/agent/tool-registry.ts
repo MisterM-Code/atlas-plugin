@@ -264,6 +264,23 @@ captured_via: tool-call
 			}
 			try {
 				await plugin.app.vault.create(path, md);
+
+				// v0.50: also upsert action item into KG with resolved personId
+				try {
+					const aiId = `ai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+					plugin.kg.upsertActionItem({
+						id: aiId,
+						description: text,
+						ownerId: owner?.id,
+						dueDate: dueIso ? new Date(dueIso.replace(" ", "T")).toISOString() : undefined,
+						status: "open",
+						sourceNotePath: path,
+					});
+					await plugin.kg.save();
+				} catch {
+					// KG upsert is best-effort — markdown note is the source of truth
+				}
+
 				return {
 					ok: true,
 					message: `Tarefa criada${dueIso ? ` para ${dueIso}` : ""}${owner ? ` (owner: ${owner.name})` : ""}.`,

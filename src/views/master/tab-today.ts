@@ -405,10 +405,41 @@ async function renderUpcomingMeetings(el: HTMLElement, plugin: AtlasPlugin): Pro
 	}
 
 	for (const m of upcoming) {
-		const row = list.createDiv({ cls: "atlas-today-meeting-row" });
-		row.createDiv({ cls: "atlas-today-meeting-title", text: m.file.basename });
+		const row = list.createDiv({ cls: "atlas-today-meeting-row is-clickable" });
+		const head = row.createDiv({ cls: "atlas-today-meeting-head" });
+		head.createDiv({ cls: "atlas-today-meeting-title", text: m.file.basename });
+
+		// v0.50: imminent badge se < 60min
+		const minsTo = Math.floor((m.ts - Date.now()) / 60_000);
+		if (minsTo >= 0 && minsTo <= 60) {
+			head.createSpan({ cls: "atlas-today-meeting-imminent", text: "🔥 IMMINENT" });
+		}
+
 		const meta = row.createDiv({ cls: "atlas-today-meeting-meta" });
 		const countdownEl = meta.createSpan({ cls: "atlas-today-meeting-countdown" });
+		const absTime = new Date(m.ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+		meta.createSpan({ cls: "atlas-today-meeting-abs-time", text: absTime });
+
+		// v0.50: person badge with brief preview on hover
+		if (m.person) {
+			const personBadge = meta.createSpan({ cls: "atlas-today-meeting-person", text: `· ${m.person}` });
+			const person = plugin.kg.findPersonByName(m.person);
+			if (person) {
+				const sessions = plugin.kg.listSessionsByPerson(person.id).slice(0, 3);
+				const themes = plugin.kg.listTopThemesForPerson(person.id, 3);
+				const commits = plugin.kg.listOpenCommitmentsBetween(person.id, "eu");
+				const briefLines: string[] = [
+					`👤 ${person.name}`,
+					`🕐 Última: ${sessions[0]?.date ?? "(sem sessão)"}`,
+					`🤝 Commitments: ${commits.length}`,
+				];
+				if (themes.length > 0) {
+					briefLines.push(`🏷️ Temas: ${themes.map((t) => t.name).slice(0, 2).join(", ")}`);
+				}
+				personBadge.title = briefLines.join("\n");
+			}
+		}
+
 		const updateCountdown = () => {
 			const diff = m.ts - Date.now();
 			countdownEl.setText(formatCountdown(diff));
@@ -446,8 +477,10 @@ async function renderQuickActions(el: HTMLElement, plugin: AtlasPlugin): Promise
 	};
 	action("🎙️", "Falar com Atlas", "jarvis");
 	action("📓", "Daily log", "daily-log");
-	action("🤝", "Novo 1:1", "prepare-1on1");
+	action("🤝", "Novo 1:1", "new-1on1");
 	action("💬", "Chat", "chat-open");
+	action("🎯", "Capturar", "quick-capture");
+	action("📊", "Weekly", "weekly-now");
 }
 
 // ══ ZONE 3: AWARENESS ═══════════════════════════════════════════════
@@ -941,9 +974,10 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 		title: string,
 		count: number,
 		topItems: { name: string; onClick: () => void }[],
-		onAllClick: () => void
+		onAllClick: () => void,
+		category: "people" | "systems" | "products" | "courses" = "people" // v0.50: color per category
 	): void => {
-		const card = grid.createDiv({ cls: "atlas-today-knowledge-card" });
+		const card = grid.createDiv({ cls: `atlas-today-knowledge-card is-${category}` });
 		const top = card.createDiv({ cls: "atlas-today-knowledge-card-top" });
 		top.createSpan({ cls: "atlas-today-knowledge-card-emoji", text: emoji });
 		top.createSpan({ cls: "atlas-today-knowledge-card-title", text: title });
@@ -998,7 +1032,8 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 				await plugin.activateMasterTab("knowledge");
 			},
 		})),
-		() => void plugin.activateMasterTab("knowledge")
+		() => void plugin.activateMasterTab("knowledge"),
+		"people"
 	);
 
 	// Systems card
@@ -1022,7 +1057,8 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 				await plugin.activateMasterTab("systems");
 			},
 		})),
-		() => void plugin.activateMasterTab("systems")
+		() => void plugin.activateMasterTab("systems"),
+		"systems"
 	);
 
 	// Products card
@@ -1046,7 +1082,8 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 				await plugin.activateMasterTab("products");
 			},
 		})),
-		() => void plugin.activateMasterTab("products")
+		() => void plugin.activateMasterTab("products"),
+		"products"
 	);
 
 	// Courses card
@@ -1070,7 +1107,8 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 				await plugin.activateMasterTab("study");
 			},
 		})),
-		() => void plugin.activateMasterTab("study")
+		() => void plugin.activateMasterTab("study"),
+		"courses"
 	);
 }
 
