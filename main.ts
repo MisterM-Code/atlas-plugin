@@ -624,6 +624,88 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		new Notice(helpText, 15000);
 	}
 
+	private webhookServer: { close: () => void } | null = null;
+
+	toggleWebhookReceiver(): void {
+		if (this.webhookServer) {
+			this.webhookServer.close();
+			this.webhookServer = null;
+			new Notice("🔌 Atlas: webhook receiver desligado.");
+			return;
+		}
+		void this.startWebhookReceiver();
+	}
+
+	private async startWebhookReceiver(): Promise<void> {
+		try {
+			const http = await import("http");
+			const port = 7842;
+			const token = "atlas-" + Math.random().toString(36).substring(2, 12);
+			const server = http.createServer(async (req, res) => {
+				if (req.method !== "POST") {
+					res.writeHead(405);
+					res.end("Use POST.");
+					return;
+				}
+				const auth = req.headers["authorization"];
+				if (auth !== `Bearer ${token}`) {
+					res.writeHead(401);
+					res.end("Unauthorized. Use Bearer token from Atlas Notice.");
+					return;
+				}
+				let body = "";
+				req.on("data", (chunk) => (body += String(chunk)));
+				req.on("end", async () => {
+					try {
+						const data = JSON.parse(body) as {
+							title?: string;
+							body?: string;
+							tag?: string;
+							due?: string;
+						};
+						const date = new Date().toISOString().split("T")[0];
+						const slug = (data.title ?? "webhook")
+							.substring(0, 50)
+							.toLowerCase()
+							.replace(/[^a-z0-9]+/g, "-")
+							.replace(/^-|-$/g, "");
+						const path = normalizePath(`${this.settings.folders.inbox}/${date}-webhook-${slug}.md`);
+						const dueLine = data.due ? ` (@${data.due})` : "";
+						const tagLine = data.tag ? ` #${data.tag.replace(/^#/, "")}` : "";
+						const md = `---
+type: webhook-capture
+captured_at: ${new Date().toISOString()}
+captured_via: webhook
+---
+
+# 🔌 ${data.title ?? "Webhook"}
+
+- [ ] ${data.body ?? data.title ?? "—"}${dueLine}${tagLine}
+`;
+						if (!this.app.vault.getAbstractFileByPath(this.settings.folders.inbox)) {
+							await this.app.vault.createFolder(this.settings.folders.inbox);
+						}
+						await this.app.vault.create(path, md);
+						new Notice(`🔌 Atlas: webhook recebido — "${data.title}"`, 6000);
+						res.writeHead(200, { "Content-Type": "application/json" });
+						res.end(JSON.stringify({ ok: true, path }));
+					} catch (e) {
+						res.writeHead(400);
+						res.end(`Erro: ${String(e)}`);
+					}
+				});
+			});
+			server.listen(port);
+			this.webhookServer = { close: () => server.close() };
+			new Notice(
+				`🔌 Atlas webhook ON em localhost:${port}. Token: ${token}\n\nTeste:\ncurl -X POST -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" -d '{"title":"teste","body":"hello"}' http://localhost:${port}`,
+				30000
+			);
+		} catch (e) {
+			new Notice(`Atlas: webhook falhou — ${String(e)}`, 8000);
+		}
+	}
+
 	showBookmarkletModal(): void {
 		// Gera bookmarklet javascript: que captura URL+título+seleção
 		const bookmarkletJs =
@@ -993,6 +1075,82 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		});
 
 		// ─── v0.5 Sprint 9: Visual Template Editor ───
+
+		// ─── v0.7.7: LGPD Right-to-be-forgotten ───
+
+		this.addCommand({
+			id: "atlas-forget-person",
+			name: "🗑️ Right-to-be-forgotten (apagar pessoa do KG)",
+			callback: async () => {
+				const people = this.kg.listPeople();
+				if (people.length === 0) {
+					new Notice("Atlas: KG vazio.");
+					return;
+				}
+				const apiAny = this.app as unknown as { Modal?: unknown };
+				void apiAny;
+				// Picker simples via Notice + prompt
+				const name = window.prompt(
+					"⚠️ LGPD Right-to-be-forgotten\n\nNome EXATO da pessoa para deletar do KG:\n\n(Sessões, action items, commitments, themes vinculados também serão removidos. Notas em 06_People/ NÃO são apagadas — você precisa fazer manualmente se quiser.)"
+				);
+				if (!name) return;
+				const person = this.kg.findPersonByName(name);
+				if (!person) {
+					new Notice(`Atlas: "${name}" não encontrado.`);
+					return;
+				}
+				const confirm2 = window.confirm(
+					`Confirmar destruição de "${person.name}" + ${this.kg.listSessionsByPerson(person.id).length} sessões + commitments + temas vinculados?\n\nEsta ação NÃO PODE ser desfeita.`
+				);
+				if (!confirm2) return;
+
+				// Cascade delete
+				const sessionsCount = this.kg.data.sessions.filter((s) => s.personId === person.id).length;
+				this.kg.data.sessions = this.kg.data.sessions.filter((s) => s.personId !== person.id);
+				const aiCount = this.kg.data.actionItems.filter((a) => a.ownerId === person.id).length;
+				this.kg.data.actionItems = this.kg.data.actionItems.filter((a) => a.ownerId !== person.id);
+				const cmCount = this.kg.data.commitments.filter(
+					(c) => c.madeBy === person.id || c.madeTo === person.id
+				).length;
+				this.kg.data.commitments = this.kg.data.commitments.filter(
+					(c) => c.madeBy !== person.id && c.madeTo !== person.id
+				);
+				// Themes: remove personId from personIds; delete theme if 0 left
+				let themesUpdated = 0;
+				this.kg.data.themes = this.kg.data.themes
+					.map((t) => ({ ...t, personIds: t.personIds.filter((pid) => pid !== person.id) }))
+					.filter((t) => {
+						if (t.personIds.length === 0) {
+							themesUpdated++;
+							return false;
+						}
+						return true;
+					});
+				this.kg.deletePerson(person.id);
+				await this.kg.save();
+				await this.auditLog({
+					action: "lgpd.right-to-be-forgotten",
+					personName: person.name,
+					personId: person.id,
+					sessions: sessionsCount,
+					actionItems: aiCount,
+					commitments: cmCount,
+					themesPurged: themesUpdated,
+				});
+				new Notice(
+					`✓ Atlas: "${person.name}" + dependências apagadas. Sessions: ${sessionsCount}, Actions: ${aiCount}, Commitments: ${cmCount}, Themes purgados: ${themesUpdated}.`,
+					12000
+				);
+			},
+		});
+
+		// ─── v0.7.7: Webhook receiver (Express-lite via Node http) ───
+
+		this.addCommand({
+			id: "atlas-webhook-toggle",
+			name: "🔌 Webhook receiver: toggle (localhost:7842)",
+			callback: () => this.toggleWebhookReceiver(),
+		});
 
 		// ─── v0.7.4: Voice Jarvis ───
 

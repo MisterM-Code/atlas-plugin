@@ -1,7 +1,7 @@
 {
 	"id": "atlas",
 	"name": "Atlas",
-	"version": "0.7.5",
+	"version": "0.7.7",
 	"minAppVersion": "1.5.0",
 	"description": "Seu segundo cérebro local. Captura zero-fricção, knowledge graph, weekly reports automáticos, analytics ECharts, 8 tools IA TI, 15 perfis profissionais. 100% local via Ollama.",
 	"author": "Miguel Veríssimo",

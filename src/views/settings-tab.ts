@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import type AtlasPlugin from "../../main";
 import { setupVaultStructure } from "../commands/setup-vault";
+import { PROFILES, PROFILE_CATEGORIES, ProfileId, mergeProfiles } from "../profiles/registry";
 
 export class AtlasSettingTab extends PluginSettingTab {
 	constructor(app: App, private plugin: AtlasPlugin) {
@@ -17,12 +18,186 @@ export class AtlasSettingTab extends PluginSettingTab {
 		});
 
 		this.section_user();
+		this.section_profile();
 		this.section_ollama();
 		this.section_schedules();
 		this.section_email();
 		this.section_notifications();
 		this.section_voice();
 		this.section_advanced();
+	}
+
+	// v0.7.6: Profile section — mudar perfil sem refazer onboarding
+	private section_profile(): void {
+		const { containerEl } = this;
+		containerEl.createEl("h3", { text: "🎯 Perfil profissional" });
+		containerEl.createEl("p", {
+			text: "Multi-perfil: Atlas adapta templates, tools IA, frameworks, métricas e schedules ao(s) perfil(is) escolhido(s).",
+		}).style.fontSize = "12px";
+
+		const selected = new Set<ProfileId>(this.plugin.settings.profile?.ids ?? []);
+
+		// Summary live
+		const summary = containerEl.createDiv();
+		summary.style.padding = "10px";
+		summary.style.background = "var(--background-secondary)";
+		summary.style.borderRadius = "6px";
+		summary.style.marginBottom = "12px";
+		summary.style.fontSize = "11px";
+
+		const updateSummary = () => {
+			summary.empty();
+			if (selected.size === 0) {
+				summary.setText("⚠️ Nenhum perfil selecionado. Ative pelo menos 1 abaixo.");
+				summary.style.color = "var(--color-orange)";
+				return;
+			}
+			summary.style.color = "";
+			try {
+				const merged = mergeProfiles(Array.from(selected));
+				summary.createEl("div", {
+					text: `✓ ${selected.size} perfil(is) ativos: ${Array.from(selected)
+						.map((id) => PROFILES.find((p) => p.id === id)?.emoji ?? "•")
+						.join(" ")}`,
+				}).style.fontWeight = "bold";
+				summary.createEl("div", {
+					text: `Templates: ${merged.templates.length} · Tools IA: ${merged.tools.length} · Frameworks: ${merged.frameworks.length} · Métricas: ${merged.metrics.length}`,
+				}).style.opacity = "0.75";
+			} catch {
+				summary.setText("Erro ao mesclar perfis.");
+			}
+		};
+		updateSummary();
+
+		// Grid de perfis por categoria
+		for (const cat of PROFILE_CATEGORIES) {
+			const catHead = containerEl.createEl("div", { text: cat.label });
+			catHead.style.fontSize = "10px";
+			catHead.style.fontWeight = "bold";
+			catHead.style.opacity = "0.7";
+			catHead.style.marginTop = "12px";
+			catHead.style.marginBottom = "6px";
+			catHead.style.letterSpacing = "0.5px";
+
+			const grid = containerEl.createDiv();
+			grid.style.display = "grid";
+			grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
+			grid.style.gap = "6px";
+
+			for (const id of cat.ids) {
+				const profile = PROFILES.find((p) => p.id === id);
+				if (!profile) continue;
+
+				const card = grid.createDiv();
+				card.style.padding = "8px 10px";
+				card.style.background = "var(--background-secondary)";
+				card.style.borderRadius = "6px";
+				card.style.cursor = "pointer";
+				card.style.border = "2px solid transparent";
+				card.style.transition = "border-color 120ms";
+
+				const updateStyle = () => {
+					if (selected.has(id)) {
+						card.style.borderColor = "var(--atlas-accent, var(--interactive-accent))";
+						card.style.background = "var(--background-modifier-hover)";
+					} else {
+						card.style.borderColor = "transparent";
+						card.style.background = "var(--background-secondary)";
+					}
+				};
+				updateStyle();
+
+				const top = card.createDiv();
+				top.style.display = "flex";
+				top.style.alignItems = "center";
+				top.style.gap = "8px";
+				top.createEl("span", { text: profile.emoji }).style.fontSize = "16px";
+				top.createEl("div", { text: profile.name }).style.fontSize = "12px";
+
+				const tag = card.createEl("div", { text: profile.tagline });
+				tag.style.fontSize = "10px";
+				tag.style.opacity = "0.7";
+				tag.style.marginTop = "2px";
+
+				card.addEventListener("click", () => {
+					if (selected.has(id)) selected.delete(id);
+					else selected.add(id);
+					updateStyle();
+					updateSummary();
+				});
+			}
+		}
+
+		// Color accent picker
+		new Setting(containerEl)
+			.setName("Color accent")
+			.setDesc("Cor primária do Atlas (aplicada em tabs ativas, header, badges).")
+			.addDropdown((d) => {
+				const presets = [
+					{ id: "#6366f1", label: "Indigo" },
+					{ id: "#14b8a6", label: "Teal" },
+					{ id: "#f97316", label: "Orange" },
+					{ id: "#f43f5e", label: "Rose" },
+					{ id: "#16a34a", label: "Forest" },
+					{ id: "#7c3aed", label: "Purple" },
+					{ id: "#0ea5e9", label: "Sky" },
+				];
+				for (const p of presets) {
+					d.addOption(p.id, p.label);
+				}
+				d.setValue(this.plugin.settings.profile?.colorAccent ?? "#6366f1");
+				d.onChange(async (v) => {
+					if (!this.plugin.settings.profile) {
+						this.plugin.settings.profile = { ids: [] };
+					}
+					this.plugin.settings.profile.colorAccent = v;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		// Apply button
+		new Setting(containerEl)
+			.setName("Aplicar mudanças")
+			.setDesc(
+				"Salva perfis selecionados + atualiza schedules (briefing time, weekly day) baseado nos defaults do perfil principal."
+			)
+			.addButton((b) =>
+				b
+					.setButtonText("Aplicar")
+					.setCta()
+					.onClick(async () => {
+						if (selected.size === 0) {
+							new Notice("Atlas: selecione pelo menos 1 perfil.");
+							return;
+						}
+						if (!this.plugin.settings.profile) {
+							this.plugin.settings.profile = { ids: [] };
+						}
+						this.plugin.settings.profile.ids = Array.from(selected);
+						const merged = mergeProfiles(Array.from(selected));
+						this.plugin.settings.schedules.morningBriefingTime = merged.defaults.briefingTime;
+						this.plugin.settings.schedules.eveningReviewTime = merged.defaults.eveningReviewTime;
+						this.plugin.settings.schedules.weeklyReportTime = merged.defaults.weeklyTime;
+						this.plugin.settings.notifications.minimumSeverity = merged.defaults.notificationSeverity;
+						await this.plugin.saveSettings();
+						new Notice(`✓ Atlas: ${selected.size} perfil(is) ativos.`);
+					})
+			);
+
+		// Show all tools override
+		new Setting(containerEl)
+			.setName("Mostrar todas as Tools IA")
+			.setDesc("Quando OFF (default), Lab → Tools IA mostra só tools do(s) perfil(is) ativos.")
+			.addToggle((t) => {
+				t.setValue(this.plugin.settings.profile?.showAllToolsOverride ?? false);
+				t.onChange(async (v) => {
+					if (!this.plugin.settings.profile) {
+						this.plugin.settings.profile = { ids: [] };
+					}
+					this.plugin.settings.profile.showAllToolsOverride = v;
+					await this.plugin.saveSettings();
+				});
+			});
 	}
 
 	private section_user(): void {

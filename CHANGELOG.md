@@ -4,6 +4,67 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.7.7] — 2026-05-02 — "Final v0.7 — Settings Profile + Templates + LGPD + Webhook"
+
+Fim do roadmap v0.7. v0.8 começa com Vosk hotword (que ficou de fora por complexidade).
+
+### Added — Settings Profile section completa (Sprint 26)
+
+- Settings → Atlas → "🎯 Perfil profissional" — section completa pra editar perfil(is) sem refazer onboarding
+- Grid de 15 perfis por categoria (Tech / Negócio / Pessoas / Operações / Conhecimento / Outros)
+- Multi-select com border accent + summary live (templates / tools IA / frameworks / métricas)
+- Color accent picker dropdown 7 presets (Indigo, Teal, Orange, Rose, Forest, Purple, Sky)
+- Apply button atualiza schedules (briefing/weekly/notification severity) baseado no perfil principal
+- Toggle "Mostrar todas Tools IA" (override do filter por perfil)
+
+### Added — 14 templates de meeting
+
+`team-standup`, `team-retro`, `team-planning`, `team-kickoff`, `qbr`, `stakeholder-update`, `client-call`, `interview` (STAR rubric), `decision-meeting` (RAID-like), `vendor-meeting`, `incident-bridge`, `1on1-skip` (skip-level), `refinement`, `demo`. Total templates default: 6 → **20**.
+
+### Added — Right-to-be-forgotten (LGPD Article 17)
+
+- Comando `🗑️ Atlas: Right-to-be-forgotten (apagar pessoa do KG)`
+- Pergunta nome → confirma destruição → cascade delete:
+  - Person from KG
+  - Sessions com `personId === person.id`
+  - ActionItems com `ownerId === person.id`
+  - Commitments com `madeBy/madeTo === person.id`
+  - Themes: remove personId; deleta theme se 0 personIds restantes
+  - Audit log entry preserva hash chain
+- Nota em `06_People/[id]/` NÃO é apagada automaticamente (user controla)
+
+### Added — Webhook receiver (Express-lite)
+
+- Comando `🔌 Atlas: Webhook receiver: toggle (localhost:7842)`
+- HTTP server em localhost:7842 (Node http nativo, zero deps)
+- POST JSON `{title, body, tag, due}` → cria task em Inbox
+- Bearer token gerado a cada start (mostrado em Notice)
+- Útil para IFTTT, Make.com, Zapier, scripts shell
+
+### Métricas
+
+| | v0.7.5 | v0.7.7 |
+|---|---|---|
+| main.js | 1.79 MB | **1.81 MB** |
+| Templates default | 6 | **20** |
+| Modelos catalogados | 23 | 23 |
+| Comandos | ~100 | ~102 |
+| Arquivos .ts | 140 | 140 |
+
+### Status final v0.7
+
+| Versão | Foco | Status |
+|---|---|---|
+| v0.7.0 | Jarvis Edition base (15 tabs, 15 perfis, 15 tools) | ✅ |
+| v0.7.1 | P0 Fixes (theme, OOM auto-switch, streaming, sound FX, tutorial) | ✅ |
+| v0.7.2 | Visual Identity Premium (header, Lucide icons, status bar) | ✅ |
+| v0.7.3 | Animações Contínuas (em v0.7.5) | ✅ |
+| v0.7.4 | Voice Jarvis Real (whisper + commands + HUD floating) | ✅ |
+| v0.7.5 | +8 modelos + hot-swap runtime | ✅ |
+| v0.7.6 | Settings Profile section (em v0.7.7) | ✅ |
+| v0.7.7 | 14 templates + RTBF + Webhook | ✅ |
+| v0.8.0 | **Vosk hotword PT-BR** + integrations avançadas | ⏳ próxima major |
+
 ## [0.7.5] — 2026-05-02 — "Animações Contínuas + 8 Modelos Novos"
 
 Combinação de Sprint 23 (Animações) + Sprint 25 (Modelos novos).
