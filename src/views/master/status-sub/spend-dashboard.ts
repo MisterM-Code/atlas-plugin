@@ -152,14 +152,41 @@ export async function renderSpendDashboard(container: HTMLElement, plugin: Atlas
 		tr.createEl("td", { text: `$${usd.toFixed(4)}` });
 	}
 
-	// Recent calls log
-	container.createEl("h5", { text: "📜 Últimas 30 chamadas" });
+	// v0.52.1: Failed calls section (chamadas com success: false — provider pode ter cobrado)
+	const recentRaw = await cost.getRecentEntries(50);
+	const failedCalls = recentRaw.filter((e) => e.success === false);
+	if (failedCalls.length > 0) {
+		const failSection = container.createDiv({ cls: "atlas-spend-failures" });
+		failSection.createEl("h5", { text: `⚠️ Chamadas falhadas (${failedCalls.length}) — provider pode ter cobrado` });
+		failSection.createEl("p", {
+			cls: "atlas-spend-failures-desc",
+			text: "5xx errors podem ter cobrado mesmo sem entregar resposta. Auth (401) e rate-limit (429) tipicamente NÃO cobram. Use os errorCodes pra distinguir.",
+		});
+		const failTable = failSection.createEl("table", { cls: "atlas-spend-table is-failures" });
+		const fh = failTable.createEl("thead").createEl("tr");
+		["Quando", "Provider", "Modelo", "Erro", "Feature", "Tokens (estimados)"].forEach((h) =>
+			fh.createEl("th", { text: h })
+		);
+		const fb = failTable.createEl("tbody");
+		for (const e of failedCalls.slice(0, 15)) {
+			const tr = fb.createEl("tr", { cls: "atlas-spend-row-fail" });
+			tr.createEl("td", { text: new Date(e.ts).toLocaleString() });
+			tr.createEl("td", { text: e.provider });
+			tr.createEl("td", { text: e.model });
+			tr.createEl("td", { text: e.errorCode ?? "unknown", cls: `atlas-spend-error-code is-${e.errorCode ?? "unknown"}` });
+			tr.createEl("td", { text: e.feature ?? "—" });
+			tr.createEl("td", { text: `${e.usage.totalTokens}` });
+		}
+	}
+
+	// Recent calls log (success only)
+	container.createEl("h5", { text: "📜 Últimas 30 chamadas (sucesso)" });
 	const log = container.createEl("table", { cls: "atlas-spend-table" });
 	const lh = log.createEl("thead").createEl("tr");
 	["Quando", "Provider", "Modelo", "Feature", "Tokens", "Custo"].forEach((h) => lh.createEl("th", { text: h }));
 	const lb = log.createEl("tbody");
-	const recent = await cost.getRecentEntries(30);
-	for (const e of recent) {
+	const successOnly = recentRaw.filter((e) => e.success !== false).slice(0, 30);
+	for (const e of successOnly) {
 		const tr = lb.createEl("tr");
 		const time = new Date(e.ts).toLocaleString();
 		tr.createEl("td", { text: time });

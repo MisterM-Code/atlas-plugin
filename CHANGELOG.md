@@ -4,6 +4,23 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.1] — 2026-05-02 — "Spend dashboard mostra falhas + Onboarding tour invite"
+
+### Spend dashboard — section "Chamadas falhadas"
+- Filtra `success === false` entries do spend log
+- Tabela visual com errorCode color-coded (auth/rate-limit/server-error/timeout/unknown)
+- Aviso explícito: "5xx podem ter cobrado, 401/429 tipicamente não"
+- Sucesso e falhas em tabelas separadas (não polui visualização normal)
+
+### Onboarding finish — tour invite
+- Após TabsTourModal fechar, dispara Notice 12s convidando: "Cmd+P → 'Tour: Primeiros passos' pra aprender passo a passo"
+- Tours já existiam (v0.4 Sprint 3) — agora ficam descobertos pós-onboarding
+
+### Files
+- `src/views/master/status-sub/spend-dashboard.ts` — failed calls table + filter success
+- `src/views/onboarding.ts` — Notice convite pós-finish
+- `styles.css` — `.atlas-spend-failures*`, `.atlas-spend-error-code.is-*` (~50 LOC)
+
 ## [0.52.0] — 2026-05-02 — "Quality Audit Sprint: Home cleanup + Logs + Mass data + Smoke test + Onboarding race fix"
 
 ### Sprint B — Home cleanup (deduplicação modelo+custo)

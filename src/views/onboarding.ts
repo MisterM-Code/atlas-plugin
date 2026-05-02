@@ -74,6 +74,7 @@ export class OnboardingWizard extends Modal {
 		await this.plugin.auditLog({ action: "onboarding.completed" });
 		this.close();
 		// v0.16: open Tabs Tour modal — overview de todas as 17 funcionalidades
+		// v0.52.1: ao final do TabsTour, oferecer tour interativo (first-steps) opt-in
 		if (!this.plugin.settings.onboarding.tabsTourSeen) {
 			setTimeout(async () => {
 				try {
@@ -84,6 +85,13 @@ export class OnboardingWizard extends Modal {
 				}
 			}, 600);
 		}
+		// v0.52.1: invite user pro tour interativo após TabsTour
+		setTimeout(() => {
+			new Notice(
+				"Atlas pronto! Use Cmd+Shift+J pra falar com Jarvis ou Cmd+P → 'Tour: Primeiros passos' pra aprender passo a passo.",
+				12000
+			);
+		}, 8000);
 	}
 
 	private render(): void {
