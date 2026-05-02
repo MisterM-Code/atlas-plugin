@@ -51,6 +51,21 @@ interface SpeechRecognitionEventLike {
 	resultIndex: number;
 }
 
+function errorMessageFor(code: string): string {
+	switch (code) {
+		case "not-allowed":
+			return "Microfone bloqueado nas permissões.";
+		case "no-speech":
+			return "Não detectei fala.";
+		case "network":
+			return navigator.onLine
+				? "Web Speech indisponível agora. Configure whisper.cpp em Settings → Voice pra usar 100% offline."
+				: "Sem internet — Web Speech requer Google API. Configure whisper.cpp em Settings → Voice pra usar 100% offline.";
+		default:
+			return `Erro voz: ${code}`;
+	}
+}
+
 export function isWebSpeechAvailable(): boolean {
 	const w = window as unknown as Record<string, unknown>;
 	return Boolean(w.SpeechRecognition ?? w.webkitSpeechRecognition);
@@ -73,6 +88,8 @@ export function startWebSpeech(opts: WebSpeechOpts): WebSpeechHandle {
 	rec.interimResults = opts.interimResults ?? true;
 
 	let finalText = "";
+	// v0.16: prevent double-notice — onerror + onend both fire on errors
+	let errorFired = false;
 
 	rec.onresult = (ev) => {
 		let interim = "";
@@ -91,22 +108,29 @@ export function startWebSpeech(opts: WebSpeechOpts): WebSpeechHandle {
 	};
 
 	rec.onerror = (ev) => {
+		errorFired = true;
 		const code = ev.error ?? "unknown";
 		logger.warn("web-speech error", { code });
+
+		// v0.16: trigger global event for Jarvis to auto-prompt whisper config on offline
+		if (code === "network") {
+			const offline = !navigator.onLine;
+			document.dispatchEvent(
+				new CustomEvent("atlas:voice-needs-whisper-config", {
+					detail: { reason: offline ? "offline" : "web-speech-failed" },
+				})
+			);
+		}
+
 		if (opts.onError) {
-			const msg =
-				code === "not-allowed"
-					? "Microfone bloqueado nas permissões."
-					: code === "no-speech"
-						? "Não detectei fala."
-						: code === "network"
-							? "Web Speech precisa de internet (Google API). Configure whisper.cpp em Settings pra usar 100% offline."
-							: `Erro voz: ${code}`;
+			const msg = errorMessageFor(code);
 			opts.onError(msg);
 		}
 	};
 
 	rec.onend = () => {
+		// v0.16: skip if error already fired notice — avoids 2 stacked notices
+		if (errorFired) return;
 		if (finalText.trim()) {
 			opts.onFinal(finalText.trim());
 		} else if (opts.onError) {

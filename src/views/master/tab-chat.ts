@@ -50,18 +50,18 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	});
 
 	// Messages
-	const messagesEl = container.createDiv() as HTMLDivElement;
+	const messagesEl = container.createDiv({ cls: "atlas-chat-messages" });
 	messagesEl.style.flexGrow = "1";
 	messagesEl.style.overflowY = "auto";
 	messagesEl.style.padding = "8px 0";
 	messagesEl.style.minHeight = "200px";
 
 	// Input
-	const inputWrap = container.createDiv();
+	const inputWrap = container.createDiv({ cls: "atlas-chat-input-area" });
 	inputWrap.style.borderTop = "1px solid var(--background-modifier-border)";
 	inputWrap.style.padding = "8px 0";
 
-	const inputEl = inputWrap.createEl("textarea") as HTMLTextAreaElement;
+	const inputEl = inputWrap.createEl("textarea", { cls: "atlas-chat-input" });
 	inputEl.placeholder = "Pergunte algo... (Enter pra enviar)";
 	inputEl.style.width = "100%";
 	inputEl.style.minHeight = "60px";
@@ -152,61 +152,48 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	);
 	agent.setPlugin(plugin);
 
+	const renderCitations = (
+		wrap: HTMLDivElement,
+		citations: { notePath: string }[]
+	): void => {
+		const citWrap = wrap.createDiv({ cls: "atlas-chat-citations" });
+		const seen = new Set<string>();
+		for (const c of citations) {
+			if (seen.has(c.notePath)) continue;
+			seen.add(c.notePath);
+			const chip = citWrap.createEl("span", {
+				cls: "atlas-citation-card",
+				text: `📄 ${c.notePath.split("/").pop()?.replace(/\.md$/, "")}`,
+			});
+			chip.addEventListener("click", () => {
+				const f = plugin.app.vault.getAbstractFileByPath(c.notePath);
+				if (f instanceof TFile) plugin.app.workspace.getLeaf().openFile(f);
+			});
+		}
+	};
+
 	const renderTurn = (
 		role: "user" | "assistant",
 		content: string,
 		citations: { notePath: string; snippet: string }[] = []
 	): HTMLDivElement => {
-		const wrap = messagesEl.createDiv() as HTMLDivElement;
-		wrap.style.marginBottom = "10px";
-		wrap.style.padding = "10px";
-		wrap.style.borderRadius = "6px";
-		wrap.style.whiteSpace = "pre-wrap";
-		wrap.style.fontSize = "13px";
+		const cls = role === "user"
+			? "atlas-chat-message atlas-chat-message-user"
+			: "atlas-chat-message atlas-chat-message-assistant";
+		const wrap = messagesEl.createDiv({ cls });
 
-		if (role === "user") {
-			wrap.style.background = "var(--background-secondary-alt)";
-			wrap.style.marginLeft = "16px";
-			const lbl = wrap.createEl("div", { text: "Você" });
-			lbl.style.fontSize = "10px";
-			lbl.style.opacity = "0.6";
-			lbl.style.marginBottom = "4px";
-		} else {
-			wrap.style.background = "var(--background-secondary)";
-			wrap.style.marginRight = "16px";
-			const lbl = wrap.createEl("div", { text: "🧠 Atlas" });
-			lbl.style.fontSize = "10px";
-			lbl.style.opacity = "0.6";
-			lbl.style.marginBottom = "4px";
-		}
+		const lbl = wrap.createEl("div", {
+			cls: "atlas-chat-msg-label",
+			text: role === "user" ? "Você" : "🧠 Atlas",
+		});
+		lbl.style.fontSize = "10px";
+		lbl.style.opacity = "0.6";
+		lbl.style.marginBottom = "4px";
 
-		const body = wrap.createEl("div");
-		body.addClass("atlas-msg-body");
+		const body = wrap.createEl("div", { cls: "atlas-msg-body" });
 		body.setText(content);
 
-		if (citations.length > 0) {
-			const citWrap = wrap.createDiv();
-			citWrap.style.marginTop = "6px";
-			citWrap.style.fontSize = "10px";
-			const seen = new Set<string>();
-			for (const c of citations) {
-				if (seen.has(c.notePath)) continue;
-				seen.add(c.notePath);
-				const chip = citWrap.createEl("span", {
-					text: `📄 ${c.notePath.split("/").pop()?.replace(/\.md$/, "")}`,
-				});
-				chip.style.display = "inline-block";
-				chip.style.padding = "2px 6px";
-				chip.style.margin = "2px 4px 2px 0";
-				chip.style.background = "var(--background-modifier-hover)";
-				chip.style.borderRadius = "3px";
-				chip.style.cursor = "pointer";
-				chip.addEventListener("click", () => {
-					const f = plugin.app.vault.getAbstractFileByPath(c.notePath);
-					if (f instanceof TFile) plugin.app.workspace.getLeaf().openFile(f);
-				});
-			}
-		}
+		if (citations.length > 0) renderCitations(wrap, citations);
 
 		messagesEl.scrollTop = messagesEl.scrollHeight;
 		return wrap;
@@ -252,11 +239,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 			thinkingWrap.remove();
 			const wrap = renderTurn("assistant", "", []);
 			const bodyEl = wrap.querySelector(".atlas-msg-body") as HTMLElement | null;
-			const cursor = bodyEl?.createSpan({ text: "▎" }) ?? null;
-			if (cursor) {
-				cursor.style.opacity = "0.6";
-				cursor.style.animation = "atlas-cursor-blink 1s steps(2) infinite";
-			}
+			const cursor = bodyEl?.createSpan({ text: "▎", cls: "atlas-stream-cursor" }) ?? null;
 
 			// Trigger logo glow durante streaming
 			document
@@ -290,27 +273,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 			}
 
 			if (r.citations.length > 0 && wrap) {
-				const citWrap = wrap.createDiv();
-				citWrap.style.marginTop = "6px";
-				citWrap.style.fontSize = "10px";
-				const seen = new Set<string>();
-				for (const c of r.citations) {
-					if (seen.has(c.notePath)) continue;
-					seen.add(c.notePath);
-					const chip = citWrap.createEl("span", {
-						text: `📄 ${c.notePath.split("/").pop()?.replace(/\.md$/, "")}`,
-					});
-					chip.style.display = "inline-block";
-					chip.style.padding = "2px 6px";
-					chip.style.margin = "2px 4px 2px 0";
-					chip.style.background = "var(--background-modifier-hover)";
-					chip.style.borderRadius = "3px";
-					chip.style.cursor = "pointer";
-					chip.addEventListener("click", () => {
-						const f = plugin.app.vault.getAbstractFileByPath(c.notePath);
-						if (f instanceof TFile) plugin.app.workspace.getLeaf().openFile(f);
-					});
-				}
+				renderCitations(wrap, r.citations);
 			}
 
 			if (r.toolsUsed.length > 0) statusEl.setText(`Tools: ${r.toolsUsed.join(", ")}`);

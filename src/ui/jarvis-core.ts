@@ -42,12 +42,17 @@ interface ConversationContext {
 	missingFields?: { name: string; question: string }[];
 }
 
+type ParticleLayer = 0 | 1 | 2; // 0=back (blur), 1=mid, 2=front (sharp+bright)
+
 interface Particle {
 	x: number;
 	y: number;
 	vx: number;
 	vy: number;
 	radius: number;
+	layer: ParticleLayer;
+	baseAlpha: number;
+	pulsePhase: number; // 0..2π, individual flicker
 }
 
 export class JarvisCore {
@@ -70,10 +75,12 @@ export class JarvisCore {
 
 	private convCtx: ConversationContext = {};
 
-	private speakingHandler: () => void;
-	private speakingStopHandler: () => void;
+	private readonly speakingHandler: () => void;
+	private readonly speakingStopHandler: () => void;
+	private readonly whisperConfigPromptHandler: (e: Event) => void;
 	private spaceHandler: ((e: KeyboardEvent) => void) | null = null;
 	private spaceUpHandler: ((e: KeyboardEvent) => void) | null = null;
+	private whisperPromptShown = false;
 
 	constructor(
 		private readonly app: App,
@@ -84,6 +91,37 @@ export class JarvisCore {
 		this.speakingStopHandler = () => {
 			if (this.state === "speaking") this.applyState("idle");
 		};
+		this.whisperConfigPromptHandler = () => {
+			if (this.whisperPromptShown) return;
+			this.whisperPromptShown = true;
+			void this.showWhisperConfigPrompt();
+		};
+	}
+
+	private async showWhisperConfigPrompt(): Promise<void> {
+		// Reuse confirmAsync helper for offline auto-prompt
+		try {
+			const { confirmAsync } = await import("./confirm-modal");
+			const message = [
+				"O Web Speech API precisa de internet (Google API).",
+				"Para usar voz 100% offline, configure o whisper.cpp em Settings → Voice.",
+				"Quer abrir Settings agora?",
+			].join("\n\n");
+			const ok = await confirmAsync(this.app, message, {
+				title: "🎙️ Voice offline indisponível",
+				yesLabel: "Abrir Settings",
+				noLabel: "Mais tarde",
+			});
+			if (ok) {
+				const apiAny = this.app as unknown as {
+					setting?: { open?: () => void; openTabById?: (id: string) => void };
+				};
+				apiAny.setting?.open?.();
+				apiAny.setting?.openTabById?.("atlas");
+			}
+		} catch {
+			// modal helper missing — silent fallback
+		}
 	}
 
 	/** Mounts Jarvis UI inside given container. Container should be flex-column. */
@@ -212,6 +250,7 @@ export class JarvisCore {
 		// Listen for TTS events
 		document.addEventListener("atlas:tts-start", this.speakingHandler);
 		document.addEventListener("atlas:tts-stop", this.speakingStopHandler);
+		document.addEventListener("atlas:voice-needs-whisper-config", this.whisperConfigPromptHandler);
 
 		// Init particles
 		this.initParticles();
@@ -220,16 +259,33 @@ export class JarvisCore {
 
 	private initParticles(): void {
 		this.particles = [];
-		const count = this.opts.mode === "fullscreen" ? 70 : 35;
-		for (let i = 0; i < count; i++) {
-			this.particles.push({
-				x: Math.random() * this.particlesCanvas.width,
-				y: Math.random() * this.particlesCanvas.height,
-				vx: (Math.random() - 0.5) * 0.3,
-				vy: (Math.random() - 0.5) * 0.3,
-				radius: 1 + Math.random() * 1.5,
-			});
-		}
+		const isFullscreen = this.opts.mode === "fullscreen";
+		// 3-layer parallax: back (subtle blur), mid (default), front (bright + larger)
+		const layerCounts: [number, number, number] = isFullscreen
+			? [80, 90, 40]   // ~210 particles fullscreen
+			: [60, 70, 35];  // ~165 particles sidebar
+		const w = this.particlesCanvas.width || 800;
+		const h = this.particlesCanvas.height || 600;
+		const SPEED_MUL = [0.18, 0.35, 0.55] as const;
+		const SIZE_MUL = [0.7, 1.2, 1.8] as const;
+		const ALPHA_BASE = [0.28, 0.55, 0.92] as const;
+		layerCounts.forEach((count, layer) => {
+			const speedMul = SPEED_MUL[layer];
+			const sizeMul = SIZE_MUL[layer];
+			const alphaBase = ALPHA_BASE[layer];
+			for (let i = 0; i < count; i++) {
+				this.particles.push({
+					x: Math.random() * w,
+					y: Math.random() * h,
+					vx: (Math.random() - 0.5) * speedMul,
+					vy: (Math.random() - 0.5) * speedMul,
+					radius: (0.6 + Math.random() * 1.4) * sizeMul,
+					layer: layer as ParticleLayer,
+					baseAlpha: alphaBase,
+					pulsePhase: Math.random() * Math.PI * 2,
+				});
+			}
+		});
 	}
 
 	private startAnimation(): void {
@@ -257,33 +313,52 @@ export class JarvisCore {
 		if (!ctx) return;
 		const w = this.particlesCanvas.width;
 		const h = this.particlesCanvas.height;
-		ctx.clearRect(0, 0, w, h);
 
-		// Move + draw particles
+		// Trails effect: paint semi-transparent black instead of clearing
+		// → particles leave decaying ghost trail (Iron Man HUD signature)
+		ctx.fillStyle = "rgba(2, 6, 23, 0.18)";
+		ctx.fillRect(0, 0, w, h);
+
+		const colors = STATE_COLORS[this.state];
+		const cx = w / 2;
+		const cy = h / 2;
+		const orbitalRadius = this.opts.orbSize * 1.3; // particles within this orbit the orb
+		const orbitalRadiusSq = orbitalRadius * orbitalRadius;
+		const now = Date.now() / 800;
+
+		const motionCtx: MotionCtx = {
+			cx,
+			cy,
+			orbitalRadius,
+			orbitalRadiusSq,
+			activityMul: ACTIVITY_MUL[this.state],
+			w,
+			h,
+		};
+
+		// Move + draw particles (back to front for proper layering)
 		for (const p of this.particles) {
-			p.x += p.vx;
-			p.y += p.vy;
-			if (p.x < 0 || p.x > w) p.vx *= -1;
-			if (p.y < 0 || p.y > h) p.vy *= -1;
-			ctx.fillStyle = STATE_COLORS[this.state].particle;
-			ctx.beginPath();
-			ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-			ctx.fill();
+			this.updateParticlePosition(p, motionCtx);
+			this.renderParticle(ctx, p, colors, now);
 		}
+		ctx.shadowBlur = 0;
 
-		// Draw connections (within range)
-		ctx.strokeStyle = STATE_COLORS[this.state].line;
+		// Connections only between mid+front particles for performance + cleaner look
+		const linkable = this.particles.filter((p) => p.layer >= 1);
+		ctx.strokeStyle = colors.line;
 		ctx.lineWidth = 0.5;
-		const maxDist = 90;
-		for (let i = 0; i < this.particles.length; i++) {
-			for (let j = i + 1; j < this.particles.length; j++) {
-				const a = this.particles[i];
-				const b = this.particles[j];
+		const maxDist = this.opts.mode === "fullscreen" ? 110 : 85;
+		const maxDistSq = maxDist * maxDist;
+		for (let i = 0; i < linkable.length; i++) {
+			for (let j = i + 1; j < linkable.length; j++) {
+				const a = linkable[i];
+				const b = linkable[j];
 				const dx = a.x - b.x;
 				const dy = a.y - b.y;
-				const d = Math.sqrt(dx * dx + dy * dy);
-				if (d < maxDist) {
-					ctx.globalAlpha = (1 - d / maxDist) * 0.4;
+				const dSq = dx * dx + dy * dy;
+				if (dSq < maxDistSq) {
+					const d = Math.sqrt(dSq);
+					ctx.globalAlpha = (1 - d / maxDist) * 0.35;
 					ctx.beginPath();
 					ctx.moveTo(a.x, a.y);
 					ctx.lineTo(b.x, b.y);
@@ -292,6 +367,55 @@ export class JarvisCore {
 			}
 		}
 		ctx.globalAlpha = 1;
+	}
+
+	private updateParticlePosition(p: Particle, m: MotionCtx): void {
+		// Base velocity with state activity boost
+		p.x += p.vx * m.activityMul;
+		p.y += p.vy * m.activityMul;
+
+		// Orbital flow: particles near orb get tangential velocity → swirl effect
+		const dxc = p.x - m.cx;
+		const dyc = p.y - m.cy;
+		const dSq = dxc * dxc + dyc * dyc;
+		if (dSq < m.orbitalRadiusSq && dSq > 100) {
+			const d = Math.sqrt(dSq);
+			const swirlStrength = (1 - d / m.orbitalRadius) * 0.18 * m.activityMul;
+			// Perpendicular to radial = tangent direction
+			p.x += (-dyc / d) * swirlStrength;
+			p.y += (dxc / d) * swirlStrength;
+		}
+
+		// Wrap edges (cleaner than bounce for trail effect)
+		if (p.x < -10) p.x = m.w + 10;
+		else if (p.x > m.w + 10) p.x = -10;
+		if (p.y < -10) p.y = m.h + 10;
+		else if (p.y > m.h + 10) p.y = -10;
+	}
+
+	private renderParticle(
+		ctx: CanvasRenderingContext2D,
+		p: Particle,
+		colors: typeof STATE_COLORS[JarvisState],
+		now: number
+	): void {
+		// Individual flicker
+		const flicker = 0.7 + Math.sin(now * 1.5 + p.pulsePhase) * 0.3;
+		const alpha = p.baseAlpha * flicker;
+
+		// Layer-aware glow via shadow blur
+		const glow = LAYER_GLOW[p.layer];
+		if (glow.blur > 0) {
+			ctx.shadowColor = `rgba(${colors.ripple},${glow.alpha})`;
+			ctx.shadowBlur = glow.blur;
+		} else {
+			ctx.shadowBlur = 0;
+		}
+
+		ctx.fillStyle = `rgba(${colors.ripple},${alpha})`;
+		ctx.beginPath();
+		ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+		ctx.fill();
 	}
 
 	private drawWaveformOrRipples(): void {
@@ -359,6 +483,36 @@ export class JarvisCore {
 			ctx.lineTo(cx + Math.cos(ang) * (this.opts.orbSize * 0.85), cy + Math.sin(ang) * (this.opts.orbSize * 0.85));
 			ctx.stroke();
 		}
+
+		// Voice equalizer "boca" during speaking — bottom of orb stage
+		if (this.state === "speaking") {
+			this.drawSpeakingEqualizer(ctx, cx, cy);
+		}
+	}
+
+	private drawSpeakingEqualizer(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+		const colors = STATE_COLORS.speaking;
+		const bars = 24;
+		const barWidth = 4;
+		const barGap = 3;
+		const totalWidth = bars * (barWidth + barGap) - barGap;
+		const startX = cx - totalWidth / 2;
+		const baseY = cy + this.opts.orbSize * 0.65;
+		const t = Date.now() / 100;
+
+		ctx.fillStyle = `rgba(${colors.ripple},0.85)`;
+		ctx.shadowColor = `rgba(${colors.ripple},0.7)`;
+		ctx.shadowBlur = 8;
+		for (let i = 0; i < bars; i++) {
+			// Sine wave with phase offset per bar — pseudo-spectrogram
+			const wave1 = Math.sin(t * 0.18 + i * 0.4) * 0.5 + 0.5;
+			const wave2 = Math.sin(t * 0.31 + i * 0.7) * 0.3 + 0.5;
+			const intensity = (wave1 + wave2) * 0.5;
+			const barH = 6 + intensity * (this.opts.orbSize * 0.18);
+			const x = startX + i * (barWidth + barGap);
+			ctx.fillRect(x, baseY - barH / 2, barWidth, barH);
+		}
+		ctx.shadowBlur = 0;
 	}
 
 	applyState(state: JarvisState): void {
@@ -583,6 +737,7 @@ export class JarvisCore {
 		}
 		document.removeEventListener("atlas:tts-start", this.speakingHandler);
 		document.removeEventListener("atlas:tts-stop", this.speakingStopHandler);
+		document.removeEventListener("atlas:voice-needs-whisper-config", this.whisperConfigPromptHandler);
 		if (this.spaceHandler) document.removeEventListener("keydown", this.spaceHandler);
 		if (this.spaceUpHandler) document.removeEventListener("keyup", this.spaceUpHandler);
 	}
@@ -590,6 +745,29 @@ export class JarvisCore {
 
 // ─────────────────────────────────────────────────────
 // Constants
+
+interface MotionCtx {
+	cx: number;
+	cy: number;
+	orbitalRadius: number;
+	orbitalRadiusSq: number;
+	activityMul: number;
+	w: number;
+	h: number;
+}
+
+const ACTIVITY_MUL: Record<JarvisState, number> = {
+	idle: 1,
+	listening: 1.6,
+	thinking: 1.2,
+	speaking: 1.4,
+};
+
+const LAYER_GLOW: Record<ParticleLayer, { blur: number; alpha: number }> = {
+	0: { blur: 0, alpha: 0 },
+	1: { blur: 5, alpha: 0.5 },
+	2: { blur: 10, alpha: 0.9 },
+};
 
 const HEX_GRID_DATA_URL =
 	"url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><polygon points='16,2 30,10 30,22 16,30 2,22 2,10' fill='none' stroke='%23818cf8' stroke-width='0.5'/></svg>\")";

@@ -68,6 +68,24 @@ export async function renderAnalyticsHeatmap(
 	chartEl.style.width = "100%";
 	chartEl.style.height = "240px";
 
+	// v0.16: empty-state for new vaults (no activity yet)
+	if (total === 0) {
+		const empty = container.createDiv();
+		empty.style.textAlign = "center";
+		empty.style.padding = "40px 20px";
+		empty.style.opacity = "0.75";
+		empty.style.fontSize = "13px";
+		empty.style.lineHeight = "1.6";
+		empty.createEl("div", { text: "🌱" }).style.fontSize = "32px";
+		empty.createEl("div", {
+			text: "Vault novo — nenhuma atividade ainda.",
+		}).style.marginTop = "8px";
+		empty.createEl("div", {
+			text: "Use o vault por 7+ dias e o heatmap começa a preencher. Crie daily logs ou modifique notas.",
+		}).style.opacity = "0.7";
+		return;
+	}
+
 	try {
 		const { getEcharts } = await import("./echarts-bundle");
 		const echarts = getEcharts();
@@ -85,7 +103,7 @@ export async function renderAnalyticsHeatmap(
 			visualMap: {
 				show: false,
 				min: 0,
-				max: Math.max(5, maxDay.count),
+				max: Math.max(10, maxDay.count),
 				inRange: {
 					color: [
 						"#161b22",

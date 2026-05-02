@@ -73,6 +73,17 @@ export class OnboardingWizard extends Modal {
 		await this.plugin.saveSettings();
 		await this.plugin.auditLog({ action: "onboarding.completed" });
 		this.close();
+		// v0.16: open Tabs Tour modal — overview de todas as 17 funcionalidades
+		if (!this.plugin.settings.onboarding.tabsTourSeen) {
+			setTimeout(async () => {
+				try {
+					const m = await import("../ui/tabs-tour-modal");
+					new m.TabsTourModal(this.plugin.app, this.plugin).open();
+				} catch {
+					// silent fallback if module fails to load
+				}
+			}, 600);
+		}
 	}
 
 	private render(): void {

@@ -191,7 +191,7 @@ export async function renderHealthTab(container: HTMLElement, plugin: AtlasPlugi
 		loading.style.opacity = "0.6";
 
 		const allFiles = plugin.app.vault.getMarkdownFiles().filter(
-			(f) => !f.path.startsWith(".atlas") && !f.path.startsWith(this.app.vault.configDir)
+			(f) => !f.path.startsWith(".atlas") && !f.path.startsWith(plugin.app.vault.configDir)
 		);
 		const now = Date.now();
 		const ninetyDaysAgo = now - 90 * 86_400_000;
@@ -479,8 +479,8 @@ async function renderDiagnosticsSub(container: HTMLElement, plugin: AtlasPlugin)
 			});
 		};
 
-		btn("📥 Pull modelo recomendado", "atlas-pull-recommended-model");
-		btn("🔄 Como reiniciar Ollama", "atlas-restart-ollama");
+		btn("📥 Pull modelo recomendado", "pull-recommended-model");
+		btn("🔄 Como reiniciar Ollama", "restart-ollama");
 	};
 
 	refresh.addEventListener("click", () => void update());

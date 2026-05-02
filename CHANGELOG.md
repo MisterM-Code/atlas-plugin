@@ -4,6 +4,62 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.16.0] — 2026-05-02 — "Sprint 33: Real Iron Man HUD + Critical UX Polish"
+
+### Fixed (P0 critical bugs from user feedback)
+- **Health tab crash** — `tab-simple.ts:194` was using `this.app.vault.configDir` inside an arrow function, where `this` lost the plugin context. Fixed to use `plugin.app.vault.configDir`.
+- **Quick Actions broken** on Today tab — 6 button IDs (`Daily`, `Capture`, `Search`, `Brief 1:1`, `Pense`, `Weekly`) were calling `executeCommandById` with the deprecated `atlas-` prefix. v0.9.3 had removed the prefix from registered command IDs but the callers were never updated. Fixed in `tab-today.ts:407-412` + `tab-simple.ts:482-483`.
+- **HTTP 500 generic message** — error-classifier had no handler for status 500 → fell through to default "unknown: HTTP 500". Added explicit `ollama-500` and `ollama-server-error` codes with humanized messages and `[Tentar novamente] [Atlas Status Panel] [Reiniciar Ollama]` actions.
+- **Voice double-notice** — when Web Speech failed (offline), both `onerror` and `onend` handlers fired notices ("Web Speech precisa de internet" + "Sem transcrição detectada"). Added `errorFired` flag in `web-speech.ts` so `onend` skips silently when `onerror` already showed feedback. On `network` error, dispatches `atlas:voice-needs-whisper-config` event so JarvisCore auto-prompts whisper.cpp config modal.
+- **Logo invisible** in master sidebar header — SVG logo `style="color:var(--atlas-accent)"` was inline, but parent `.atlas-master-header-logo` lacked SVG-aware CSS. Refactored to use explicit width/height attrs on SVG, polished glyph (outer ring + inner ring + neural cross-pattern), CSS `.atlas-header-logo svg` rule forcing display/stroke. Added 🧠 emoji fallback if DOMParser fails.
+
+### Added — Real Iron Man Jarvis HUD (Sprint 33.2)
+- **3-layer parallax particle system** (back/mid/front) with depth — 165 particles in sidebar, ~210 in fullscreen (was 35 / 70). Each layer has different speed, size, alpha.
+- **Glow** via canvas `shadowBlur` on mid+front layers (10px / 5px). Front particles get bright bloom on each frame.
+- **Trails** — `clearRect` replaced with semi-transparent `rgba(2,6,23,0.18)` fill → particles leave decaying ghost trail (Iron Man HUD signature).
+- **Orbital flow** — particles within 1.3× orb radius get tangential velocity → swirl effect around the orb.
+- **Sound-reactive activity** — particles speed up during voice states: idle 1.0× → thinking 1.2× → speaking 1.4× → listening 1.6×.
+- **Edge wrap** instead of bounce — cleaner trail effect.
+- **Individual flicker** per particle via `pulsePhase` sine offset.
+- **Visualizer "boca"** — 24 vertical equalizer bars at bottom of orb stage during `speaking` state. Pseudo-spectrogram via dual sine wave + glow.
+- **Deep space gradient** background — radial gradients for indigo/cyan/purple ambient + dark base; works fullscreen + sidebar.
+- **Breathing animation** — idle scale 1.025 → **1.08**, duration 4s → **2.5s**. Listening 1.04→1.10 → 1.05→**1.14**. Speaking has 3-keyframe rhythmic pulse with brightness oscillation.
+- **Thinking** rotates 360° + hue-shifts + brightness pulses for richer cognitive feel.
+
+### Added — Chat tab polish (Sprint 33.3)
+- Applied existing `.atlas-chat-message`, `.atlas-chat-message-user/assistant`, `.atlas-citation-card` CSS classes that were defined but never actually used (renderTurn() was setting all styles inline).
+- Message bubbles now have entrance animation (`atlas-msg-in` 240ms cubic-bezier scale+slide).
+- User messages: gradient background + accent border-left.
+- Assistant messages: secondary background + indigo border-left.
+- Citations chip with hover transform/shadow + accent fill.
+- Streaming cursor (`▎`) extracted to `.atlas-stream-cursor` class with proper blink animation.
+- Chat input focus state with accent border + soft glow.
+- Typing indicator (3 dots) class added (`.atlas-chat-typing`).
+
+### Added — Tabs Tour Modal (Sprint 33.4)
+- New `src/ui/tabs-tour-modal.ts` — opens after onboarding `finish()` if not yet seen.
+- 17 tab cards in 3-column grid (responsive 2-col on small viewports) with emoji + name + description.
+- Click on card → activates the corresponding master tab + closes modal.
+- "🎬 Iniciar tour interativo (3 min)" button → loads `first-steps` tour from `tours.ts` via TutorialSystem.
+- Persisted via `settings.onboarding.tabsTourSeen` flag in types.ts.
+
+### Added — Heatmap empty state + Voice offline auto-prompt (Sprint 33.5)
+- `analytics-sub/heatmap.ts` — empty state for new vaults (`total === 0`) shows 🌱 message instead of empty grid.
+- Color scale `max` floor raised from 5 → **10** so vaults with light activity still get color distribution.
+- JarvisOverlay: ensured `.atlas-jarvis-modal .modal-content` has `overflow: hidden` + `box-sizing: border-box` to kill horizontal overflow scroll.
+- Voice offline → JarvisCore auto-shows `confirmAsync` modal "Configure whisper.cpp" with "Abrir Settings" CTA that opens Atlas settings tab.
+
+### Added — Universal Polish (Sprint 33.6)
+- All icons (`.atlas-icon`, `[data-lucide]`) get hover transition: `scale(1.15) rotate(2deg)` with 200ms cubic-bezier easing. Active state scales down (0.92).
+- Settings gear icon spins 60° once on hover (`atlas-icon-spin-once`).
+- `.atlas-card-interactive` hover: `translateY(-3px)` + dual-layer shadow + accent border.
+- `.atlas-btn` ripple effect on `:active` via `::after` pseudo-element flash.
+- Badges (`.atlas-badge-new`, `.atlas-activity-tab-badge`) get pop entrance animation (`atlas-badge-pop` cubic-bezier scale 0→1.2→1).
+- Tab content fade-slide on activate (`atlas-tab-fade-in` 240ms).
+
+### Changed
+- `manifest.json` + `package.json` + `versions.json` bumped to `0.16.0`.
+
 ## [0.15.0] — 2026-05-02 — "Bot review v0.14 fixes (legitimate complaints addressed)"
 
 ### Fixed (Required from bot review)

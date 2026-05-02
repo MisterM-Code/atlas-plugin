@@ -404,12 +404,12 @@ async function renderQuickActions(el: HTMLElement, plugin: AtlasPlugin): Promise
 		});
 	};
 
-	action("📓", "Daily", "atlas-daily-log");
-	action("🎯", "Capture", "atlas-quick-capture");
-	action("🔎", "Search", "atlas-search-vault");
-	action("🤝", "Brief 1:1", "atlas-prepare-1on1");
-	action("🧠", "Pense", "atlas-reasoning");
-	action("📊", "Weekly", "atlas-weekly-now");
+	action("📓", "Daily", "daily-log");
+	action("🎯", "Capture", "quick-capture");
+	action("🔎", "Search", "search-vault");
+	action("🤝", "Brief 1:1", "prepare-1on1");
+	action("🧠", "Pense", "reasoning");
+	action("📊", "Weekly", "weekly-now");
 }
 
 async function renderXp(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {

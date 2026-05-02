@@ -13,6 +13,8 @@ export type AtlasErrorCode =
 	| "ollama-invalid-json"
 	| "ollama-unknown"
 	| "ollama-bad-request"
+	| "ollama-500"
+	| "ollama-server-error"
 	| "vault-unavailable"
 	| "user-cancelled"
 	| "unknown";
@@ -137,6 +139,35 @@ export function classifyOllamaError(e: unknown): AtlasError {
 			`Ollama ${ax.response.status}: ${ax.message ?? "bad request"}`,
 			"Atlas enviou request inválida ao Ollama. Reporte como bug.",
 			[{ label: "Atlas Status Panel", commandId: "atlas:status-panel" }],
+			e
+		);
+	}
+
+	// 500 — server-side error (often timeout, OOM, model crash)
+	if (ax.response?.status === 500) {
+		return new AtlasError(
+			"ollama-500",
+			"HTTP 500 do servidor Ollama",
+			"Servidor Ollama retornou 500 — pode ser timeout, falta de memória ou erro interno do modelo. Verifique o Atlas Status Panel para detalhes do daemon e RAM.",
+			[
+				{ label: "Tentar novamente" },
+				{ label: "Atlas Status Panel", commandId: "atlas:status-panel" },
+				{ label: "Reiniciar Ollama", commandId: "atlas:restart-ollama" },
+			],
+			e
+		);
+	}
+
+	// 502/503/504 — gateway/unavailable
+	if (ax.response?.status && ax.response.status >= 500 && ax.response.status < 600) {
+		return new AtlasError(
+			"ollama-server-error",
+			`Ollama HTTP ${ax.response.status}`,
+			`Servidor Ollama indisponível (${ax.response.status}). Daemon pode estar reiniciando ou ocupado.`,
+			[
+				{ label: "Atlas Status Panel", commandId: "atlas:status-panel" },
+				{ label: "Reiniciar Ollama", commandId: "atlas:restart-ollama" },
+			],
 			e
 		);
 	}
