@@ -119,30 +119,17 @@ export class OnboardingWizard extends Modal {
 	}
 
 	private renderHeader(): void {
-		const wrap = this.contentEl.createDiv();
-		wrap.style.display = "flex";
-		wrap.style.justifyContent = "space-between";
-		wrap.style.alignItems = "center";
-		wrap.style.marginBottom = "16px";
-
+		const wrap = this.contentEl.createDiv({ cls: "atlas-onboarding-header" });
 		wrap.createEl("h2", { text: "🧠 Atlas — Setup" });
 
-		const dots = wrap.createDiv();
-		dots.style.display = "flex";
-		dots.style.gap = "6px";
+		const dots = wrap.createDiv({ cls: "atlas-onboarding-progress-dots" });
 		const total = STEPS.length - 1; // skip "done"
 		const idx = STEPS.indexOf(this.step);
 		for (let i = 0; i < total; i++) {
-			const dot = dots.createDiv();
-			dot.style.width = "10px";
-			dot.style.height = "10px";
-			dot.style.borderRadius = "50%";
-			dot.style.background =
-				i < idx
-					? "var(--interactive-accent)"
-					: i === idx
-						? "var(--interactive-accent-hover)"
-						: "var(--background-modifier-border)";
+			let cls = "atlas-onboarding-progress-dot";
+			if (i < idx) cls += " is-done";
+			else if (i === idx) cls += " is-current";
+			dots.createDiv({ cls });
 		}
 	}
 
@@ -168,7 +155,8 @@ export class OnboardingWizard extends Modal {
 
 		c.createEl("p", {
 			text: "Pode pular passos opcionais. Tudo configurável depois em Settings → Atlas.",
-		}).style.opacity = "0.7";
+			cls: "atlas-onboarding-hint",
+		});
 
 		new Setting(c)
 			.addButton((b) => b.setButtonText("Pular tudo").onClick(() => this.finish()))
@@ -187,60 +175,32 @@ export class OnboardingWizard extends Modal {
 		c.createEl("h3", { text: "👤 Qual é seu perfil profissional?" });
 		c.createEl("p", {
 			text: "Selecione 1+ perfis. Atlas adapta templates, ferramentas IA, frameworks e métricas.",
-		}).style.fontSize = "12px";
+			cls: "atlas-onboarding-section-desc",
+		});
 
 		const selected = new Set<ProfileId>(this.plugin.settings.profile?.ids ?? []);
 
 		for (const cat of PROFILE_CATEGORIES) {
-			const catHead = c.createEl("div", { text: cat.label });
-			catHead.style.fontSize = "10px";
-			catHead.style.fontWeight = "bold";
-			catHead.style.opacity = "0.7";
-			catHead.style.marginTop = "12px";
-			catHead.style.marginBottom = "6px";
-			catHead.style.letterSpacing = "0.5px";
-
-			const grid = c.createDiv();
-			grid.style.display = "grid";
-			grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(180px, 1fr))";
-			grid.style.gap = "6px";
+			c.createEl("div", { cls: "atlas-onboarding-cat-head", text: cat.label });
+			const grid = c.createDiv({ cls: "atlas-onboarding-grid" });
 
 			for (const id of cat.ids) {
 				const profile = PROFILES.find((p) => p.id === id);
 				if (!profile) continue;
 
-				const card = grid.createDiv();
-				card.style.padding = "8px 10px";
-				card.style.background = "var(--background-secondary)";
-				card.style.borderRadius = "6px";
-				card.style.cursor = "pointer";
-				card.style.border = "2px solid transparent";
-				card.style.transition = "border-color 120ms";
+				const card = grid.createDiv({ cls: "atlas-onboarding-card" });
 
 				const updateCardStyle = () => {
-					if (selected.has(id)) {
-						card.style.borderColor = "var(--interactive-accent)";
-						card.style.background = "var(--background-modifier-hover)";
-					} else {
-						card.style.borderColor = "transparent";
-						card.style.background = "var(--background-secondary)";
-					}
+					if (selected.has(id)) card.addClass("is-selected");
+					else card.removeClass("is-selected");
 				};
 				updateCardStyle();
 
-				const top = card.createDiv();
-				top.style.display = "flex";
-				top.style.alignItems = "center";
-				top.style.gap = "8px";
-				top.createEl("span", { text: profile.emoji }).style.fontSize = "18px";
-				const nameEl = top.createEl("div", { text: profile.name });
-				nameEl.style.fontSize = "12px";
-				nameEl.style.fontWeight = "bold";
+				const top = card.createDiv({ cls: "atlas-onboarding-card-top" });
+				top.createEl("span", { cls: "atlas-onboarding-card-emoji", text: profile.emoji });
+				top.createEl("div", { cls: "atlas-onboarding-card-name", text: profile.name });
 
-				const tag = card.createEl("div", { text: profile.tagline });
-				tag.style.fontSize = "10px";
-				tag.style.opacity = "0.7";
-				tag.style.marginTop = "2px";
+				card.createEl("div", { cls: "atlas-onboarding-card-tag", text: profile.tagline });
 
 				card.addEventListener("click", () => {
 					if (selected.has(id)) selected.delete(id);
@@ -250,24 +210,18 @@ export class OnboardingWizard extends Modal {
 			}
 		}
 
-		const summary = c.createEl("div");
-		summary.style.marginTop = "16px";
-		summary.style.padding = "8px";
-		summary.style.background = "var(--background-secondary-alt)";
-		summary.style.borderRadius = "4px";
-		summary.style.fontSize = "11px";
-		summary.style.minHeight = "32px";
+		const summary = c.createEl("div", { cls: "atlas-onboarding-summary" });
 
 		const updateSummary = () => {
 			if (selected.size === 0) {
 				summary.setText("Selecione pelo menos 1 perfil para personalizar Atlas.");
-				summary.style.opacity = "0.6";
+				summary.addClass("is-empty");
 			} else {
+				summary.removeClass("is-empty");
 				const merged = mergeProfiles(Array.from(selected));
 				summary.setText(
 					`✓ ${selected.size} perfil(is) selecionado(s) → ${merged.templates.length} templates, ${merged.tools.length} tools IA, ${merged.frameworks.length} frameworks habilitados.`
 				);
-				summary.style.opacity = "1";
 			}
 		};
 		updateSummary();
@@ -314,7 +268,8 @@ export class OnboardingWizard extends Modal {
 		c.createEl("h3", { text: "⏰ Seu ritmo de trabalho" });
 		c.createEl("p", {
 			text: "Quando você quer briefing matinal e evening review? Atlas avisa só nessas janelas.",
-		}).style.fontSize = "12px";
+			cls: "atlas-onboarding-section-desc",
+		});
 
 		const sched = this.plugin.settings.schedules;
 
@@ -402,7 +357,8 @@ export class OnboardingWizard extends Modal {
 		c.createEl("h3", { text: "🎯 O que mais te ajudaria primeiro?" });
 		c.createEl("p", {
 			text: "Atlas vai te guiar nessa task antes de tudo. Pode mudar depois.",
-		}).style.fontSize = "12px";
+			cls: "atlas-onboarding-section-desc",
+		});
 
 		const goals = [
 			{ id: "weekly-report", icon: "📊", label: "Weekly report automático", tour: "weekly-report" },
@@ -412,22 +368,9 @@ export class OnboardingWizard extends Modal {
 		];
 
 		for (const g of goals) {
-			const card = c.createDiv();
-			card.style.padding = "12px 14px";
-			card.style.marginBottom = "6px";
-			card.style.background = "var(--background-secondary)";
-			card.style.borderRadius = "6px";
-			card.style.cursor = "pointer";
-			card.style.display = "flex";
-			card.style.alignItems = "center";
-			card.style.gap = "12px";
-
-			const iconEl = card.createEl("span", { text: g.icon });
-			iconEl.style.fontSize = "22px";
-
-			const labelEl = card.createEl("div", { text: g.label });
-			labelEl.style.fontSize = "13px";
-			labelEl.style.fontWeight = "500";
+			const card = c.createDiv({ cls: "atlas-onboarding-goal-row" });
+			card.createEl("span", { cls: "atlas-onboarding-goal-row-icon", text: g.icon });
+			card.createEl("div", { cls: "atlas-onboarding-goal-row-label", text: g.label });
 
 			card.addEventListener("click", async () => {
 				// Salva goal + dispara tour após onboarding (em settings.profile como extensão)
@@ -437,12 +380,6 @@ export class OnboardingWizard extends Modal {
 				(this.plugin.settings.profile as Record<string, unknown>).initialGoal = g.id;
 				await this.plugin.saveSettings();
 				this.go("vault");
-			});
-			card.addEventListener("mouseenter", () => {
-				card.style.background = "var(--background-modifier-hover)";
-			});
-			card.addEventListener("mouseleave", () => {
-				card.style.background = "var(--background-secondary)";
 			});
 		}
 
@@ -458,36 +395,25 @@ export class OnboardingWizard extends Modal {
 		c.createEl("h3", { text: "🎨 Color theme" });
 		c.createEl("p", {
 			text: "Cor accent do Atlas. Aplica em badges, botões, headers da sidebar.",
-		}).style.fontSize = "12px";
+			cls: "atlas-onboarding-section-desc",
+		});
 
-		const grid = c.createDiv();
-		grid.style.display = "grid";
-		grid.style.gridTemplateColumns = "repeat(5, 1fr)";
-		grid.style.gap = "10px";
-		grid.style.marginBottom = "16px";
+		const grid = c.createDiv({ cls: "atlas-onboarding-color-grid" });
 
 		const profile = this.plugin.settings.profile;
-		const currentAccent =
-			profile?.colorAccent ?? "#6366f1";
+		const currentAccent = profile?.colorAccent ?? "#6366f1";
 
 		for (const preset of COLOR_PRESETS) {
-			const swatch = grid.createDiv();
-			swatch.style.height = "70px";
-			swatch.style.borderRadius = "8px";
-			swatch.style.background = preset.hex;
-			swatch.style.cursor = "pointer";
-			swatch.style.border = currentAccent === preset.hex ? "3px solid var(--text-normal)" : "3px solid transparent";
-			swatch.style.position = "relative";
+			const isSelected = currentAccent === preset.hex;
+			const swatch = grid.createDiv({
+				cls: isSelected
+					? "atlas-onboarding-color-tile is-selected"
+					: "atlas-onboarding-color-tile",
+			});
+			swatch.style.setProperty("background", preset.hex);
 			swatch.title = preset.label;
 
-			const lbl = swatch.createEl("div", { text: preset.label });
-			lbl.style.position = "absolute";
-			lbl.style.bottom = "4px";
-			lbl.style.left = "8px";
-			lbl.style.fontSize = "10px";
-			lbl.style.color = "white";
-			lbl.style.fontWeight = "bold";
-			lbl.style.textShadow = "0 1px 2px rgba(0,0,0,0.5)";
+			swatch.createEl("div", { cls: "atlas-onboarding-color-label", text: preset.label });
 
 			swatch.addEventListener("click", async () => {
 				if (!this.plugin.settings.profile) {
@@ -501,7 +427,8 @@ export class OnboardingWizard extends Modal {
 
 		c.createEl("p", {
 			text: "Pode trocar depois em Settings → Atlas → Profile.",
-		}).style.fontSize = "11px";
+			cls: "atlas-onboarding-hint-small",
+		});
 
 		new Setting(c)
 			.addButton((b) => b.setButtonText("← Voltar").onClick(() => this.go("ollama")))
@@ -517,14 +444,12 @@ export class OnboardingWizard extends Modal {
 		c.createEl("h3", { text: "🗓️ Calendar (opcional)" });
 		c.createEl("p", {
 			text: "Cole URL de iCal (.ics) do Google Calendar / Outlook. Atlas puxa eventos do dia pro Today widget + pré-meeting nudges.",
-		}).style.fontSize = "12px";
+			cls: "atlas-onboarding-section-desc",
+		});
 
 		const help = c.createEl("details");
-		help.createEl("summary", { text: "Como pegar URL do meu calendar?" }).style.fontSize = "11px";
-		const helpBody = help.createEl("div");
-		helpBody.style.fontSize = "11px";
-		helpBody.style.padding = "8px";
-		helpBody.style.opacity = "0.85";
+		help.createEl("summary", { cls: "atlas-onboarding-help-summary", text: "Como pegar URL do meu calendar?" });
+		const helpBody = help.createEl("div", { cls: "atlas-onboarding-help-body" });
 		const lines: { strong: string; rest: string }[] = [
 			{ strong: "Google Calendar:", rest: ' Settings → Integrate calendar → "Secret address in iCal format"' },
 			{ strong: "Outlook:", rest: " Calendar → Share → Publish → ICS link" },
@@ -549,7 +474,7 @@ export class OnboardingWizard extends Modal {
 						this.plugin.settings.profile.calendarUrl = v.trim();
 						await this.plugin.saveSettings();
 					});
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-onboarding-input-full");
 			});
 
 		new Setting(c)
@@ -572,14 +497,7 @@ export class OnboardingWizard extends Modal {
 				: "Vou criar 30+ pastas (Daily, Meetings, Projects, People, RAID, etc.) e copiar 17 templates ricos.",
 		});
 
-		const log = c.createEl("pre");
-		log.style.fontSize = "11px";
-		log.style.maxHeight = "150px";
-		log.style.overflow = "auto";
-		log.style.background = "var(--background-secondary)";
-		log.style.padding = "8px";
-		log.style.borderRadius = "4px";
-		log.style.display = "none";
+		const log = c.createEl("pre", { cls: "atlas-onboarding-log" });
 
 		new Setting(c).addText((t) => {
 			t.setPlaceholder("Seu nome (opcional)")
@@ -588,7 +506,7 @@ export class OnboardingWizard extends Modal {
 					this.plugin.settings.user.displayName = v;
 					await this.plugin.saveSettings();
 				});
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-onboarding-input-full");
 		});
 
 		new Setting(c).addText((t) => {
@@ -598,7 +516,7 @@ export class OnboardingWizard extends Modal {
 					this.plugin.settings.user.role = v;
 					await this.plugin.saveSettings();
 				});
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-onboarding-input-full");
 		});
 
 		const actions = new Setting(c);
@@ -612,7 +530,7 @@ export class OnboardingWizard extends Modal {
 				.onClick(async () => {
 					b.setDisabled(true);
 					b.setButtonText("Criando...");
-					log.style.display = "block";
+					log.addClass("is-shown");
 					log.setText("Criando pastas...");
 					try {
 						await setupVaultStructure(this.plugin);
@@ -654,45 +572,30 @@ export class OnboardingWizard extends Modal {
 		this.plugin.settings.performance.visionOptInAvailable = rec.visionAvailable;
 		void this.plugin.saveSettings();
 
-		const ramBox = c.createEl("div");
-		ramBox.style.padding = "10px";
-		ramBox.style.background = "var(--background-secondary)";
-		ramBox.style.borderRadius = "6px";
-		ramBox.style.marginBottom = "8px";
-		ramBox.style.fontSize = "12px";
-		const ramLabel = ramBox.createEl("div");
-		ramLabel.style.fontWeight = "bold";
-		ramLabel.setText(
-			`💻 Sistema detectado: ${sys.totalRamGB} GB RAM · ${sys.cpuCount} cores · ${sys.platform}`
-		);
-		const profileBadge = ramBox.createEl("div");
-		profileBadge.style.marginTop = "4px";
-		profileBadge.setText(`Perfil: ${rec.profile.toUpperCase()}`);
-		profileBadge.style.color =
-			rec.profile === "power" ? "#2e7d32" : rec.profile === "balanced" ? "#f57c00" : "#1976d2";
-		profileBadge.style.fontWeight = "bold";
+		const ramBox = c.createEl("div", { cls: "atlas-onboarding-ram-box" });
+		ramBox.createEl("div", {
+			cls: "atlas-onboarding-ram-label",
+			text: `💻 Sistema detectado: ${sys.totalRamGB} GB RAM · ${sys.cpuCount} cores · ${sys.platform}`,
+		});
+		ramBox.createEl("div", {
+			cls: `atlas-onboarding-ram-profile is-${rec.profile}`,
+			text: `Perfil: ${rec.profile.toUpperCase()}`,
+		});
 
-		const notes = ramBox.createEl("ul");
-		notes.style.fontSize = "11px";
-		notes.style.opacity = "0.85";
-		notes.style.margin = "4px 0";
-		notes.style.paddingLeft = "20px";
+		const notes = ramBox.createEl("ul", { cls: "atlas-onboarding-ram-notes" });
 		for (const n of rec.notes) {
 			notes.createEl("li", { text: n });
 		}
 
-		const status = c.createEl("div");
-		status.style.padding = "12px";
-		status.style.background = "var(--background-secondary)";
-		status.style.borderRadius = "6px";
-		status.style.marginBottom = "12px";
+		const status = c.createEl("div", { cls: "atlas-onboarding-ollama-status" });
 		status.setText("Verificando Ollama...");
 
 		void this.detectOllama(status);
 
 		c.createEl("p", {
 			text: "Se não tiver, baixe em ollama.com (instalador `.dmg` / `.exe` / Linux package). Volte aqui depois.",
-		}).style.fontSize = "13px";
+			cls: "atlas-onboarding-ollama-hint",
+		});
 
 		new Setting(c)
 			.addButton((b) => b.setButtonText("← Voltar").onClick(() => this.go("vault")))
@@ -743,19 +646,15 @@ export class OnboardingWizard extends Modal {
 		statusEl.setText(`⚠️ Ollama OK mas faltam modelos: ${missing.join(", ")}`);
 
 		const btn = statusEl.createEl("button", {
+			cls: "atlas-onboarding-ollama-pull-btn",
 			text: `Baixar ${missing.join(" + ")}`,
 		});
-		btn.style.marginTop = "8px";
-		btn.style.padding = "6px 12px";
 		btn.addEventListener("click", () => void this.pullModels(missing, statusEl));
 	}
 
 	private async pullModels(models: string[], statusEl: HTMLElement): Promise<void> {
 		statusEl.empty();
-		const log = statusEl.createEl("pre");
-		log.style.maxHeight = "200px";
-		log.style.overflow = "auto";
-		log.style.fontSize = "11px";
+		const log = statusEl.createEl("pre", { cls: "atlas-onboarding-pull-log" });
 
 		for (const m of models) {
 			log.setText(log.getText() + `\nBaixando ${m}...`);
@@ -801,7 +700,7 @@ export class OnboardingWizard extends Modal {
 					this.plugin.settings.email.smtpHost = v;
 					await this.plugin.saveSettings();
 				});
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-onboarding-input-full");
 		});
 
 		new Setting(c).setName("SMTP user (email completo)").addText((t) => {
@@ -810,7 +709,7 @@ export class OnboardingWizard extends Modal {
 				this.plugin.settings.email.fromAddress = v;
 				await this.plugin.saveSettings();
 			});
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-onboarding-input-full");
 		});
 
 		new Setting(c).setName("App Password (nunca em texto claro depois)").addText((t) => {
@@ -822,7 +721,7 @@ export class OnboardingWizard extends Modal {
 				}
 			});
 			t.inputEl.type = "password";
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-onboarding-input-full");
 		});
 
 		new Setting(c)
@@ -835,7 +734,7 @@ export class OnboardingWizard extends Modal {
 						await this.plugin.saveSettings();
 					}
 				);
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-onboarding-input-full");
 			});
 
 		new Setting(c)
@@ -889,7 +788,7 @@ export class OnboardingWizard extends Modal {
 				await this.plugin.saveSettings();
 			});
 			t.inputEl.type = "password";
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-onboarding-input-full");
 		});
 
 		new Setting(c).setName("Chat ID").addText((t) => {
@@ -897,7 +796,7 @@ export class OnboardingWizard extends Modal {
 				this.plugin.settings.notifications.telegramChatId = v;
 				await this.plugin.saveSettings();
 			});
-			t.inputEl.style.width = "100%";
+			t.inputEl.addClass("atlas-onboarding-input-full");
 		});
 
 		new Setting(c)

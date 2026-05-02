@@ -4,6 +4,17 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.9] — 2026-05-02 — "Onboarding wizard migrated to CSS classes (first-run UX)"
+
+### Changed
+- `onboarding.ts`: 127 → 1 inline style (the only remaining is `setProperty("background", preset.hex)` for color swatch dynamic colors)
+
+The 11-screen first-run wizard is the **most-visible UX surface** for new users — every Atlas user sees this on install. Now fully CSS-class based.
+
+State changes via classes: `.is-current/.is-done` (progress dots), `.is-selected` (profile/color cards), `.is-empty` (summary state), `.is-shown` (vault setup log), `.is-power/.is-balanced/.is-light` (RAM profile badge).
+
+styles.css: 39 KB → ~46 KB (added ~440 lines: header, progress dots, profile grid, summary, goal rows, color swatches, RAM detection, Ollama status, pull log, hints, help expander).
+
 ## [0.9.8] — 2026-05-02 — "All 3 CRUD tabs (Systems, Products, Roles) to CSS classes"
 
 ### Changed

@@ -1664,3 +1664,236 @@
 	margin-bottom: 3px;
 	font-size: 12px;
 }
+
+/* v0.9.9 — Onboarding wizard */
+.atlas-onboarding-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+.atlas-onboarding-progress-dots {
+	display: flex;
+	gap: 6px;
+}
+.atlas-onboarding-progress-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--background-modifier-border);
+	transition: background 220ms ease;
+}
+.atlas-onboarding-progress-dot.is-current { background: var(--interactive-accent-hover); }
+.atlas-onboarding-progress-dot.is-done { background: var(--interactive-accent); }
+
+.atlas-onboarding-hint { opacity: 0.7; }
+.atlas-onboarding-section-desc { font-size: 12px; }
+
+.atlas-onboarding-cat-head {
+	font-size: 10px;
+	font-weight: bold;
+	opacity: 0.7;
+	margin-top: 12px;
+	margin-bottom: 6px;
+	letter-spacing: 0.5px;
+}
+.atlas-onboarding-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 6px;
+}
+.atlas-onboarding-card {
+	padding: 8px 10px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	cursor: pointer;
+	border: 2px solid transparent;
+	transition: border-color 120ms;
+}
+.atlas-onboarding-card.is-selected {
+	border-color: var(--interactive-accent);
+	background: var(--background-modifier-hover);
+}
+.atlas-onboarding-card-top {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.atlas-onboarding-card-emoji { font-size: 18px; }
+.atlas-onboarding-card-name { font-size: 12px; font-weight: bold; }
+.atlas-onboarding-card-tag { font-size: 10px; opacity: 0.7; margin-top: 2px; }
+
+.atlas-onboarding-summary {
+	margin-top: 16px;
+	padding: 8px;
+	background: var(--background-secondary-alt);
+	border-radius: 4px;
+	font-size: 11px;
+}
+
+.atlas-onboarding-warn { color: var(--color-orange); }
+
+/* Color preview swatches */
+.atlas-onboarding-colors {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-top: 8px;
+}
+.atlas-onboarding-color-swatch {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	cursor: pointer;
+	border: 3px solid transparent;
+	transition: transform 120ms, border-color 120ms;
+}
+.atlas-onboarding-color-swatch:hover { transform: scale(1.1); }
+.atlas-onboarding-color-swatch.is-selected { border-color: var(--text-normal); }
+
+/* Goal cards (4 large CTAs) */
+.atlas-onboarding-goal-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	margin-top: 12px;
+}
+.atlas-onboarding-goal-card {
+	padding: 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	cursor: pointer;
+	border: 2px solid transparent;
+	transition: border-color 120ms, transform 120ms;
+}
+.atlas-onboarding-goal-card.is-selected {
+	border-color: var(--interactive-accent);
+}
+.atlas-onboarding-goal-card:hover {
+	transform: translateY(-1px);
+}
+.atlas-onboarding-goal-emoji { font-size: 28px; margin-bottom: 6px; }
+.atlas-onboarding-goal-title { font-weight: bold; font-size: 13px; margin-bottom: 4px; }
+.atlas-onboarding-goal-desc { font-size: 11px; opacity: 0.75; }
+
+/* Done step */
+.atlas-onboarding-done-icon {
+	font-size: 60px;
+	text-align: center;
+	margin: 16px 0;
+}
+.atlas-onboarding-done-title {
+	text-align: center;
+	margin: 8px 0;
+}
+.atlas-onboarding-done-text {
+	text-align: center;
+	opacity: 0.8;
+	margin-bottom: 16px;
+}
+
+/* v0.9.9 — Onboarding step-specific extensions */
+.atlas-onboarding-summary.is-empty { opacity: 0.6; }
+
+.atlas-onboarding-goal-row {
+	padding: 12px 14px;
+	margin-bottom: 6px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	transition: background 120ms ease;
+}
+.atlas-onboarding-goal-row:hover {
+	background: var(--background-modifier-hover);
+}
+.atlas-onboarding-goal-row-icon { font-size: 22px; }
+.atlas-onboarding-goal-row-label { font-size: 13px; font-weight: 500; }
+
+.atlas-onboarding-color-grid {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 10px;
+	margin-bottom: 16px;
+}
+.atlas-onboarding-color-tile {
+	height: 70px;
+	border-radius: 8px;
+	cursor: pointer;
+	border: 3px solid transparent;
+	position: relative;
+	transition: border-color 120ms ease;
+}
+.atlas-onboarding-color-tile.is-selected { border-color: var(--text-normal); }
+.atlas-onboarding-color-label {
+	position: absolute;
+	bottom: 4px;
+	left: 8px;
+	font-size: 10px;
+	color: white;
+	font-weight: bold;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.atlas-onboarding-hint-small { font-size: 11px; }
+
+.atlas-onboarding-help-summary { font-size: 11px; }
+.atlas-onboarding-help-body {
+	font-size: 11px;
+	padding: 8px;
+	opacity: 0.85;
+}
+
+.atlas-onboarding-input-full { width: 100%; }
+
+.atlas-onboarding-log {
+	font-size: 11px;
+	max-height: 150px;
+	overflow: auto;
+	background: var(--background-secondary);
+	padding: 8px;
+	border-radius: 4px;
+	display: none;
+}
+.atlas-onboarding-log.is-shown { display: block; }
+
+.atlas-onboarding-ram-box {
+	padding: 10px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	margin-bottom: 8px;
+	font-size: 12px;
+}
+.atlas-onboarding-ram-label { font-weight: bold; }
+.atlas-onboarding-ram-profile {
+	margin-top: 4px;
+	font-weight: bold;
+}
+.atlas-onboarding-ram-profile.is-power { color: #2e7d32; }
+.atlas-onboarding-ram-profile.is-balanced { color: #f57c00; }
+.atlas-onboarding-ram-profile.is-light { color: #1976d2; }
+.atlas-onboarding-ram-profile.is-unknown { color: var(--text-muted); }
+.atlas-onboarding-ram-notes {
+	font-size: 11px;
+	opacity: 0.85;
+	margin: 4px 0;
+	padding-left: 20px;
+}
+
+.atlas-onboarding-ollama-status {
+	padding: 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	margin-bottom: 12px;
+}
+.atlas-onboarding-ollama-hint { font-size: 13px; }
+.atlas-onboarding-ollama-pull-btn {
+	margin-top: 8px;
+	padding: 6px 12px;
+}
+.atlas-onboarding-pull-log {
+	max-height: 200px;
+	overflow: auto;
+	font-size: 11px;
+}
