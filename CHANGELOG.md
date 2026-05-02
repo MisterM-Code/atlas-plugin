@@ -4,6 +4,40 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.8.3] — 2026-05-02 — "Vision Multimodal"
+
+### Added — Vision (multimodal via llama3.2-vision)
+
+`src/innovations/vision.ts` — VisionTool + VisionModal:
+
+- Lê arquivo imagem (.png/.jpg/.jpeg/.webp) → base64 → POST /api/generate com `images: [base64]`
+- 5 tipos de análise:
+  - 📝 **Describe** — descrição geral em PT-BR
+  - 🔤 **OCR** — extrai todo texto preservando estrutura
+  - 📊 **Table** — extrai tabelas como markdown table
+  - 🔀 **Diagram** — converte diagrama em Mermaid markdown
+  - 💡 **Summarize** — bullet points + action items
+- Resultado salvo em `09_Knowledge/vision/[date]-[image].md`
+- Comando `Atlas: 👁️ Vision: analisar imagem`
+- Modal alerta sobre RAM (~8 GB temporário)
+- Requer `llama3.2-vision:11b` pulled (Status → Catálogo)
+
+### Use cases reais
+
+- **Whiteboard photo** → markdown texto pra weekly report
+- **Screenshot do Slack** → action items extraídos
+- **Slide deck** → bullet points pra resumo
+- **Receipt/nota fiscal** → tabela de gastos
+- **Anotações à mão** → markdown digitalizado
+- **Diagrama no quadro** → Mermaid pra ADR
+
+### Métricas
+
+| | v0.8.2 | v0.8.3 |
+|---|---|---|
+| main.js | 1.82 MB | 1.82 MB |
+| Tools IA | 15 | **16** (+ vision) |
+
 ## [0.8.2] — 2026-05-02 — "Spotlight Premium + innerHTML refactor"
 
 ### Added — Atlas Spotlight visual upgrade (v0.8.1)

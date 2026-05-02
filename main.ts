@@ -1170,6 +1170,16 @@ captured_via: webhook
 			},
 		});
 
+		// ─── v0.8.3: Vision ───
+		this.addCommand({
+			id: "atlas-vision",
+			name: "👁️ Vision: analisar imagem (whiteboard/OCR/diagrama/tabela)",
+			callback: async () => {
+				const m = await import("./src/innovations/vision");
+				new m.VisionModal(this.app, this).open();
+			},
+		});
+
 		this.addCommand({
 			id: "atlas-templates-picker",
 			name: "📐 Templates Atlas (escolher / usar / editar)",
