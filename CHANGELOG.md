@@ -4,6 +4,31 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.51.2] — 2026-05-02 — "Atlas Self-Test diagnostic command"
+
+### 🩺 Self-Test
+- Comando `atlas:self-test` checa 12 sistemas críticos
+- Output: nota markdown em Inbox com tabela de status:
+  1. Ollama daemon (ping real)
+  2. Knowledge Graph (totals: people/systems/sessions/actionItems/themes)
+  3. Provider Router (cloud providers configurados + chat routing ativo)
+  4. Cost Tracker (gasto hoje/mês)
+  5. Embedder (modelo)
+  6. Memory (Mem0-lite, fatos + session)
+  7. Extraction Cache (entries + sizeKB)
+  8. Notifier (canais ativos)
+  9. Scheduler
+  10. iCal Cache (events + last fetch)
+  11. Voice (whisper.cpp config)
+  12. KG Backups (count + folder)
+- Resumo "N/12 sistemas OK" + sugestões pra falhas
+- Notice final: link pra abrir relatório
+- Use case: troubleshooting + amigo confirma instalação OK
+
+### Files
+- `src/commands/self-test.ts` (NEW ~245 LOC)
+- `main.ts` — atlas:self-test command
+
 ## [0.51.1] — 2026-05-02 — "Activity Bar badges expandidos"
 
 ### Lab tab badge — time capsules due

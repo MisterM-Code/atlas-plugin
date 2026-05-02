@@ -1740,6 +1740,16 @@ captured_via: webhook
 			callback: () => this.showBookmarkletModal(),
 		});
 
+		// v0.51.2: Self-test diagnostic — checa todos os sistemas críticos
+		this.addCommand({
+			id: "self-test",
+			name: "🩺 Self-Test: rodar diagnóstico completo",
+			callback: async () => {
+				const m = await import("./src/commands/self-test");
+				await m.runSelfTest(this);
+			},
+		});
+
 		// v0.51: Active Learning — review extrações pra confirmar/rejeitar
 		this.addCommand({
 			id: "active-learning-review",
