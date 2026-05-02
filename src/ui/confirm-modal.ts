@@ -34,20 +34,34 @@ class ConfirmModal extends Modal {
 		const { contentEl } = this;
 		applyResponsiveModal(contentEl, { preferredWidth: 480 });
 		contentEl.empty();
+		contentEl.addClass("atlas-confirm-modal");
+		if (this.opts.danger) contentEl.addClass("is-danger");
 
+		// Header with icon
+		const header = contentEl.createDiv({ cls: "atlas-confirm-header" });
+		header.createEl("span", {
+			cls: "atlas-confirm-icon",
+			text: this.opts.danger ? "⚠️" : "❓",
+		});
 		if (this.opts.title) {
-			contentEl.createEl("h3", { text: this.opts.title, cls: "atlas-confirm-title" });
+			header.createEl("h3", {
+				cls: "atlas-confirm-title",
+				text: this.opts.title,
+			});
 		}
 
 		contentEl.createDiv({ cls: "atlas-confirm-message", text: this.message });
 
-		const row = contentEl.createDiv({ cls: "atlas-modal-button-row" });
-		const noBtn = row.createEl("button", { text: this.opts.noLabel ?? "Cancelar" });
+		const row = contentEl.createDiv({ cls: "atlas-confirm-buttons" });
+		const noBtn = row.createEl("button", {
+			cls: "atlas-confirm-btn-no",
+			text: this.opts.noLabel ?? "Cancelar",
+		});
 		noBtn.addEventListener("click", () => this.commit(false));
 
 		const yesBtn = row.createEl("button", {
 			text: this.opts.yesLabel ?? "Confirmar",
-			cls: this.opts.danger ? "mod-warning" : "mod-cta",
+			cls: `atlas-confirm-btn-yes ${this.opts.danger ? "mod-warning" : "mod-cta"}`,
 		});
 		yesBtn.addEventListener("click", () => this.commit(true));
 

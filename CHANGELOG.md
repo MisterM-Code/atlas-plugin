@@ -4,6 +4,49 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.31.0] — 2026-05-02 — "Polish global helpers: form-fields + ConfirmModal + Master Header"
+
+Polish dos componentes universais que aparecem em TODA edição/confirmação no Atlas.
+
+### Sprint A — form-fields.ts (input/select/textarea/multi-chip/buttons)
+- Migrated 100% inline styles → utility classes `.atlas-field-*`
+- Inputs/selects/textareas com border-radius 8px + cyan focus glow + hover border tint
+- Custom select arrow gradient (replaces native chevron)
+- Textareas com font-mono + min-height 60 + resize vertical
+- Multi-chip box: chips com `is-selected` gradient cyan→indigo + box-shadow
+- Chip hover: translateY(-1px) + cyan border-color
+- Form buttons: gradient line top + Cancel hover translateY + Save mod-cta hover cyan glow
+
+### Sprint B — ConfirmModal universal yes/no
+- 1px top accent line cosmic gradient (cyan/indigo OR red/orange se danger)
+- Pop-in entrance animation (scale 0.92 → 1.0 spring)
+- Icon ❓ com bob animation (translateY ±3px loop)
+- Icon ⚠️ com pulse animation + drop-shadow red (danger mode)
+- Title gradient cyan→indigo (ou red→orange)
+- Message com border-left 3px cyan + bg secondary
+- Buttons row: gradient fade-line top + No hover translateY + Yes mod-cta cyan shadow / mod-warning red shadow
+
+### Sprint C — Master Sidebar Header (sempre visível na sidebar)
+- 1px top accent line cosmic (50% idle, 100% on hover)
+- Background gradient ternário com cyan tint
+- Border cyan-tinted + hover translateY + cyan glow shadow
+- Logo com drop-shadow cyan (4px idle, 12px on hover)
+- Logo scale 1.05 on hover
+- Settings icon rotates 45° on hover (gear feedback)
+- Name com gradient text cyan→indigo (era plain bold)
+
+### CSS additions
+- form-fields: ~145 LOC novas
+- ConfirmModal: ~125 LOC novas
+- Master Header: ~70 LOC enhanced (substituindo plain styles)
+- TOTAL: ~340 LOC novas/refinadas
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Form helpers backward-compatible (mesma API: fieldInput/fieldSelect/fieldTextArea/fieldMultiSelect/formButtons)
+- ConfirmModal API idêntica (confirmAsync com title/yesLabel/noLabel/danger)
+
 ## [0.30.0] — 2026-05-02 — "Polish CRUD modals: TabsTour + CourseEdit + TemplateEditor + Picker"
 
 Polish dos modais CRUD que aparecem em fluxos importantes (post-onboarding + edit de templates/courses).
