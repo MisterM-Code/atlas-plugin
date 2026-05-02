@@ -131,6 +131,32 @@ export class Agent {
 						return filled;
 					}
 				}
+
+				// v0.48 E3: Multi-agent orchestrator — para queries complexas
+				// ("crie email sobre sistemas da semana", "relatório do Miguel")
+				try {
+					const orchMod = await import("./orchestrator");
+					const orchestrator = new orchMod.OrchestratorAgent(plugin);
+					const orchCtx = orchestrator.matches(query);
+					if (orchCtx.matched) {
+						const result = await orchestrator.run(query, {
+							onProgress: (stage) => {
+								if (input.streamCallback) input.streamCallback(`\n${stage}\n`);
+							},
+						});
+						this.memory.addTurn({ role: "user", content: query });
+						this.memory.addTurn({
+							role: "assistant",
+							content: result.answer,
+							citations: result.citations.map((c) => c.notePath),
+						});
+						return result;
+					}
+				} catch (e) {
+					logger.warn("agent: orchestrator failed, fallback to single-agent", {
+						error: String(e),
+					});
+				}
 			} catch (e) {
 				logger.warn("agent: intent dispatcher failed", { error: String(e) });
 				// fallthrough to normal LLM path

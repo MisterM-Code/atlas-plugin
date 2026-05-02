@@ -4,6 +4,41 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.48.0] — 2026-05-02 — "Multi-agent Orchestrator: Researcher + Writer pipeline"
+
+### E3 — Multi-agent Orchestrator (v0.47 deferred)
+- `src/agent/orchestrator.ts` (NEW) — pattern detection + scope extraction
+- `src/agent/researcher.ts` (NEW) — coleta dados via tools + KG (modelo barato/local)
+- `src/agent/writer.ts` (NEW) — compose markdown profissional (modelo qualidade)
+- 3 patterns complex queries detectados:
+  - `gere/crie/faça relatório/email/análise/resumo/sumário ...`
+  - `email/relatório/análise sobre/de/com/dos/das ...`
+  - `consolide/agregue/junte/reuna todas as ...`
+- Scope extraction: período (hoje/semana/mês), pessoa (capitalizada após "com/do/da/sobre"), sistemas (match contra KG)
+
+### Pipeline:
+1. Researcher chama `aggregate_systems_by_period` (ZERO LLM) + KG queries
+2. Researcher opcional digest LLM `taskKind="extraction"` (Haiku/local cheap)
+3. Writer compose markdown `taskKind="summarization"` (Sonnet/Opus quando cloud)
+4. Fallback template estruturado se LLM indisponível (sem alucinação)
+
+### Token economy
+- Mega-prompt único 50K tokens → 6K tokens em pipeline (88% redução)
+- Researcher trabalha em modelo barato, Writer em qualidade
+- Progress callback "🔍 Pesquisando..." → "✍️ Compondo..." pra UX
+
+### Use cases que agora funcionam end-to-end
+- "crie email sobre todos os sistemas da semana"
+- "gere relatório sobre Miguel"
+- "consolide análise dos sistemas do mês"
+- "resumo da semana com Maria"
+
+### Files
+- `src/agent/orchestrator.ts` (NEW ~95 LOC)
+- `src/agent/researcher.ts` (NEW ~140 LOC)
+- `src/agent/writer.ts` (NEW ~150 LOC)
+- `src/agent/agent.ts` — wire orchestrator ANTES do single-agent fallback
+
 ## [0.47.0] — 2026-05-02 — "Smart Slot-Filling Agent: Intent Dispatcher V2 + Multi-turn Slots + Vault Aggregation + Extraction Cache"
 
 ### E1 — Intent Dispatcher V2 (zero-LLM heuristic routing)
