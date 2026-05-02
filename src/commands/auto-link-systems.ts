@@ -27,14 +27,21 @@ export class AutoLinkSystemsModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 720 });
+		contentEl.addClass("atlas-autolink-modal");
 
-		contentEl.createEl("h3", { text: "🔗 Auto-link sistemas — preview" });
-		contentEl.createEl("p", {
-			text: "Atlas detectou estas menções a sistemas cadastrados. Marque as que deseja substituir por [[Sistema: X]] (links).",
+		const header = contentEl.createDiv({ cls: "atlas-autolink-header" });
+		header.createEl("span", { cls: "atlas-autolink-icon", text: "🔗" });
+		const wrap = header.createDiv({ cls: "atlas-autolink-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-autolink-title", text: "Auto-link Sistemas" });
+		wrap.createEl("div", {
+			cls: "atlas-autolink-subtitle",
+			text: "Atlas detectou menções a sistemas cadastrados. Marque os que deseja substituir por [[Sistema: X]] (links).",
 		});
 
-		const loadingEl = contentEl.createEl("div", { text: "Escaneando nota..." });
-		loadingEl.style.opacity = "0.6";
+		const loadingEl = contentEl.createEl("div", {
+			cls: "atlas-autolink-loading",
+			text: "Escaneando nota...",
+		});
 
 		this.rawText = await this.app.vault.read(this.file);
 		const detector = new SystemDetector(this.app, this.plugin);
@@ -42,7 +49,8 @@ export class AutoLinkSystemsModal extends Modal {
 		loadingEl.remove();
 
 		if (this.mentions.length === 0) {
-			contentEl.createEl("p", {
+			contentEl.createDiv({
+				cls: "atlas-autolink-empty",
 				text: "✅ Nenhuma menção não-linkada detectada. Tudo já está organizado!",
 			});
 			new Setting(contentEl).addButton((b) =>
@@ -59,52 +67,34 @@ export class AutoLinkSystemsModal extends Modal {
 			bySys.set(m.systemName, arr);
 		}
 
-		const summary = contentEl.createEl("p");
-		summary.style.fontSize = "12px";
-		summary.style.opacity = "0.7";
+		const summary = contentEl.createEl("p", { cls: "atlas-autolink-summary" });
 		summary.setText(
 			`${this.mentions.length} menções de ${bySys.size} sistemas. Por padrão, todas selecionadas.`
 		);
 
-		const list = contentEl.createDiv();
-		list.style.maxHeight = "50vh";
-		list.style.overflowY = "auto";
-		list.style.border = "1px solid var(--background-modifier-border)";
-		list.style.borderRadius = "4px";
-		list.style.padding = "8px";
-		list.style.marginBottom = "12px";
+		const list = contentEl.createDiv({ cls: "atlas-autolink-list" });
 
 		for (const [sysName, mentions] of bySys) {
-			const sysHeader = list.createDiv();
-			sysHeader.style.fontSize = "13px";
-			sysHeader.style.fontWeight = "bold";
-			sysHeader.style.marginTop = "8px";
-			sysHeader.style.marginBottom = "4px";
-			sysHeader.style.padding = "4px 6px";
-			sysHeader.style.background = "var(--background-secondary)";
-			sysHeader.style.borderRadius = "3px";
+			const sysHeader = list.createDiv({ cls: "atlas-autolink-sys-header" });
 			sysHeader.setText(`🖥️ ${sysName} (${mentions.length})`);
 
 			for (const m of mentions) {
 				const id = `${m.systemId}-${m.startOffset}`;
 				this.selected.add(id);
 				const row = list.createDiv();
-				row.style.display = "flex";
-				row.style.alignItems = "flex-start";
-				row.style.gap = "8px";
-				row.style.padding = "4px 8px";
-				row.style.fontSize = "11px";
+				row.addClass("atlas-autolink-row");
 
-				const cb = row.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+				const cb = row.createEl("input", {
+					cls: "atlas-autolink-cb",
+					type: "checkbox",
+				}) as HTMLInputElement;
 				cb.checked = true;
 				cb.addEventListener("change", () => {
 					if (cb.checked) this.selected.add(id);
 					else this.selected.delete(id);
 				});
 
-				const text = row.createDiv();
-				text.style.flexGrow = "1";
-				text.style.lineHeight = "1.4";
+				const text = row.createDiv({ cls: "atlas-autolink-row-text" });
 				this.renderHighlight(text, m.contextSnippet, m.matchedText);
 			}
 		}
@@ -136,11 +126,7 @@ export class AutoLinkSystemsModal extends Modal {
 		const matched = snippet.substring(idx, idx + match.length);
 		const after = snippet.substring(idx + match.length);
 		if (before) parent.appendText(before);
-		const mark = parent.createEl("mark", { text: matched });
-		mark.style.background = "var(--interactive-accent)";
-		mark.style.color = "var(--text-on-accent)";
-		mark.style.padding = "0 3px";
-		mark.style.borderRadius = "2px";
+		parent.createEl("mark", { cls: "atlas-autolink-mark", text: matched });
 		if (after) parent.appendText(after);
 	}
 

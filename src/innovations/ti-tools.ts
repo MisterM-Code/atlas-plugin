@@ -225,10 +225,16 @@ export class ArchitectureDiagramModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 640 });
-		contentEl.createEl("h3", { text: "🏗️ Architecture Diagram (C4)" });
-		contentEl.createEl("p", {
-			text: "Descreva o sistema. Atlas gera diagrama Mermaid C4 nivel Context/Container/Component.",
-		}).style.fontSize = "12px";
+		contentEl.addClass("atlas-ti-modal", "atlas-ti-architecture");
+
+		const header = contentEl.createDiv({ cls: "atlas-ti-header" });
+		header.createEl("span", { cls: "atlas-ti-icon", text: "🏗️" });
+		const wrap = header.createDiv({ cls: "atlas-ti-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-ti-title", text: "Architecture Diagram (C4)" });
+		wrap.createEl("div", {
+			cls: "atlas-ti-subtitle",
+			text: "Descreva o sistema. Atlas gera diagrama Mermaid C4 nível Context/Container/Component.",
+		});
 
 		new Setting(contentEl)
 			.setName("Nível")
@@ -240,13 +246,9 @@ export class ArchitectureDiagramModal extends Modal {
 				d.onChange((v) => (this.level = v as typeof this.level));
 			});
 
-		const ta = contentEl.createEl("textarea");
+		const ta = contentEl.createEl("textarea", { cls: "atlas-ti-textarea" });
 		ta.placeholder =
 			"Ex: Sistema de pagamentos: API REST em Node.js + fila Kafka, banco Postgres pra transactions e Redis pra cache. Integra com PIX (BCB) e Stripe. Fronend React consome via API Gateway.";
-		ta.style.width = "100%";
-		ta.style.minHeight = "180px";
-		ta.style.padding = "10px";
-		ta.style.fontSize = "13px";
 		ta.addEventListener("input", () => (this.description = ta.value));
 
 		new Setting(contentEl)
@@ -417,31 +419,30 @@ export class AdrGeneratorModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 680 });
-		contentEl.createEl("h3", { text: "📜 ADR Generator" });
-		contentEl.createEl("p", {
+		contentEl.addClass("atlas-ti-modal", "atlas-ti-adr");
+
+		const header = contentEl.createDiv({ cls: "atlas-ti-header" });
+		header.createEl("span", { cls: "atlas-ti-icon", text: "📜" });
+		const wrap = header.createDiv({ cls: "atlas-ti-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-ti-title", text: "ADR Generator" });
+		wrap.createEl("div", {
+			cls: "atlas-ti-subtitle",
 			text: "Architecture Decision Record (formato Michael Nygard). Atlas gera Status/Context/Decision/Consequences/Alternatives.",
-		}).style.fontSize = "12px";
+		});
 
 		new Setting(contentEl)
 			.setName("Título da decisão")
 			.addText((t) => {
 				t.setPlaceholder("Ex: Adotar Postgres em vez de MongoDB")
 					.onChange((v) => (this.title = v));
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-ti-input-full");
 			});
 
-		const lbl = contentEl.createEl("div", { text: "Contexto (livre):" });
-		lbl.style.fontSize = "11px";
-		lbl.style.marginTop = "8px";
-		lbl.style.opacity = "0.7";
+		contentEl.createEl("div", { cls: "atlas-ti-field-label", text: "Contexto (livre):" });
 
-		const ta = contentEl.createEl("textarea");
+		const ta = contentEl.createEl("textarea", { cls: "atlas-ti-textarea" });
 		ta.placeholder =
 			"Por que essa decisão? Quais opções consideramos? Quais constraints? Quais trade-offs?";
-		ta.style.width = "100%";
-		ta.style.minHeight = "180px";
-		ta.style.padding = "10px";
-		ta.style.fontSize = "13px";
 		ta.addEventListener("input", () => (this.context = ta.value));
 
 		new Setting(contentEl)
@@ -879,17 +880,19 @@ export class RunbookGeneratorModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 640 });
-		contentEl.createEl("h3", { text: "🚑 Runbook Generator" });
-		contentEl.createEl("p", {
-			text: "Cenário ou tipo de incidente. Atlas gera runbook completo (Detection / Triage / Mitigation / Rollback / Prevention).",
-		}).style.fontSize = "12px";
+		contentEl.addClass("atlas-ti-modal", "atlas-ti-runbook");
 
-		const ta = contentEl.createEl("textarea");
+		const header = contentEl.createDiv({ cls: "atlas-ti-header" });
+		header.createEl("span", { cls: "atlas-ti-icon", text: "🚑" });
+		const wrap = header.createDiv({ cls: "atlas-ti-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-ti-title", text: "Runbook Generator" });
+		wrap.createEl("div", {
+			cls: "atlas-ti-subtitle",
+			text: "Atlas gera runbook completo: Detection / Triage / Mitigation / Rollback / Prevention.",
+		});
+
+		const ta = contentEl.createEl("textarea", { cls: "atlas-ti-textarea" });
 		ta.placeholder = "Ex: API de pagamentos retornando 503 com latência alta. Banco PostgreSQL parece saturado.";
-		ta.style.width = "100%";
-		ta.style.minHeight = "150px";
-		ta.style.padding = "10px";
-		ta.style.fontSize = "13px";
 		ta.addEventListener("input", () => (this.scenario = ta.value));
 
 		new Setting(contentEl)
@@ -1103,30 +1106,29 @@ export class PostmortemBuilderModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 720 });
-		contentEl.createEl("h3", { text: "🚨 Postmortem Builder" });
-		contentEl.createEl("p", {
+		contentEl.addClass("atlas-ti-modal", "atlas-ti-postmortem");
+
+		const header = contentEl.createDiv({ cls: "atlas-ti-header" });
+		header.createEl("span", { cls: "atlas-ti-icon", text: "🚨" });
+		const wrap = header.createDiv({ cls: "atlas-ti-header-wrap" });
+		wrap.createEl("h3", { cls: "atlas-ti-title", text: "Postmortem Builder" });
+		wrap.createEl("div", {
+			cls: "atlas-ti-subtitle",
 			text: "Atlas gera postmortem blameless completo (Timeline, RCA 5-whys, Impact, Action Items, Learnings).",
-		}).style.fontSize = "12px";
+		});
 
 		new Setting(contentEl)
 			.setName("Sumário do incidente")
 			.addText((t) => {
 				t.setPlaceholder("Ex: API checkout indisponível por 47 min em 2026-04-29")
 					.onChange((v) => (this.summary = v));
-				t.inputEl.style.width = "100%";
+				t.inputEl.addClass("atlas-ti-input-full");
 			});
 
-		const lbl = contentEl.createEl("div", { text: "Timeline + observações livres:" });
-		lbl.style.fontSize = "11px";
-		lbl.style.opacity = "0.7";
-		lbl.style.marginTop = "8px";
+		contentEl.createEl("div", { cls: "atlas-ti-field-label", text: "Timeline + observações livres:" });
 
-		const ta = contentEl.createEl("textarea");
+		const ta = contentEl.createEl("textarea", { cls: "atlas-ti-textarea" });
 		ta.placeholder = "14:00 alarme de latência\n14:05 SRE conectou\n14:10 identificado lock no banco\n14:30 mitigação aplicada\n14:47 serviço normal";
-		ta.style.width = "100%";
-		ta.style.minHeight = "180px";
-		ta.style.padding = "10px";
-		ta.style.fontSize = "13px";
 		ta.addEventListener("input", () => (this.timeline = ta.value));
 
 		new Setting(contentEl)

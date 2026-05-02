@@ -4,6 +4,47 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.40.0] — 2026-05-02 — "Polish TI engineering modals: Architecture C4 + ADR + Runbook + Postmortem + AutoLink"
+
+### Sprint A — TI Tools (4 engineering modals com cores funcionais)
+- **Architecture C4** 🏗️ — cyan/blue (architecture/blueprint): top accent cyan→blue, title gradient, icon cyan glow
+- **ADR Generator** 📜 — slate/blue (decision/document): top accent 4-color slate/blue/cyan, title gradient slate→blue
+- **Runbook Generator** 🚑 — red/orange (incident/urgent): icon **pulse animation 1.6s** (urgency feel), title gradient red→orange
+- **Postmortem Builder** 🚨 — red/yellow (analysis/learning): icon **shake animation 4s** (alert intermitente), title gradient red→yellow
+- All 4 share: cosmic top accent line, gradient header, focus ring color-matched per tool, font-mono textareas, field labels com colored left-border
+- Reusable `.atlas-ti-modal` base class + per-tool variants
+
+### Sprint B — Auto-Link Systems Modal 🔗
+- 1px top accent cosmic cyan/indigo
+- Icon 🔗 spinning continuous (6s) + cyan drop-shadow
+- Title gradient cyan→indigo
+- Empty state celebrating green/cyan dashed border
+- Summary box gradient cyan/indigo info
+- List container com gradient bg + cyan border + custom scrollbar
+- System headers cyan-tinted gradient + 3px left-border
+- Rows with hover bg highlight
+- Highlighted matches: gradient cyan→indigo + box-shadow (premium pill mark)
+
+### CSS additions
+- TI Tools (4): ~190 LOC novas (shared base + per-tool variants)
+- AutoLink: ~135 LOC novas
+- TOTAL: ~325 LOC
+
+### Visual identity matrix expandida (24 modais polished)
+- Tools IA (3): 🧠 🔮 👁️
+- Innovation 1 (3): 👻 🕰️ ✍️
+- Innovation 2 (3): 🌸 🛑 🔥
+- Innovation 3 (3): 📡 🌀 📋
+- Innovation 4 (3): 📊 🟡 ⏰
+- Wellbeing/Future (4): 📜 ❤️ 📈 🤝
+- TI Tools (4): 🏗️ 📜 🚑 🚨 **NEW**
+- Utilities (1): 🔗 AutoLink **NEW**
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- 24 modais com identidades cromáticas distintas
+
 ## [0.39.0] — 2026-05-02 — "Polish wellbeing + future modals: FutureSelfLetter + Burnout + Overload + Promise + PromptModal"
 
 ### Sprint A — FutureSelfLetter (📜 Future)
