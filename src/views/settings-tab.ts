@@ -68,10 +68,12 @@ export class AtlasSettingTab extends PluginSettingTab {
 				.addText((t) => {
 					const cfg = ensureProvidersConfig();
 					const keys = cfg.apiKeys as Record<string, string | undefined>;
+					const wasEmpty = !keys[p.field]; // v0.21 Sprint J: track previous state
 					t.setPlaceholder("sk-...").setValue(keys[p.field] ? "•••••••••••" : "");
 					t.inputEl.type = "password";
 					t.onChange(async (v) => {
 						const keysNow = ensureProvidersConfig().apiKeys as Record<string, string | undefined>;
+						const previouslyEmpty = !keysNow[p.field] || wasEmpty;
 						if (v && v !== "•••••••••••") {
 							keysNow[p.field] = v.trim();
 						} else if (!v) {
@@ -81,6 +83,15 @@ export class AtlasSettingTab extends PluginSettingTab {
 						this.plugin.providerRouter?.updateConfig({
 							apiKeys: this.collectApiKeysPlain(),
 						});
+
+						// v0.21 Sprint J: detected new API key (empty → preenchido) → open ApiKeyDetectedModal
+						if (previouslyEmpty && v && v !== "•••••••••••" && v.length > 10) {
+							// Debounce: wait 1.5s after typing stops before opening modal
+							// (user might be still typing/pasting)
+							setTimeout(() => {
+								void this.maybeOpenApiKeyModal(p.id);
+							}, 1500);
+						}
 					});
 				});
 		}
@@ -232,6 +243,22 @@ export class AtlasSettingTab extends PluginSettingTab {
 					await this.plugin.activateMasterTab("status");
 				});
 			});
+	}
+
+	/** v0.21 Sprint J: open ApiKeyDetectedModal pra ativar IA paga depois user colar key */
+	private async maybeOpenApiKeyModal(providerId: string): Promise<void> {
+		// Não abre se routing.chat já é cloud (user já configurou antes)
+		const currentChat = this.plugin.settings.providers?.routing?.chat;
+		if (currentChat && currentChat.provider !== "ollama") {
+			// Já tá ativado — não pergunta de novo
+			return;
+		}
+		try {
+			const { ApiKeyDetectedModal } = await import("../ui/api-key-detected-modal");
+			new ApiKeyDetectedModal(this.app, this.plugin, providerId).open();
+		} catch {
+			// silent fallback se modal indisponível
+		}
 	}
 
 	private collectApiKeysPlain(): Record<string, string> {

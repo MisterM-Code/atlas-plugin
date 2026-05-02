@@ -77,6 +77,9 @@ export class JarvisCore {
 	private animFrame = 0;
 	private readoutsTimer: number | null = null;
 	private particles: Particle[] = [];
+	// v0.21 Sprint B: sonar pulses (Hansen's "purpose rule" — só durante thinking/speaking)
+	private sonarPulses: { r: number; opacity: number }[] = [];
+	private sonarSpawnCounter = 0;
 	private ripples: { r: number; opacity: number }[] = [];
 	private rippleSpawnInterval = 0;
 
@@ -106,28 +109,13 @@ export class JarvisCore {
 	}
 
 	private async showWhisperConfigPrompt(): Promise<void> {
-		// Reuse confirmAsync helper for offline auto-prompt
+		// v0.21: substitui confirmAsync + Settings auto-open por WhisperSetupModal
+		// (modal único, gracioso, sem stack de notices/Settings tab)
 		try {
-			const { confirmAsync } = await import("./confirm-modal");
-			const message = [
-				"O Web Speech API precisa de internet (Google API).",
-				"Para usar voz 100% offline, configure o whisper.cpp em Settings → Voice.",
-				"Quer abrir Settings agora?",
-			].join("\n\n");
-			const ok = await confirmAsync(this.app, message, {
-				title: "🎙️ Voice offline indisponível",
-				yesLabel: "Abrir Settings",
-				noLabel: "Mais tarde",
-			});
-			if (ok) {
-				const apiAny = this.app as unknown as {
-					setting?: { open?: () => void; openTabById?: (id: string) => void };
-				};
-				apiAny.setting?.open?.();
-				apiAny.setting?.openTabById?.("atlas");
-			}
+			const { openWhisperSetupModal } = await import("./whisper-setup-modal");
+			openWhisperSetupModal(this.plugin);
 		} catch {
-			// modal helper missing — silent fallback
+			// modal helper missing — silent fallback (improvável)
 		}
 	}
 
@@ -241,6 +229,13 @@ export class JarvisCore {
 		if (isFullscreen) {
 			this.readoutsEl = container.createDiv({ cls: "atlas-jarvis-readouts" });
 			this.updateReadouts();
+
+			// v0.21 Sprint B: Side-strip pseudo-binary scroll (Iron Man HUD canon)
+			const binaryStrip = container.createDiv({ cls: "atlas-jarvis-binary-strip" });
+			for (let i = 0; i < 60; i++) {
+				const line = binaryStrip.createDiv({ cls: "atlas-jarvis-binary-line" });
+				line.setText(this.generateBinaryLine());
+			}
 		}
 
 		// Subtitle (transcript live)
@@ -319,7 +314,8 @@ export class JarvisCore {
 	private initParticles(): void {
 		this.particles = [];
 		const isFullscreen = this.opts.mode === "fullscreen";
-		const total = isFullscreen ? 200 : 150;
+		// v0.21 Sprint B: reduce particle count — quality > quantity (Hansen rule)
+		const total = isFullscreen ? 100 : 70;
 		// Spawn initial population — mistura inflow + orbital
 		for (let i = 0; i < total; i++) {
 			this.particles.push(this.spawnParticle(i % 5 === 0 ? "orbital" : "inflow"));
@@ -558,6 +554,16 @@ export class JarvisCore {
 		const cy = h / 2;
 		ctx.clearRect(0, 0, w, h);
 
+		// v0.21 Sprint B: JARVIS HUD layers (Hansen's "purpose rule")
+		// 1. Counter-rotating canvas rings com tick marks
+		this.drawCounterRotatingRings(ctx, cx, cy);
+
+		// 2. Sonar pulse rings — só durante thinking/speaking (visualiza "AI working")
+		this.spawnAndDrawSonarPulses(ctx, cx, cy);
+
+		// 3. Targeting reticule (always visible — Iron Man HUD canon)
+		this.drawTargetReticule(ctx, cx, cy);
+
 		// Spawn ripples during speaking/listening
 		this.rippleSpawnInterval++;
 		if (
@@ -619,6 +625,135 @@ export class JarvisCore {
 		if (this.state === "speaking") {
 			this.drawSpeakingEqualizer(ctx, cx, cy);
 		}
+	}
+
+	/** v0.21 Sprint B: pseudo-binary line for side-strip Matrix-style scroll */
+	private generateBinaryLine(): string {
+		const formats = ["hex", "binary", "tag"];
+		const f = formats[Math.floor(Math.random() * formats.length)];
+		if (f === "hex") {
+			return Array.from({ length: 4 }, () =>
+				`0x${Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, "0")}`
+			).join(" ");
+		}
+		if (f === "binary") {
+			return Array.from({ length: 16 }, () => (Math.random() > 0.5 ? "1" : "0")).join("");
+		}
+		// "tag" format: looks like data tags
+		const tags = ["KG", "EMB", "CHK", "OBS", "VLT", "AGT", "TKN", "MEM"];
+		return `[${tags[Math.floor(Math.random() * tags.length)]}:${Math.floor(Math.random() * 9999).toString().padStart(4, "0")}]`;
+	}
+
+	/** v0.21 Sprint B: 2 counter-rotating rings com tick marks (JARVIS signature, Hansen) */
+	private drawCounterRotatingRings(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+		const colors = STATE_COLORS[this.state];
+		const t = Date.now();
+		const orb = this.opts.orbSize;
+		const rings = [
+			{ r: orb * 0.78, omega: +0.0003, ticks: 36, longEvery: 6 },  // outer CW
+			{ r: orb * 0.92, omega: -0.0005, ticks: 24, longEvery: 4 },  // mid CCW (signature: opposite directions)
+		];
+		for (const ring of rings) {
+			const angle = ring.omega * t;
+
+			// Ring base (cyan stroke double-stroke for glow effect)
+			ctx.strokeStyle = `rgba(${colors.ripple},0.15)`;
+			ctx.lineWidth = 4;
+			ctx.beginPath();
+			ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+			ctx.stroke();
+
+			ctx.strokeStyle = `rgba(${colors.ripple},0.55)`;
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+			ctx.arc(cx, cy, ring.r, 0, Math.PI * 2);
+			ctx.stroke();
+
+			// Tick marks ao redor
+			ctx.strokeStyle = `rgba(${colors.ripple},0.7)`;
+			for (let i = 0; i < ring.ticks; i++) {
+				const a = angle + (i / ring.ticks) * Math.PI * 2;
+				const isLong = i % ring.longEvery === 0;
+				const inner = ring.r - (isLong ? 8 : 4);
+				const outer = ring.r + (isLong ? 4 : 2);
+				ctx.lineWidth = isLong ? 1.4 : 0.8;
+				ctx.beginPath();
+				ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+				ctx.lineTo(cx + Math.cos(a) * outer, cy + Math.sin(a) * outer);
+				ctx.stroke();
+			}
+		}
+	}
+
+	/** v0.21 Sprint B: sonar pulse rings — só durante thinking/speaking (Hansen's purpose rule) */
+	private spawnAndDrawSonarPulses(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+		// Spawn novos pulses
+		this.sonarSpawnCounter++;
+		const spawnInterval = this.state === "speaking" ? 72 : this.state === "thinking" ? 108 : 0;
+		if (spawnInterval > 0 && this.sonarSpawnCounter >= spawnInterval) {
+			this.sonarPulses.push({ r: this.opts.orbSize * 0.5, opacity: 0.6 });
+			this.sonarSpawnCounter = 0;
+		}
+
+		// Update + render
+		this.sonarPulses = this.sonarPulses
+			.map((p) => ({ r: p.r + 1.5, opacity: p.opacity - 0.008 }))
+			.filter((p) => p.opacity > 0);
+
+		const colors = STATE_COLORS[this.state];
+		for (const pulse of this.sonarPulses) {
+			ctx.strokeStyle = `rgba(${colors.ripple},${pulse.opacity})`;
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.arc(cx, cy, pulse.r, 0, Math.PI * 2);
+			ctx.stroke();
+		}
+	}
+
+	/** v0.21 Sprint B: targeting reticule (cross + corner brackets + dashed inner ring) */
+	private drawTargetReticule(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+		const colors = STATE_COLORS[this.state];
+		const orb = this.opts.orbSize;
+		const t = Date.now();
+
+		// Cross at center extending past orb radius
+		ctx.strokeStyle = `rgba(${colors.ripple},0.25)`;
+		ctx.lineWidth = 0.6;
+		const reach = orb * 1.3;
+		ctx.beginPath();
+		ctx.moveTo(cx - reach, cy); ctx.lineTo(cx - orb * 0.55, cy);
+		ctx.moveTo(cx + orb * 0.55, cy); ctx.lineTo(cx + reach, cy);
+		ctx.moveTo(cx, cy - reach); ctx.lineTo(cx, cy - orb * 0.55);
+		ctx.moveTo(cx, cy + orb * 0.55); ctx.lineTo(cx, cy + reach);
+		ctx.stroke();
+
+		// 4 corner brackets ao redor (rotating super lento)
+		const bracketAngle = t * 0.0001;
+		const bracketR = orb * 1.05;
+		ctx.strokeStyle = `rgba(${colors.ripple},0.4)`;
+		ctx.lineWidth = 1.2;
+		for (let i = 0; i < 4; i++) {
+			const baseAng = bracketAngle + (i / 4) * Math.PI * 2;
+			const x = cx + Math.cos(baseAng) * bracketR;
+			const y = cy + Math.sin(baseAng) * bracketR;
+			const len = 8;
+			// L-shape bracket
+			ctx.beginPath();
+			ctx.moveTo(x + Math.cos(baseAng - Math.PI / 2) * len, y + Math.sin(baseAng - Math.PI / 2) * len);
+			ctx.lineTo(x, y);
+			ctx.lineTo(x + Math.cos(baseAng + Math.PI / 2) * len, y + Math.sin(baseAng + Math.PI / 2) * len);
+			ctx.stroke();
+		}
+
+		// Dashed inner ring (rotating CCW)
+		const dashAngle = -t * 0.0002;
+		ctx.strokeStyle = `rgba(${colors.ripple},0.32)`;
+		ctx.lineWidth = 0.8;
+		ctx.setLineDash([6, 4]);
+		ctx.beginPath();
+		ctx.arc(cx, cy, orb * 0.66, dashAngle, dashAngle + Math.PI * 2);
+		ctx.stroke();
+		ctx.setLineDash([]);
 	}
 
 	private drawSpeakingEqualizer(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
@@ -959,10 +1094,12 @@ const LAYER_GLOW: Record<ParticleLayer, { blur: number; alpha: number }> = {
 const HEX_GRID_DATA_URL =
 	"url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><polygon points='16,2 30,10 30,22 16,30 2,22 2,10' fill='none' stroke='%23818cf8' stroke-width='0.5'/></svg>\")";
 
+// v0.21 Sprint B: JARVIS Cyan palette (research-backed by Jayse Hansen / Iron Man HUD canon)
+// Primary cyan #8BD3FB, glow cyan #00E5E5, deep navy bg #050B18
 const ORB_GRADIENT_IDLE =
-	"radial-gradient(circle at 32% 28%, #c7d2fe 0%, #818cf8 30%, #4f46e5 65%, #1e1b4b 100%)";
+	"radial-gradient(circle at 32% 28%, #e8f6ff 0%, #8bd3fb 28%, #38bdf8 55%, #0284c7 80%, #050b18 100%)";
 const ORB_SHADOW_IDLE =
-	"0 0 60px rgba(99,102,241,0.55), 0 0 120px rgba(99,102,241,0.3), inset 0 0 80px rgba(255,255,255,0.08)";
+	"0 0 60px rgba(0,229,229,0.55), 0 0 120px rgba(56,189,248,0.32), inset 0 0 80px rgba(232,246,255,0.12)";
 
 const STATE_COLORS: Record<JarvisState, {
 	gradient: string;
@@ -975,10 +1112,10 @@ const STATE_COLORS: Record<JarvisState, {
 	idle: {
 		gradient: ORB_GRADIENT_IDLE,
 		shadow: ORB_SHADOW_IDLE,
-		ringBorder: "rgba(129,140,248,0.3)",
-		particle: "rgba(165,180,252,0.5)",
-		line: "rgba(99,102,241,0.35)",
-		ripple: "129,140,248",
+		ringBorder: "rgba(139,211,251,0.4)",
+		particle: "rgba(174,231,227,0.62)",
+		line: "rgba(0,229,229,0.4)",
+		ripple: "139,211,251",
 	},
 	listening: {
 		gradient: "radial-gradient(circle at 32% 28%, #fecaca 0%, #f87171 30%, #dc2626 65%, #450a0a 100%)",

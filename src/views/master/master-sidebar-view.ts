@@ -136,15 +136,16 @@ export class AtlasMasterSidebarView extends ItemView {
 			});
 			btn.title = `${tab.label} — ${tab.description}`;
 
+			// v0.21 Sprint D: SEMPRE wrap icon em .atlas-activity-tab-icon pra alinhamento consistente
+			const iconWrap = btn.createDiv({ cls: "atlas-activity-tab-icon" });
 			if (tab.lucideIcon) {
-				const iconWrap = btn.createDiv({ cls: "atlas-activity-tab-icon" });
 				try {
 					setIcon(iconWrap, tab.lucideIcon);
 				} catch {
 					iconWrap.setText(tab.icon);
 				}
 			} else {
-				btn.setText(tab.icon);
+				iconWrap.setText(tab.icon);
 			}
 
 			const badge = tab.badge?.();

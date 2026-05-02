@@ -594,17 +594,18 @@
 }
 
 .atlas-jarvis-container.is-fullscreen {
+	/* v0.21 Sprint B: JARVIS Cyan deep navy bg (Hansen palette) */
 	background:
-		radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.10) 0%, transparent 55%),
-		radial-gradient(ellipse at 80% 70%, rgba(56,189,248,0.06) 0%, transparent 50%),
-		radial-gradient(ellipse at 20% 80%, rgba(168,85,247,0.05) 0%, transparent 45%),
-		radial-gradient(ellipse at center, rgba(15,23,42,0.97) 0%, rgba(2,6,23,0.99) 100%);
+		radial-gradient(ellipse at 50% 30%, rgba(0,229,229,0.10) 0%, transparent 55%),
+		radial-gradient(ellipse at 80% 70%, rgba(56,189,248,0.07) 0%, transparent 50%),
+		radial-gradient(ellipse at 20% 80%, rgba(99,102,241,0.05) 0%, transparent 45%),
+		radial-gradient(ellipse at center, #050b18 0%, #02060e 100%);
 }
 
 .atlas-jarvis-container.is-sidebar {
 	background:
-		radial-gradient(ellipse at 50% 30%, rgba(99,102,241,0.08) 0%, transparent 60%),
-		linear-gradient(180deg, rgba(15,23,42,0.55), rgba(2,6,23,0.85));
+		radial-gradient(ellipse at 50% 30%, rgba(0,229,229,0.08) 0%, transparent 60%),
+		linear-gradient(180deg, rgba(5,11,24,0.6), rgba(2,6,14,0.9));
 }
 
 .atlas-jarvis-hex-bg {
@@ -1213,6 +1214,36 @@
 .atlas-jarvis-readout-line {
 	white-space: nowrap;
 }
+
+/* v0.21 Sprint B: Side-strip pseudo-binary scroll (Iron Man HUD canon, Matrix-style) */
+.atlas-jarvis-binary-strip {
+	position: absolute;
+	right: 16px;
+	top: 96px;
+	bottom: 96px;
+	width: 110px;
+	pointer-events: none;
+	z-index: 4;
+	overflow: hidden;
+	font-family: "SF Mono", Monaco, monospace;
+	font-size: 10px;
+	letter-spacing: 0.5px;
+	color: rgba(0, 229, 229, 0.32);
+	text-shadow: 0 0 6px rgba(0, 229, 229, 0.5);
+	mask-image: linear-gradient(180deg, transparent 0%, black 12%, black 88%, transparent 100%);
+	-webkit-mask-image: linear-gradient(180deg, transparent 0%, black 12%, black 88%, transparent 100%);
+	animation: atlas-binary-scroll 18s linear infinite;
+}
+.atlas-jarvis-binary-line {
+	padding: 1px 0;
+	line-height: 1.55;
+	white-space: nowrap;
+	text-align: right;
+}
+@keyframes atlas-binary-scroll {
+	from { transform: translateY(0); }
+	to { transform: translateY(-50%); }
+}
 .atlas-jarvis-status-line {
 	color: rgba(224, 231, 255, 1);
 	font-weight: 600;
@@ -1567,14 +1598,36 @@
 }
 
 .atlas-activity-bar {
-	width: 44px;
-	min-width: 44px;
+	/* v0.21 Sprint D: alinhamento rigoroso */
+	width: 48px;
+	min-width: 48px;
+	box-sizing: border-box;
 	border-right: 1px solid var(--background-modifier-border);
-	padding: 8px 4px;
+	padding: 8px 0; /* sem padding lateral — tabs são centralizadas */
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	align-items: center; /* CENTRA verticalmente cada tab */
+	gap: 6px; /* spacing consistente */
 	overflow: hidden;
+}
+.atlas-activity-spacer {
+	flex-grow: 1;
+}
+.atlas-activity-settings-icon {
+	/* mesma largura/altura das tabs pra alinhamento total */
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	opacity: 0.6;
+	border-radius: 6px;
+	transition: opacity 200ms ease, background 200ms ease;
+}
+.atlas-activity-settings-icon:hover {
+	opacity: 1;
+	background: var(--background-modifier-hover);
 }
 
 .atlas-tab-content {
@@ -1617,11 +1670,19 @@
 }
 
 .atlas-activity-tab-icon {
-	width: 20px;
-	height: 20px;
+	/* v0.21 Sprint D: garante tamanho consistente pra emoji + Lucide SVG */
+	width: 22px;
+	height: 22px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	font-size: 18px; /* pra emojis quando não há lucide icon */
+	line-height: 1;
+}
+.atlas-activity-tab-icon svg {
+	width: 22px !important;
+	height: 22px !important;
+	display: block;
 }
 
 .atlas-activity-tab-badge {
@@ -3754,3 +3815,780 @@ button.atlas-btn:active::after,
 	text-align: center;
 	opacity: 0.7;
 }
+
+/* ════════════════════════════════════════════════════════════════
+ * v0.21 — Whisper Setup Modal (single graceful first-voice UX)
+ * ════════════════════════════════════════════════════════════════ */
+
+.atlas-whisper-setup-modal {
+	padding: 24px 28px 20px;
+}
+.atlas-whisper-hero {
+	text-align: center;
+	margin-bottom: 18px;
+}
+.atlas-whisper-hero h2 {
+	margin: 0 0 8px 0;
+	font-size: 22px;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+.atlas-whisper-tagline {
+	margin: 0;
+	font-size: 13px;
+	opacity: 0.75;
+	line-height: 1.5;
+}
+
+.atlas-whisper-status {
+	margin: 16px 0 20px;
+	padding: 14px 16px;
+	background: var(--background-secondary);
+	border-radius: 10px;
+}
+.atlas-whisper-status-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.atlas-whisper-status-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+}
+.atlas-whisper-status-icon {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+.atlas-whisper-status-icon.is-ok {
+	background: rgba(34, 197, 94, 0.18);
+	color: #22c55e;
+}
+.atlas-whisper-status-icon.is-missing {
+	background: rgba(239, 68, 68, 0.18);
+	color: #ef4444;
+}
+.atlas-whisper-status-icon.is-info {
+	background: rgba(99, 102, 241, 0.18);
+	color: #6366f1;
+}
+.atlas-whisper-status-text {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-whisper-status-label {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+	opacity: 0.7;
+	margin-bottom: 2px;
+}
+.atlas-whisper-status-value {
+	font-size: 12px;
+	font-family: "SF Mono", Monaco, monospace;
+	color: var(--text-normal);
+	word-break: break-all;
+}
+
+.atlas-whisper-actions {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin-bottom: 18px;
+}
+.atlas-whisper-action {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 14px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	cursor: pointer;
+	text-align: left;
+	transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+	            border-color 200ms ease,
+	            background 200ms ease;
+}
+.atlas-whisper-action:hover {
+	transform: translateY(-2px);
+	border-color: var(--atlas-accent, #6366f1);
+	background: var(--background-secondary-alt);
+}
+.atlas-whisper-action.mod-cta {
+	border-color: var(--atlas-accent, #6366f1);
+}
+.atlas-whisper-action-icon {
+	font-size: 24px;
+	flex-shrink: 0;
+}
+.atlas-whisper-action-text {
+	flex-grow: 1;
+}
+.atlas-whisper-action-title {
+	font-size: 13px;
+	font-weight: 600;
+	margin-bottom: 2px;
+}
+.atlas-whisper-action-desc {
+	font-size: 11px;
+	opacity: 0.7;
+	line-height: 1.4;
+}
+
+.atlas-whisper-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 14px;
+	border-top: 1px solid var(--background-modifier-border);
+	gap: 12px;
+}
+.atlas-whisper-privacy {
+	font-size: 11px;
+	opacity: 0.7;
+	line-height: 1.5;
+	flex-grow: 1;
+}
+.atlas-whisper-skip {
+	font-size: 12px;
+	padding: 8px 14px;
+	opacity: 0.75;
+	flex-shrink: 0;
+}
+.atlas-whisper-skip:hover {
+	opacity: 1;
+}
+@media (max-width: 580px) {
+	.atlas-whisper-actions {
+		grid-template-columns: 1fr;
+	}
+	.atlas-whisper-footer {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * v0.21 Sprint J — API Key Detected Modal (auto-activate paid AI)
+ * ════════════════════════════════════════════════════════════════ */
+
+.atlas-apikey-modal {
+	padding: 24px 28px 18px;
+}
+.atlas-apikey-hero {
+	text-align: center;
+	margin-bottom: 18px;
+}
+.atlas-apikey-emoji {
+	font-size: 42px;
+	margin-bottom: 6px;
+	animation: atlas-apikey-bounce 1.6s ease-in-out infinite;
+}
+@keyframes atlas-apikey-bounce {
+	0%, 100% { transform: translateY(0) rotate(-8deg); }
+	50% { transform: translateY(-6px) rotate(8deg); }
+}
+.atlas-apikey-hero h2 {
+	margin: 0 0 6px 0;
+	font-size: 20px;
+	background: linear-gradient(135deg, #00e5e5, #6366f1, #a855f7);
+	background-size: 200% auto;
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: atlas-apikey-gradient 4s linear infinite;
+}
+@keyframes atlas-apikey-gradient {
+	0% { background-position: 0% 50%; }
+	100% { background-position: 200% 50%; }
+}
+.atlas-apikey-tagline {
+	margin: 0;
+	font-size: 13px;
+	opacity: 0.8;
+	line-height: 1.5;
+}
+.atlas-apikey-section-title {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.6px;
+	text-transform: uppercase;
+	opacity: 0.7;
+	margin: 16px 0 10px 0;
+}
+.atlas-apikey-routing {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 16px;
+	padding: 12px 14px;
+	background: var(--background-secondary);
+	border-radius: 10px;
+}
+.atlas-apikey-route-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.atlas-apikey-route-emoji {
+	font-size: 18px;
+	width: 24px;
+	flex-shrink: 0;
+	text-align: center;
+}
+.atlas-apikey-route-text {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-apikey-route-task {
+	font-size: 12px;
+	font-weight: 600;
+}
+.atlas-apikey-route-model {
+	font-size: 10px;
+	font-family: "SF Mono", Monaco, monospace;
+	opacity: 0.7;
+	color: var(--atlas-accent, #6366f1);
+}
+.atlas-apikey-info {
+	margin-bottom: 14px;
+	padding: 10px 14px;
+	background: var(--background-secondary-alt);
+	border-radius: 10px;
+	border-left: 3px solid var(--atlas-accent, #6366f1);
+}
+.atlas-apikey-tagline-detail {
+	margin: 0 0 8px 0;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.atlas-apikey-cost {
+	font-size: 11px;
+	line-height: 1.5;
+}
+.atlas-apikey-budget-note {
+	margin-bottom: 18px;
+	padding: 10px 14px;
+	background: rgba(34, 197, 94, 0.1);
+	border-left: 3px solid #22c55e;
+	border-radius: 6px;
+	font-size: 11px;
+	line-height: 1.5;
+}
+.atlas-apikey-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 8px;
+}
+
+/* ════════════════════════════════════════════════════════════════
+ * v0.21 Sprint E — Today COMMAND CENTER (10 widgets em 3 zonas)
+ * ════════════════════════════════════════════════════════════════ */
+
+.atlas-today-cmdcenter {
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.atlas-today-coach-badge {
+	align-self: flex-start;
+	padding: 4px 10px;
+	background: var(--color-red);
+	color: white;
+	border-radius: 4px;
+	font-size: 10px;
+	font-weight: bold;
+	letter-spacing: 0.5px;
+}
+
+@keyframes atlas-today-slidein {
+	from { opacity: 0; transform: translateY(12px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.atlas-today-zone-title {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 1.2px;
+	text-transform: uppercase;
+	opacity: 0.65;
+	margin: 4px 0 8px 4px;
+}
+
+/* ── ZONE 1: Alerts + Hero ─────────────────────────────────────── */
+
+.atlas-today-alerts-ticker {
+	padding: 10px 16px;
+	border-radius: 10px;
+	background: linear-gradient(90deg,
+		rgba(239, 68, 68, 0.12),
+		rgba(239, 68, 68, 0.06));
+	border-left: 3px solid var(--color-red);
+	font-size: 12px;
+	min-height: 38px;
+	display: flex;
+	align-items: center;
+	animation: atlas-today-slidein 240ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.atlas-today-alerts-ticker.is-empty {
+	background: linear-gradient(90deg,
+		rgba(34, 197, 94, 0.10),
+		rgba(34, 197, 94, 0.05));
+	border-left-color: #22c55e;
+}
+.atlas-today-alerts-ticker.is-active {
+	animation: atlas-today-slidein 240ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
+	           atlas-pulse-soft 3s ease-in-out infinite 240ms;
+}
+.atlas-today-alert-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.atlas-today-alert-icon {
+	font-size: 16px;
+}
+.atlas-today-alert-text {
+	font-weight: 500;
+}
+.atlas-today-alert-item.is-quiet {
+	opacity: 0.75;
+}
+
+.atlas-today-hero {
+	display: flex;
+	gap: 16px;
+	padding: 18px 20px;
+	border-radius: 12px;
+	background: linear-gradient(135deg,
+		rgba(0, 229, 229, 0.10),
+		rgba(99, 102, 241, 0.08),
+		rgba(168, 85, 247, 0.06));
+	border: 1px solid rgba(139, 211, 251, 0.18);
+	box-shadow: 0 0 0 1px rgba(139, 211, 251, 0.06),
+	            0 8px 24px rgba(0, 0, 0, 0.04);
+	animation: atlas-today-slidein 320ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+	flex-wrap: wrap;
+}
+.atlas-today-hero-left {
+	flex-grow: 1;
+	min-width: 240px;
+}
+.atlas-today-hero-greet h1 {
+	margin: 0 0 4px 0;
+	font-size: 22px;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+.atlas-today-hero-date {
+	font-size: 12px;
+	opacity: 0.7;
+	text-transform: capitalize;
+	margin-bottom: 8px;
+}
+.atlas-today-hero-quote {
+	font-size: 11px;
+	font-style: italic;
+	opacity: 0.65;
+	line-height: 1.5;
+}
+.atlas-today-hero-right {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+}
+.atlas-today-hero-clock {
+	font-family: "SF Mono", Monaco, monospace;
+	font-size: 28px;
+	font-weight: 700;
+	color: var(--atlas-accent, #6366f1);
+	letter-spacing: 2px;
+	text-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
+}
+.atlas-today-hero-stats {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.atlas-today-stat-ticker {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	font-family: "SF Mono", Monaco, monospace;
+	font-size: 11px;
+}
+.atlas-today-stat-emoji {
+	font-size: 14px;
+}
+.atlas-today-stat-num {
+	font-weight: 700;
+	color: var(--atlas-accent, #6366f1);
+}
+.atlas-today-stat-label {
+	opacity: 0.6;
+	font-size: 10px;
+}
+
+/* ── ZONE 2: Action ────────────────────────────────────────────── */
+
+.atlas-today-action-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+.atlas-today-widget {
+	padding: 14px 16px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+	            box-shadow 220ms ease,
+	            border-color 220ms ease;
+	animation: atlas-today-slidein 320ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+.atlas-today-widget:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08),
+	            0 0 0 1px rgba(139, 211, 251, 0.18);
+}
+.atlas-today-widget-title {
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.6px;
+	text-transform: uppercase;
+	opacity: 0.7;
+	margin-bottom: 10px;
+}
+
+/* Eisenhower */
+.atlas-today-eisenhower-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+.atlas-eisenhower-cell {
+	padding: 10px 12px;
+	border-radius: 8px;
+	background: var(--background-secondary-alt);
+	border-left: 3px solid;
+	cursor: pointer;
+	transition: transform 180ms ease;
+}
+.atlas-eisenhower-cell:hover {
+	transform: scale(1.03);
+}
+.atlas-eisenhower-cell.is-critical { border-color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+.atlas-eisenhower-cell.is-important { border-color: #fbbf24; background: rgba(251, 191, 36, 0.08); }
+.atlas-eisenhower-cell.is-urgent { border-color: #f97316; background: rgba(249, 115, 22, 0.08); }
+.atlas-eisenhower-cell.is-low { border-color: #94a3b8; background: rgba(148, 163, 184, 0.06); }
+.atlas-eisenhower-label {
+	font-size: 11px;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+.atlas-eisenhower-count {
+	font-family: "SF Mono", Monaco, monospace;
+	font-size: 22px;
+	font-weight: 700;
+}
+
+/* Vencendo */
+.atlas-today-vencendo-cols {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 8px;
+}
+.atlas-vencendo-col {
+	background: var(--background-secondary-alt);
+	border-radius: 8px;
+	padding: 10px;
+	border-top: 2px solid;
+}
+.atlas-vencendo-col.is-overdue { border-color: #ef4444; }
+.atlas-vencendo-col.is-overdue .atlas-vencendo-col-label { color: #ef4444; }
+.atlas-vencendo-col.is-overdue .atlas-vencendo-item { animation: atlas-pulse-soft 2.5s ease-in-out infinite; }
+.atlas-vencendo-col.is-today { border-color: #f97316; }
+.atlas-vencendo-col.is-today .atlas-vencendo-col-label { color: #f97316; }
+.atlas-vencendo-col.is-tomorrow { border-color: #fbbf24; }
+.atlas-vencendo-col.is-tomorrow .atlas-vencendo-col-label { color: #fbbf24; }
+.atlas-vencendo-col-label {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin-bottom: 6px;
+	text-transform: uppercase;
+}
+.atlas-vencendo-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.atlas-vencendo-item {
+	padding: 4px 6px;
+	background: var(--background-primary);
+	border-radius: 4px;
+	font-size: 10px;
+	line-height: 1.4;
+}
+.atlas-vencendo-empty {
+	font-size: 10px;
+	opacity: 0.5;
+	text-align: center;
+}
+.atlas-vencendo-more {
+	font-size: 9px;
+	opacity: 0.6;
+	text-align: center;
+	margin-top: 4px;
+}
+
+/* Meetings */
+.atlas-today-meetings-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.atlas-today-meeting-row {
+	padding: 8px 10px;
+	background: var(--background-secondary-alt);
+	border-radius: 6px;
+	border-left: 3px solid var(--atlas-accent, #6366f1);
+	cursor: pointer;
+	transition: transform 180ms ease, background 180ms ease;
+}
+.atlas-today-meeting-row:hover {
+	transform: translateX(2px);
+	background: var(--background-modifier-hover);
+}
+.atlas-today-meeting-title {
+	font-size: 12px;
+	font-weight: 600;
+	margin-bottom: 2px;
+}
+.atlas-today-meeting-meta {
+	font-size: 10px;
+	opacity: 0.7;
+}
+.atlas-today-meeting-countdown {
+	font-family: "SF Mono", Monaco, monospace;
+	color: var(--atlas-accent, #6366f1);
+}
+.atlas-today-meetings-empty {
+	font-size: 11px;
+	opacity: 0.6;
+	text-align: center;
+	padding: 12px;
+}
+
+/* Quick actions */
+.atlas-today-quickact-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+.atlas-today-quickact-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 12px 8px;
+	background: var(--background-secondary-alt);
+	border-radius: 8px;
+	cursor: pointer;
+	transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+	            box-shadow 200ms ease,
+	            background 200ms ease;
+}
+.atlas-today-quickact-btn:hover {
+	transform: scale(1.04);
+	background: rgba(99, 102, 241, 0.08);
+	box-shadow: 0 0 16px rgba(99, 102, 241, 0.15);
+}
+.atlas-today-quickact-icon { font-size: 22px; }
+.atlas-today-quickact-label { font-size: 10px; font-weight: 600; }
+
+/* ── ZONE 3: Awareness ─────────────────────────────────────────── */
+
+.atlas-today-aware-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 12px;
+}
+
+@media (max-width: 900px) {
+	.atlas-today-action-grid,
+	.atlas-today-aware-grid {
+		grid-template-columns: 1fr 1fr;
+	}
+}
+@media (max-width: 580px) {
+	.atlas-today-action-grid,
+	.atlas-today-aware-grid {
+		grid-template-columns: 1fr;
+	}
+	.atlas-today-vencendo-cols {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Insights */
+.atlas-today-insight-slot {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	padding: 10px 12px;
+	background: linear-gradient(135deg,
+		rgba(0, 229, 229, 0.08),
+		rgba(99, 102, 241, 0.05));
+	border-radius: 8px;
+	border-left: 3px solid var(--atlas-accent, #6366f1);
+	min-height: 60px;
+	animation: atlas-today-slidein 240ms ease;
+}
+.atlas-today-insight-icon { font-size: 18px; flex-shrink: 0; }
+.atlas-today-insight-text { font-size: 12px; line-height: 1.5; }
+.atlas-today-insight-empty { font-size: 11px; opacity: 0.6; padding: 12px; text-align: center; }
+
+/* Projects RAG */
+.atlas-today-rag-cols {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 6px;
+}
+.atlas-today-rag-col {
+	padding: 8px;
+	background: var(--background-secondary-alt);
+	border-radius: 6px;
+	border-top: 2px solid;
+}
+.atlas-today-rag-col.is-red { border-color: #ef4444; }
+.atlas-today-rag-col.is-red .atlas-today-rag-label { color: #ef4444; animation: atlas-pulse-soft 2.5s infinite; }
+.atlas-today-rag-col.is-amber { border-color: #fbbf24; }
+.atlas-today-rag-col.is-amber .atlas-today-rag-label { color: #fbbf24; }
+.atlas-today-rag-col.is-green { border-color: #22c55e; }
+.atlas-today-rag-col.is-green .atlas-today-rag-label { color: #22c55e; }
+.atlas-today-rag-label {
+	font-size: 10px;
+	font-weight: 700;
+	margin-bottom: 4px;
+	letter-spacing: 0.5px;
+}
+.atlas-today-rag-item {
+	font-size: 10px;
+	padding: 3px 5px;
+	background: var(--background-primary);
+	border-radius: 3px;
+	margin-bottom: 3px;
+}
+
+/* Knowledge Pulse */
+.atlas-today-pulse-bars {
+	display: flex;
+	gap: 3px;
+	height: 60px;
+	align-items: flex-end;
+	padding: 6px 0;
+}
+.atlas-today-pulse-bar {
+	flex: 1;
+	background: linear-gradient(180deg, var(--atlas-accent, #6366f1), rgba(99, 102, 241, 0.3));
+	border-radius: 2px 2px 0 0;
+	transition: height 800ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Activity stream */
+.atlas-today-activity-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-height: 200px;
+	overflow-y: auto;
+}
+.atlas-today-activity-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	padding: 6px 8px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 11px;
+	transition: background 150ms ease;
+}
+.atlas-today-activity-row:hover {
+	background: var(--background-modifier-hover);
+}
+.atlas-today-activity-emoji { font-size: 12px; }
+.atlas-today-activity-name {
+	flex-grow: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.atlas-today-activity-time {
+	font-size: 10px;
+	opacity: 0.6;
+}
+.atlas-today-activity-empty { font-size: 11px; opacity: 0.6; padding: 12px; text-align: center; }
+
+/* Vault Health */
+.atlas-today-health-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+.atlas-today-health-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 10px 8px;
+	background: var(--background-secondary-alt);
+	border-radius: 6px;
+}
+.atlas-today-health-emoji { font-size: 18px; }
+.atlas-today-health-value {
+	font-family: "SF Mono", Monaco, monospace;
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--atlas-accent, #6366f1);
+}
+.atlas-today-health-label { font-size: 9px; opacity: 0.65; }
+
+/* XP */
+.atlas-today-xp-level {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+.atlas-today-xp-emoji { font-size: 22px; }
+.atlas-today-xp-text { font-size: 14px; font-weight: 600; }
+.atlas-today-xp-bar {
+	height: 6px;
+	background: var(--background-modifier-border);
+	border-radius: 3px;
+	overflow: hidden;
+}
+.atlas-today-xp-fill {
+	height: 100%;
+	background: linear-gradient(90deg, var(--atlas-accent, #6366f1), #a855f7);
+	transition: width 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.atlas-today-xp-next { font-size: 10px; opacity: 0.7; margin-top: 4px; }
+.atlas-today-xp-empty { opacity: 0.6; }

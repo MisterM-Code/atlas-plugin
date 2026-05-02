@@ -344,6 +344,28 @@ export default class AtlasPlugin extends Plugin {
 			logger.warn("Atlas: LLMService falhou ao iniciar — fallback ollama-only", { error: String(e) });
 		}
 
+		// v0.21 Sprint A: silent whisper auto-detect on first-run if not yet configured
+		try {
+			if (!this.settings.voice.whisperBinaryPath) {
+				const { autoDetectWhisper, logDetection } = await import("./src/automation/whisper-detector");
+				const detection = await autoDetectWhisper();
+				logDetection(detection);
+				if (detection.installed && detection.binaryPath) {
+					this.settings.voice.whisperBinaryPath = detection.binaryPath;
+					if (detection.modelPath && !this.settings.voice.whisperModelPath) {
+						this.settings.voice.whisperModelPath = detection.modelPath;
+					}
+					await this.saveSettings();
+					logger.info("Atlas v0.21: whisper.cpp auto-configured silently", {
+						binary: detection.binaryPath,
+						model: detection.modelPath,
+					});
+				}
+			}
+		} catch (e) {
+			logger.warn("Atlas: whisper auto-detect falhou", { error: String(e) });
+		}
+
 		this.embedder = new Embedder(
 			this.app,
 			this.ollama,

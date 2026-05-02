@@ -4,6 +4,53 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.21.0] — 2026-05-02 — "Premium Atlas: JARVIS Cyan + Today Command Center + Auto-Whisper + API Auto-Activate"
+
+### Sprint A — Whisper auto-detect (NEW: src/automation/whisper-detector.ts)
+- `which whisper-cpp` (mac/linux) ou `where` (Windows) + fallback paths
+- Auto-discover model em `~/whisper.cpp/models/` (preferência: medium > base > small)
+- Wired em main.ts onload — silencioso (zero Notice)
+
+### Sprint C — WhisperSetupModal (NEW: src/ui/whisper-setup-modal.ts)
+- Substitui stack notices/Settings tab quando voice falha
+- 4-5 ações: Auto-detect / Install Homebrew / Docs / Cloud STT / Pular
+- Status grid live com ✓/✗ binary + model + version
+
+### Sprint D — Sidebar button alignment fix
+- Container: 48px width + align-items: center + gap 6px
+- Wrap icons sempre em .atlas-activity-tab-icon (consistência emoji/lucide)
+- SVG !important 22×22 + Settings icon 36×36 alinhado
+
+### Sprint J — ApiKeyDetectedModal (NEW)
+- Detector em settings-tab.ts: empty → preenchido (>10 chars) → debounce 1.5s → modal
+- 9 providers com routing default (default-routing.ts): chat/extract/summary/vision/reasoning/embed
+- Hero animado bouncing emoji + gradient title shifting
+- Mostra routing recommended + cost estimate + budget protection
+- Click "Ativar IA paga" → aplica routing + auto-enable budget tracking
+
+### Sprint B — JARVIS Cyan + tech particles (Hansen canonical palette)
+- Cor migration: indigo → CYAN (#8BD3FB primary, #00E5E5 glow, #050B18 deep navy bg)
+- Counter-rotating canvas rings com tick marks (CW + CCW = JARVIS signature)
+- Sonar pulse rings APENAS durante thinking/speaking (Hansen rule: visual = function)
+- Targeting reticule overlay (cross + 4 corner brackets + dashed inner ring)
+- Side-strip pseudo-binary scroll fullscreen (hex/binary/data tags rolando 18s)
+- Particle reduction 200/150 → 100/70 (quality > quantity)
+
+### Sprint E — Today COMMAND CENTER ⭐⭐ (REWRITE 100% tab-today.ts)
+**3 zonas:**
+- 🚨 ALERTS: critical ticker pulsando (rotate 4s) + Greeting hero (live clock 1s + animated stats ticker count-up + quote rotativo dia)
+- 🎯 ACTION: Eisenhower 2×2 / Vencendo 3-cols (Overdue pulsing/Hoje/Amanhã) / Próximos compromissos com countdown live / Quick actions
+- 🌐 AWARENESS: Atlas Percebeu (rotating 8s) / Projetos RAG / Knowledge Pulse sparkline 14d / Activity stream / Vault Health 4-cards / XP progress
+
+Animations: slide-in staggered 60ms, hover lift -3px, count-up cubic 800ms, pulse-soft em criticals, real-time updates clock/countdowns/alerts/insights.
+
+Responsive: grids colapsam 3→2→1 cols em 900px/580px breakpoints.
+
+### Files modified
+- **NEW (4)**: whisper-detector.ts, whisper-setup-modal.ts, api-key-detected-modal.ts, default-routing.ts
+- **MODIFY (~6)**: main.ts, master-sidebar-view.ts, jarvis-core.ts, tab-today.ts (rewrite), settings-tab.ts, styles.css (~600 LOC novas)
+- **BUMP**: manifest, package, versions, CHANGELOG → 0.21.0
+
 ## [0.20.0] — 2026-05-02 — "JARVIS HUD v3: Real Iron Man (orb redesign + coherent particle flow + HUD frame + data readouts)"
 
 ### Context
