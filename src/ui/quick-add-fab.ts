@@ -41,37 +41,14 @@ export class QuickAddFab {
 
 		const fab = document.createElement("div");
 		fab.addClass("atlas-fab");
-		fab.style.position = "absolute";
-		fab.style.bottom = "16px";
-		fab.style.right = "16px";
-		fab.style.width = "44px";
-		fab.style.height = "44px";
-		fab.style.borderRadius = "50%";
-		fab.style.background = "var(--interactive-accent)";
-		fab.style.color = "var(--text-on-accent)";
-		fab.style.display = "flex";
-		fab.style.alignItems = "center";
-		fab.style.justifyContent = "center";
-		fab.style.fontSize = "22px";
-		fab.style.cursor = "pointer";
-		fab.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-		fab.style.zIndex = "100";
-		fab.style.transition = "transform 150ms";
 		fab.title = "Quick Add — criar entidade ou nota";
 		fab.setText("+");
-
-		fab.addEventListener("mouseenter", () => {
-			fab.style.transform = "scale(1.05)";
-		});
-		fab.addEventListener("mouseleave", () => {
-			fab.style.transform = "scale(1)";
-		});
 		fab.addEventListener("click", (ev) => {
 			ev.stopPropagation();
 			this.togglePopover();
 		});
 
-		parent.style.position = "relative";
+		parent.addClass("atlas-fab-parent");
 		parent.appendChild(fab);
 		this.fabEl = fab;
 	}
@@ -257,79 +234,22 @@ export class QuickAddFab {
 
 		const popover = document.createElement("div");
 		popover.addClass("atlas-fab-popover");
-		popover.style.position = "absolute";
-		popover.style.bottom = "70px";
-		popover.style.right = "16px";
-		popover.style.width = "280px";
-		popover.style.maxHeight = "min(70vh, 560px)";
-		popover.style.overflowY = "auto";
-		popover.style.background = "var(--background-primary)";
-		popover.style.border = "1px solid var(--background-modifier-border)";
-		popover.style.borderRadius = "10px";
-		popover.style.boxShadow = "0 12px 32px rgba(0,0,0,0.24)";
-		popover.style.padding = "6px";
-		popover.style.zIndex = "101";
-		popover.style.opacity = "0";
-		popover.style.transform = "translateY(8px) scale(0.97)";
-		popover.style.transformOrigin = "bottom right";
-		popover.style.transition = "opacity 180ms ease, transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1)";
 
-		const header = popover.createDiv();
-		header.style.padding = "8px 10px 6px";
-		header.style.fontSize = "11px";
-		header.style.fontWeight = "600";
-		header.style.opacity = "0.5";
-		header.style.letterSpacing = "0.5px";
-		header.setText("ATLAS — Adicionar");
+		popover.createDiv({ cls: "atlas-fab-header", text: "ATLAS — Adicionar" });
 
 		categories.forEach((cat, catIdx) => {
 			if (catIdx > 0) {
-				const sep = popover.createDiv();
-				sep.style.height = "1px";
-				sep.style.background = "var(--background-modifier-border)";
-				sep.style.margin = "4px 8px";
-				sep.style.opacity = "0.5";
+				popover.createDiv({ cls: "atlas-fab-separator" });
 			}
-			const catTitle = popover.createDiv();
-			catTitle.style.padding = "8px 10px 4px";
-			catTitle.style.fontSize = "10px";
-			catTitle.style.fontWeight = "700";
-			catTitle.style.opacity = "0.55";
-			catTitle.style.letterSpacing = "0.6px";
-			catTitle.setText(cat.label);
+			popover.createDiv({ cls: "atlas-fab-category-title", text: cat.label });
 
 			cat.items.forEach((item) => {
-				const row = popover.createDiv();
-				row.addClass("atlas-fab-row");
-				row.style.display = "flex";
-				row.style.alignItems = "center";
-				row.style.gap = "10px";
-				row.style.padding = "8px 10px";
-				row.style.cursor = "pointer";
-				row.style.borderRadius = "6px";
-				row.style.transition = "background 120ms ease, transform 120ms ease";
-				row.addEventListener("mouseenter", () => {
-					row.style.background = "var(--background-modifier-hover)";
-					row.style.transform = "translateX(2px)";
-				});
-				row.addEventListener("mouseleave", () => {
-					row.style.background = "transparent";
-					row.style.transform = "translateX(0)";
-				});
+				const row = popover.createDiv({ cls: "atlas-fab-row" });
 
-				const iconEl = row.createEl("span", { text: item.icon });
-				iconEl.style.fontSize = "16px";
-				iconEl.style.minWidth = "20px";
-				iconEl.style.textAlign = "center";
-
-				const wrap = row.createDiv();
-				wrap.style.flexGrow = "1";
-				const lbl = wrap.createEl("div", { text: item.label });
-				lbl.style.fontSize = "13px";
-				lbl.style.fontWeight = "500";
-				const desc = wrap.createEl("div", { text: item.description });
-				desc.style.fontSize = "11px";
-				desc.style.opacity = "0.6";
+				row.createEl("span", { cls: "atlas-fab-row-icon", text: item.icon });
+				const wrap = row.createDiv({ cls: "atlas-fab-row-text" });
+				wrap.createEl("div", { cls: "atlas-fab-row-label", text: item.label });
+				wrap.createEl("div", { cls: "atlas-fab-row-desc", text: item.description });
 
 				row.addEventListener("click", () => void item.onClick());
 			});
@@ -339,13 +259,10 @@ export class QuickAddFab {
 		this.fabEl.parentElement?.appendChild(popover);
 		this.popoverEl = popover;
 
-		requestAnimationFrame(() => {
-			popover.style.opacity = "1";
-			popover.style.transform = "translateY(0) scale(1)";
-		});
+		requestAnimationFrame(() => popover.addClass("is-open"));
 
-		// Rotate FAB while popover open
-		if (this.fabEl) this.fabEl.style.transform = "rotate(45deg)";
+		// Rotate FAB while popover open (CSS class handles transform)
+		if (this.fabEl) this.fabEl.addClass("is-popover-open");
 
 		// Click outside fecha
 		setTimeout(() => {
@@ -364,14 +281,13 @@ export class QuickAddFab {
 
 	private closePopover(): void {
 		if (this.popoverEl) {
-			this.popoverEl.style.opacity = "0";
-			this.popoverEl.style.transform = "translateY(8px) scale(0.97)";
+			this.popoverEl.removeClass("is-open");
 			setTimeout(() => {
 				this.popoverEl?.remove();
 				this.popoverEl = null;
 			}, 150);
 		}
-		if (this.fabEl) this.fabEl.style.transform = "rotate(0deg)";
+		if (this.fabEl) this.fabEl.removeClass("is-popover-open");
 		if (this.clickOutsideHandler) {
 			document.removeEventListener("click", this.clickOutsideHandler);
 			this.clickOutsideHandler = null;

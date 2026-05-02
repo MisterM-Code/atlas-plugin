@@ -4,6 +4,24 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.6] — 2026-05-02 — "More CSS class migration: HUD, FAB, Reminders, Header"
+
+### Changed — 5 more components migrated
+
+| File | Before | After |
+|---|---|---|
+| `atlas-hud.ts` | ~30 inline | 7 (drag positions only — necessary inline) |
+| `atlas-header.ts` | ~22 inline | 0 |
+| `quick-add-fab.ts` | ~74 inline | 0 |
+| `tab-reminders.ts` | ~44 inline | 0 |
+| `tab-jarvis.ts` | 2 | 0 |
+
+State changes via classes (`.is-recording`, `.is-popover-open`, `.is-up`, `.is-down`, `.is-overdue`, `.is-today`, `.is-future`).
+
+styles.css: 17 KB → 25 KB (added ~340 lines of HUD + FAB + Reminders + header CSS).
+
+The 7 remaining inline styles in `atlas-hud.ts` are drag-position coords (`top/left` per-instance) and `userSelect="none"` during drag — legitimate uses where CSS classes don't apply (per-element runtime values).
+
 ## [0.9.5] — 2026-05-02 — "Showcase components migrated to CSS classes"
 
 ### Changed — Inline-style → CSS classes refactor

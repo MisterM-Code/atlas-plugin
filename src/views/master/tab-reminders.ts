@@ -14,34 +14,21 @@ import { renderEmptyState } from "../../ui/empty-states";
 
 export async function renderRemindersTab(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	container.empty();
-	container.style.padding = "16px";
-	container.style.overflow = "auto";
+	container.addClass("atlas-reminders-tab");
 
 	// Header
-	const header = container.createDiv();
-	header.style.display = "flex";
-	header.style.alignItems = "center";
-	header.style.justifyContent = "space-between";
-	header.style.marginBottom = "16px";
-
-	const title = header.createDiv();
-	title.style.fontSize = "20px";
-	title.style.fontWeight = "600";
-	title.setText("🔔 Reminders");
-
+	const header = container.createDiv({ cls: "atlas-reminders-header" });
+	header.createDiv({ cls: "atlas-reminders-title", text: "🔔 Reminders" });
 	const newBtn = header.createEl("button", { text: "+ Novo reminder", cls: "mod-cta" });
 	newBtn.addEventListener("click", () => void promptNewReminder(plugin, container));
 
-	const subtitle = container.createDiv();
-	subtitle.style.fontSize = "12px";
-	subtitle.style.opacity = "0.6";
-	subtitle.style.marginBottom = "16px";
-	subtitle.setText("Tasks com (@YYYY-MM-DD HH:MM) viram reminders. Notification 15 min antes.");
+	container.createDiv({
+		cls: "atlas-reminders-subtitle",
+		text: "Tasks com (@YYYY-MM-DD HH:MM) viram reminders. Notification 15 min antes.",
+	});
 
 	// Loading state
-	const loading = container.createDiv();
-	loading.style.padding = "12px";
-	loading.setText("Atlas: scaneando vault…");
+	const loading = container.createDiv({ cls: "atlas-reminders-loading", text: "Atlas: scaneando vault…" });
 
 	const watcher = plugin.reminderWatcher;
 	if (!watcher) {
@@ -80,13 +67,13 @@ export async function renderRemindersTab(container: HTMLElement, plugin: AtlasPl
 	}
 
 	if (overdue.length > 0) {
-		renderGroup(container, "🔴 Atrasados", overdue, "var(--color-red)", plugin);
+		renderGroup(container, "🔴 Atrasados", overdue, "is-overdue", plugin);
 	}
 	if (todayItems.length > 0) {
-		renderGroup(container, "🟡 Hoje", todayItems, "var(--color-orange)", plugin);
+		renderGroup(container, "🟡 Hoje", todayItems, "is-today", plugin);
 	}
 	if (futureItems.length > 0) {
-		renderGroup(container, "🟢 Próximos 7 dias", futureItems, "var(--color-green)", plugin);
+		renderGroup(container, "🟢 Próximos 7 dias", futureItems, "is-future", plugin);
 	}
 }
 
@@ -94,74 +81,40 @@ function renderGroup(
 	container: HTMLElement,
 	label: string,
 	items: ReminderEntry[],
-	accentColor: string,
+	severity: "is-overdue" | "is-today" | "is-future",
 	plugin: AtlasPlugin
 ): void {
-	const groupTitle = container.createEl("h3", { text: `${label} (${items.length})` });
-	groupTitle.style.marginTop = "20px";
-	groupTitle.style.marginBottom = "8px";
-	groupTitle.style.fontSize = "14px";
-	groupTitle.style.color = accentColor;
+	container.createEl("h3", {
+		cls: `atlas-reminders-group-title ${severity}`,
+		text: `${label} (${items.length})`,
+	});
 
 	for (const r of items) {
-		renderReminderCard(container, r, accentColor, plugin);
+		renderReminderCard(container, r, severity, plugin);
 	}
 }
 
 function renderReminderCard(
 	parent: HTMLElement,
 	r: ReminderEntry,
-	accentColor: string,
+	severity: "is-overdue" | "is-today" | "is-future",
 	plugin: AtlasPlugin
 ): void {
-	const card = parent.createDiv();
-	card.addClass("atlas-card-interactive");
-	card.style.padding = "10px 12px";
-	card.style.marginBottom = "8px";
-	card.style.borderLeft = `3px solid ${accentColor}`;
-	card.style.borderRadius = "6px";
-	card.style.background = "var(--background-secondary)";
-	card.style.transition = "transform 120ms ease, box-shadow 120ms ease";
-	card.style.cursor = "pointer";
+	const card = parent.createDiv({ cls: `atlas-reminder-card atlas-card-interactive ${severity}` });
 
-	card.addEventListener("mouseenter", () => {
-		card.style.transform = "translateY(-1px)";
-		card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.08)";
-	});
-	card.addEventListener("mouseleave", () => {
-		card.style.transform = "translateY(0)";
-		card.style.boxShadow = "none";
+	const top = card.createDiv({ cls: "atlas-reminder-card-top" });
+	top.createDiv({ cls: "atlas-reminder-card-text", text: r.taskText });
+	top.createDiv({
+		cls: `atlas-reminder-card-countdown ${severity}`,
+		text: formatCountdown(r.dueAt),
 	});
 
-	const top = card.createDiv();
-	top.style.display = "flex";
-	top.style.alignItems = "center";
-	top.style.gap = "10px";
+	card.createDiv({
+		cls: "atlas-reminder-card-meta",
+		text: `📍 ${r.notePath} · ${r.dueAt.toLocaleString("pt-BR")}`,
+	});
 
-	const txt = top.createDiv();
-	txt.style.flexGrow = "1";
-	txt.style.fontSize = "13px";
-	txt.style.fontWeight = "500";
-	txt.setText(r.taskText);
-
-	const countdown = top.createDiv();
-	countdown.style.fontSize = "11px";
-	countdown.style.color = accentColor;
-	countdown.style.fontWeight = "600";
-	countdown.style.whiteSpace = "nowrap";
-	countdown.setText(formatCountdown(r.dueAt));
-
-	const meta = card.createDiv();
-	meta.style.fontSize = "11px";
-	meta.style.opacity = "0.6";
-	meta.style.marginTop = "4px";
-	meta.setText(`📍 ${r.notePath} · ${r.dueAt.toLocaleString("pt-BR")}`);
-
-	const actions = card.createDiv();
-	actions.style.display = "flex";
-	actions.style.gap = "6px";
-	actions.style.marginTop = "8px";
-	actions.style.flexWrap = "wrap";
+	const actions = card.createDiv({ cls: "atlas-reminder-card-actions" });
 
 	const openBtn = actions.createEl("button", { text: "📖 Abrir nota" });
 	openBtn.addEventListener("click", (e) => {

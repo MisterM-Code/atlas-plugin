@@ -22,57 +22,22 @@ export interface AtlasHeaderHandle {
 }
 
 export function renderAtlasHeader(parent: HTMLElement, plugin: AtlasPlugin): AtlasHeaderHandle {
-	const el = parent.createDiv() as HTMLDivElement;
-	el.addClass("atlas-master-header");
-	el.style.display = "flex";
-	el.style.alignItems = "center";
-	el.style.gap = "10px";
-	el.style.padding = "10px 12px";
-	el.style.marginBottom = "12px";
-	el.style.background =
-		"linear-gradient(135deg, var(--background-secondary) 0%, var(--background-secondary-alt) 100%)";
-	el.style.borderRadius = "var(--atlas-radius-md, 8px)";
-	el.style.border = "1px solid var(--atlas-accent-soft, rgba(99, 102, 241, 0.12))";
-	el.style.cursor = "pointer";
-	el.style.transition = "border-color var(--atlas-transition-fast, 120ms)";
+	const el = parent.createDiv({ cls: "atlas-master-header" }) as HTMLDivElement;
 	el.title = "Click para abrir Atlas Settings";
 
 	// Logo container
-	const logoWrap = el.createDiv();
-	logoWrap.style.width = "32px";
-	logoWrap.style.height = "32px";
-	logoWrap.style.flexShrink = "0";
-	logoWrap.addClass("atlas-header-logo");
-	// DOM API for SVG (Obsidian no-innerHTML guideline)
+	const logoWrap = el.createDiv({ cls: "atlas-header-logo atlas-master-header-logo" });
 	const parser = new DOMParser();
 	const svgDoc = parser.parseFromString(ATLAS_LOGO_SVG, "image/svg+xml");
 	if (svgDoc.documentElement && svgDoc.documentElement.nodeName.toLowerCase() === "svg") {
 		logoWrap.appendChild(document.importNode(svgDoc.documentElement, true));
 	}
 
-	// Text content
-	const textWrap = el.createDiv();
-	textWrap.style.flexGrow = "1";
-	textWrap.style.minWidth = "0";
+	const textWrap = el.createDiv({ cls: "atlas-master-header-text" });
+	textWrap.createDiv({ cls: "atlas-master-header-name", text: "Atlas" });
+	const profileEl = textWrap.createDiv({ cls: "atlas-master-header-profile" });
 
-	const nameEl = textWrap.createDiv();
-	nameEl.setText("Atlas");
-	nameEl.style.fontSize = "13px";
-	nameEl.style.fontWeight = "bold";
-	nameEl.style.letterSpacing = "0.5px";
-	nameEl.style.color = "var(--text-normal)";
-
-	const profileEl = textWrap.createDiv();
-	profileEl.style.fontSize = "10px";
-	profileEl.style.opacity = "0.7";
-	profileEl.style.whiteSpace = "nowrap";
-	profileEl.style.overflow = "hidden";
-	profileEl.style.textOverflow = "ellipsis";
-
-	const settingsIcon = el.createDiv();
-	settingsIcon.style.opacity = "0.5";
-	settingsIcon.style.flexShrink = "0";
-	settingsIcon.style.transition = "opacity var(--atlas-transition-fast, 120ms)";
+	const settingsIcon = el.createDiv({ cls: "atlas-master-header-settings-icon" });
 	setIcon(settingsIcon, "settings");
 
 	const updateProfileName = (): void => {
@@ -93,16 +58,7 @@ export function renderAtlasHeader(parent: HTMLElement, plugin: AtlasPlugin): Atl
 	};
 
 	updateProfileName();
-
-	// Hover state
-	el.addEventListener("mouseenter", () => {
-		el.style.borderColor = "var(--atlas-accent, var(--interactive-accent))";
-		settingsIcon.style.opacity = "1";
-	});
-	el.addEventListener("mouseleave", () => {
-		el.style.borderColor = "var(--atlas-accent-soft, rgba(99, 102, 241, 0.12))";
-		settingsIcon.style.opacity = "0.5";
-	});
+	// Hover state handled by .atlas-master-header:hover in styles.css
 
 	// Click → open Atlas settings
 	el.addEventListener("click", () => {

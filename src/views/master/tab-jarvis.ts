@@ -21,8 +21,7 @@ export function renderJarvisTab(container: HTMLElement, plugin: AtlasPlugin): vo
 		activeCore = null;
 	}
 	container.empty();
-	container.style.padding = "0";
-	container.style.height = "100%";
+	container.addClass("atlas-jarvis-tab-host");
 
 	const core = new JarvisCore(plugin.app, plugin, {
 		mode: "sidebar",

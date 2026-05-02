@@ -51,102 +51,38 @@ export class AtlasHUD {
 		if (this.overlay) return;
 		const overlay = document.createElement("div");
 		overlay.addClass("atlas-hud");
-		overlay.style.position = "fixed";
-		overlay.style.zIndex = "999";
-		overlay.style.minWidth = "280px";
-		overlay.style.padding = "12px";
-		overlay.style.background = "var(--background-primary)";
-		overlay.style.border = "1px solid var(--atlas-accent-soft, rgba(99, 102, 241, 0.2))";
-		overlay.style.borderRadius = "var(--atlas-radius-lg, 12px)";
-		overlay.style.boxShadow =
-			"0 0 0 1px var(--atlas-accent-soft, rgba(99, 102, 241, 0.15)), 0 20px 40px -10px rgba(0, 0, 0, 0.3)";
-		overlay.style.backdropFilter = "blur(20px)";
-		overlay.style.fontFamily = "var(--font-text)";
-
 		const pos = this.loadPosition();
-		overlay.style.top = pos.top;
-		overlay.style.left = pos.left;
+		// Position is dynamic per user drag — kept inline
+		overlay.style.setProperty("top", pos.top);
+		overlay.style.setProperty("left", pos.left);
 
-		// Drag handle (header)
-		const header = overlay.createDiv();
-		header.style.display = "flex";
-		header.style.alignItems = "center";
-		header.style.gap = "10px";
-		header.style.marginBottom = "10px";
-		header.style.cursor = "move";
-		header.style.userSelect = "none";
+		const header = overlay.createDiv({ cls: "atlas-hud-header" });
 
-		// Logo
-		this.logoEl = header.createDiv() as HTMLDivElement;
-		this.logoEl.addClass("atlas-header-logo");
-		this.logoEl.style.width = "32px";
-		this.logoEl.style.height = "32px";
-		// DOM API for SVG (Obsidian no-innerHTML guideline)
+		this.logoEl = header.createDiv({ cls: "atlas-hud-logo atlas-header-logo" }) as HTMLDivElement;
 		const parser = new DOMParser();
 		const svgDoc = parser.parseFromString(HUD_LOGO_SVG, "image/svg+xml");
 		if (svgDoc.documentElement && svgDoc.documentElement.nodeName.toLowerCase() === "svg") {
 			this.logoEl.appendChild(document.importNode(svgDoc.documentElement, true));
 		}
 
-		const titleWrap = header.createDiv();
-		titleWrap.style.flexGrow = "1";
-		const titleEl = titleWrap.createEl("div", { text: "Atlas HUD" });
-		titleEl.style.fontSize = "13px";
-		titleEl.style.fontWeight = "bold";
-		this.statusEl = titleWrap.createDiv() as HTMLDivElement;
-		this.statusEl.style.fontSize = "10px";
-		this.statusEl.style.opacity = "0.7";
-		this.statusEl.setText("Verificando...");
+		const titleWrap = header.createDiv({ cls: "atlas-hud-title-wrap" });
+		titleWrap.createEl("div", { text: "Atlas HUD", cls: "atlas-hud-title" });
+		this.statusEl = titleWrap.createDiv({ cls: "atlas-hud-status", text: "Verificando..." }) as HTMLDivElement;
 
-		const closeBtn = header.createEl("button", { text: "×" });
-		closeBtn.style.fontSize = "16px";
-		closeBtn.style.padding = "0 6px";
-		closeBtn.style.background = "transparent";
-		closeBtn.style.border = "none";
-		closeBtn.style.cursor = "pointer";
-		closeBtn.style.opacity = "0.6";
+		const closeBtn = header.createEl("button", { text: "×", cls: "atlas-hud-close" });
 		closeBtn.addEventListener("click", () => this.hide());
 
-		// Meta info
-		this.metaEl = overlay.createDiv() as HTMLDivElement;
-		this.metaEl.style.fontSize = "10px";
-		this.metaEl.style.opacity = "0.65";
-		this.metaEl.style.marginBottom = "10px";
-		this.metaEl.style.lineHeight = "1.5";
+		this.metaEl = overlay.createDiv({ cls: "atlas-hud-meta" }) as HTMLDivElement;
 
-		// Waveform canvas (escondido até recording)
-		this.waveformCanvas = overlay.createEl("canvas") as HTMLCanvasElement;
+		this.waveformCanvas = overlay.createEl("canvas", { cls: "atlas-hud-waveform" }) as HTMLCanvasElement;
 		this.waveformCanvas.width = 280;
 		this.waveformCanvas.height = 40;
-		this.waveformCanvas.style.width = "100%";
-		this.waveformCanvas.style.height = "40px";
-		this.waveformCanvas.style.background = "var(--background-secondary)";
-		this.waveformCanvas.style.borderRadius = "var(--atlas-radius-sm, 4px)";
-		this.waveformCanvas.style.marginBottom = "10px";
-		this.waveformCanvas.style.display = "none";
 
-		// Quick actions
-		const actions = overlay.createDiv();
-		actions.style.display = "grid";
-		actions.style.gridTemplateColumns = "1fr 1fr 1fr 1fr";
-		actions.style.gap = "6px";
+		const actions = overlay.createDiv({ cls: "atlas-hud-actions" });
 
 		const action = (label: string, title: string, onClick: () => void): HTMLButtonElement => {
-			const btn = actions.createEl("button", { text: label });
+			const btn = actions.createEl("button", { text: label, cls: "atlas-hud-action-btn" });
 			btn.title = title;
-			btn.style.padding = "8px";
-			btn.style.fontSize = "16px";
-			btn.style.cursor = "pointer";
-			btn.style.background = "var(--background-secondary)";
-			btn.style.border = "none";
-			btn.style.borderRadius = "var(--atlas-radius-sm, 4px)";
-			btn.style.transition = "background var(--atlas-transition-fast, 120ms)";
-			btn.addEventListener("mouseenter", () => {
-				btn.style.background = "var(--background-modifier-hover)";
-			});
-			btn.addEventListener("mouseleave", () => {
-				btn.style.background = "var(--background-secondary)";
-			});
 			btn.addEventListener("click", onClick);
 			return btn;
 		};
@@ -203,7 +139,8 @@ export class AtlasHUD {
 		})();
 		const model = this.plugin.settings.ollama.generationModel;
 		this.statusEl.setText(up ? "✓ ready" : "✗ Ollama offline");
-		this.statusEl.style.color = up ? "var(--color-green)" : "var(--color-red)";
+		this.statusEl.removeClass("is-up", "is-down");
+		this.statusEl.addClass(up ? "is-up" : "is-down");
 		this.metaEl.setText(`${model} · ${freeGB.toFixed(1)} GB livre`);
 	}
 
@@ -252,9 +189,9 @@ export class AtlasHUD {
 			try {
 				this.recording = await startVoiceRecording();
 				btn.setText("⏸️");
-				btn.style.background = "var(--color-red)";
+				btn.addClass("is-recording");
 				if (this.waveformCanvas) {
-					this.waveformCanvas.style.display = "block";
+					this.waveformCanvas.addClass("is-recording");
 					this.startWaveform();
 				}
 			} catch (e) {
@@ -301,7 +238,7 @@ export class AtlasHUD {
 			this.waveformAnimId = null;
 		}
 		if (this.waveformCanvas) {
-			this.waveformCanvas.style.display = "none";
+			this.waveformCanvas.removeClass("is-recording");
 		}
 	}
 
