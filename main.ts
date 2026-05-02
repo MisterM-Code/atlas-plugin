@@ -224,6 +224,8 @@ export default class AtlasPlugin extends Plugin {
 	proactive!: ProactiveDetector;
 	private statusBar: HTMLElement | null = null;
 	private easterEggs: { unmount: () => void } | null = null;
+	// v0.52 Sprint C: detach handle for log file persistence
+	private detachLogPersistence: (() => void) | null = null;
 
 	async onload(): Promise<void> {
 		logger.info("Atlas plugin carregando...");
@@ -681,15 +683,29 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 			logger.warn("easter-eggs failed to mount", { error: String(e) });
 		}
 
+		// v0.52 Sprint C: attach log persistence — escreve em .atlas/atlas.log (rolling 5000 lines)
+		try {
+			const m = await import("./src/views/log-view");
+			this.detachLogPersistence = m.attachAtlasLogFile(this);
+		} catch (e) {
+			logger.warn("log-persistence failed to mount", { error: String(e) });
+		}
+
 		logger.info("Atlas plugin pronto.");
 
-		// v0.51.3: auto-detect version upgrade → show What's New modal once per version
-		try {
-			const m = await import("./src/ui/whats-new-modal");
-			// Defer 4s pra não competir com onboarding/splash/tour de first-run
-			window.setTimeout(() => void m.maybeShowWhatsNew(this), 4000);
-		} catch (e) {
-			logger.warn("whats-new auto-show failed", { error: String(e) });
+		// v0.52 Sprint E: WhatsNewModal SÓ depois de onboarding completo
+		// (evita competição com Splash + OnboardingWizard + TabsTourModal em first-run)
+		const onboardingDone = this.settings.onboarding?.completed === true;
+		if (onboardingDone) {
+			try {
+				const m = await import("./src/ui/whats-new-modal");
+				// Defer 4s pra dar UI tempo de mountar + outros startup events terminarem
+				window.setTimeout(() => void m.maybeShowWhatsNew(this), 4000);
+			} catch (e) {
+				logger.warn("whats-new auto-show failed", { error: String(e) });
+			}
+		} else {
+			logger.info("WhatsNewModal skipped — onboarding not yet completed");
 		}
 	}
 
@@ -708,6 +724,12 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		this.scheduler?.cancelAll();
 		this.hud?.hide();
 		this.easterEggs?.unmount();
+		// v0.52 Sprint C: flush + detach log persistence
+		try {
+			this.detachLogPersistence?.();
+		} catch {
+			// noop
+		}
 		removeAtlasTheme();
 	}
 
@@ -1747,6 +1769,42 @@ captured_via: webhook
 			id: "bookmarklet-show",
 			name: "🔖 Bookmarklet: mostrar código pra arrastar pra browser",
 			callback: () => this.showBookmarkletModal(),
+		});
+
+		// v0.52 Sprint D: Mass test data seeder
+		this.addCommand({
+			id: "seed-test-data",
+			name: "🌱 Atlas: Gerar massa de teste em 99_TestSeed/",
+			callback: async () => {
+				const m = await import("./src/commands/seed-test-data");
+				await m.runSeedTestData(this);
+			},
+		});
+		this.addCommand({
+			id: "clear-test-data",
+			name: "🗑️ Atlas: Limpar massa de teste (apaga 99_TestSeed/)",
+			callback: async () => {
+				const m = await import("./src/commands/seed-test-data");
+				await m.runClearSeedData(this);
+			},
+		});
+		this.addCommand({
+			id: "smoke-test-run",
+			name: "🧪 Atlas: Smoke test (rodar todos sistemas)",
+			callback: async () => {
+				const m = await import("./src/commands/smoke-test-runner");
+				await m.runSmokeTest(this);
+			},
+		});
+
+		// v0.52 Sprint C: Log viewer
+		this.addCommand({
+			id: "open-logs",
+			name: "📋 Atlas: Logs (ver / copiar / exportar)",
+			callback: async () => {
+				const m = await import("./src/views/log-view");
+				new m.LogViewModal(this.app, this).open();
+			},
 		});
 
 		// v0.51.3: What's New modal

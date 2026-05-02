@@ -11576,3 +11576,79 @@ button.atlas-btn:active::after,
   line-height: 1.5;
 }
 .atlas-whats-new-card-body li { margin-bottom: 4px; }
+
+/* ═══ v0.52 Sprint C: Log View modal ═══ */
+.atlas-log-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.atlas-log-header { padding: 4px 0 8px; border-bottom: 1px solid var(--background-modifier-border); }
+.atlas-log-subtitle { font-size: 12px; color: var(--text-muted); margin: 0; }
+.atlas-log-toolbar {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  padding: 4px 0;
+}
+.atlas-log-filter-level, .atlas-log-filter-search {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+.atlas-log-filter-search { flex: 1 1 200px; min-width: 160px; }
+.atlas-log-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.atlas-log-btn:hover { background: rgba(0, 229, 229, 0.10); transform: translateY(-1px); }
+.atlas-log-btn-danger { color: #ef4444; }
+.atlas-log-btn-danger:hover { background: rgba(239, 68, 68, 0.10); }
+.atlas-log-list {
+  max-height: 60vh;
+  overflow-y: auto;
+  font-family: var(--font-monospace, ui-monospace, monospace);
+  font-size: 11px;
+  line-height: 1.4;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+.atlas-log-row {
+  display: flex; gap: 8px; align-items: baseline;
+  padding: 3px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.atlas-log-row.is-error { background: rgba(239, 68, 68, 0.04); }
+.atlas-log-row.is-warn { background: rgba(245, 158, 11, 0.03); }
+.atlas-log-time { color: var(--text-muted); flex-shrink: 0; }
+.atlas-log-level {
+  flex-shrink: 0;
+  font-weight: 700;
+  width: 50px;
+  display: inline-block;
+}
+.atlas-log-level.is-debug { color: #94a3b8; }
+.atlas-log-level.is-info  { color: #38bdf8; }
+.atlas-log-level.is-warn  { color: #f59e0b; }
+.atlas-log-level.is-error { color: #ef4444; }
+.atlas-log-msg { color: var(--text-normal); flex: 1 1 auto; word-break: break-word; }
+.atlas-log-meta { color: var(--text-muted); font-style: italic; max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.atlas-log-counter {
+  padding: 6px 10px;
+  font-size: 10.5px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--background-modifier-border);
+  text-align: right;
+}
+.atlas-log-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+}

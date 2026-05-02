@@ -4,6 +4,54 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.0] — 2026-05-02 — "Quality Audit Sprint: Home cleanup + Logs + Mass data + Smoke test + Onboarding race fix"
+
+### Sprint B — Home cleanup (deduplicação modelo+custo)
+- REMOVIDO: `renderAtlasModelChip` do master-sidebar-view.ts:95 (era duplicado)
+- Display modelo+custo agora APENAS no Today status bar (`renderTodayStatusBar`)
+- Master Sidebar header fica limpo
+- Trocar modelo: Status tab → Catalog OU command "switch model"
+
+### Sprint C — Log View + persistent `.atlas/atlas.log`
+- `src/utils/logger.ts` ganha ring buffer (1000 entries) + persist hook opt-in
+- `src/views/log-view.ts` (NEW) — modal `atlas:open-logs`:
+  - Filter por level (debug/info/warn/error)
+  - Search texto
+  - 📋 Copiar tudo pra clipboard
+  - 📥 Salvar export como nota markdown em Inbox
+  - 🗑️ Limpar
+- `attachAtlasLogFile()` — append batched 5s pra `.atlas/atlas.log` (rolling 5000 lines)
+- Auto-attach no plugin onload + flush no onunload
+- Use case: amigo dá erro → `Cmd+P` → Open logs → Copiar → manda no chat suporte
+
+### Sprint D — Mass data seeder + Smoke test runner
+- **`atlas:seed-test-data`** (NEW): cria em `99_TestSeed/`:
+  - 10 pessoas (cargos, times, emails realistas BR)
+  - 5 sistemas (PIX, Stripe, Asaas, ERP-interno, Salesforce)
+  - 3 produtos + 3 cargos
+  - 8 sessões 1:1 mockadas (datas espaçadas 7d, GROW/CLEAR)
+  - 20 action items (mix open/today/overdue)
+  - 3 reminders futuros
+- **`atlas:clear-test-data`**: apaga pasta `99_TestSeed/` (KG entries permanecem)
+- **`atlas:smoke-test-run`** (NEW): roda 25+ testes E2E:
+  - Core, Ollama, KG, Providers, Tools, Intent dispatcher, Memory, Embedder, Notifier, Detectors, Persistence, Logger, Voice
+  - Output: nota markdown em Inbox com tabela "✅ N/M passed" agrupada por categoria
+  - Falhas detalhadas com stack trace curto
+
+### Sprint E — Onboarding race fix
+- WhatsNewModal SÓ dispara se `settings.onboarding.completed === true`
+- Em first-run via BRAT, ordem: Splash → OnboardingWizard (11 telas) → TabsTourModal — sem WhatsNewModal interferindo
+- Pós onboarding completo, próxima abertura: WhatsNewModal aparece com 4s delay (uma vez por versão)
+
+### Cost Integrity (carry-over de v0.51.4 — já shipped como hotfix)
+- `chat()`/`embed()`/`vision()` no router agora wrap try/catch externo
+- Toda falha não-pré-flight registra `SpendEntry { success: false, errorCode }` + tokens estimados
+- Distingue auth (não cobrou) de 5xx (provider pode ter cobrado)
+
+### Files
+- **NEW**: `src/views/log-view.ts`, `src/commands/seed-test-data.ts`, `src/commands/smoke-test-runner.ts`
+- **MODIFY**: `src/utils/logger.ts` (ring buffer + persist hook), `src/views/master/master-sidebar-view.ts` (remove chip), `main.ts` (4 commands novos + log persist + onboarding gate), `styles.css` (log view CSS, ~70 LOC)
+
 ## [0.51.4] — 2026-05-02 — "🚨 HOTFIX: Cost integrity — registra spend mesmo em erro 5xx"
 
 ### Bug crítico corrigido
