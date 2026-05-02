@@ -79,6 +79,8 @@ export class KGExtractor {
 	private llm: import("../providers/llm-service").LLMService | null = null;
 	// v0.47 E5: extraction cache pra skip LLM quando hash não mudou (90% cost cut em re-index)
 	private cache: ExtractionCache | null = null;
+	// v0.51: feedback store pra incluir negative examples (active learning)
+	private feedback: import("./extraction-feedback").ExtractionFeedbackStore | null = null;
 
 	constructor(private ollama: OllamaClient, private model: string) {}
 
@@ -92,8 +94,29 @@ export class KGExtractor {
 		this.cache = cache;
 	}
 
+	/** v0.51: wire feedback store pra anti-examples no prompt */
+	setFeedback(feedback: import("./extraction-feedback").ExtractionFeedbackStore): void {
+		this.feedback = feedback;
+	}
+
 	async extract(ctx: ExtractContext): Promise<ExtractionResultT | null> {
-		const userPrompt = this.buildUserPrompt(ctx);
+		// v0.51: build prompt com anti-exemplos do feedback store
+		let antiExamples = "";
+		if (this.feedback) {
+			try {
+				const negs = await this.feedback.recentRejections({ limit: 8 });
+				if (negs.length > 0) {
+					antiExamples =
+						"\n\n## Anti-exemplos (NÃO extrair como entity — usuário rejeitou):\n" +
+						negs.map((n) => `- ${n.kind}: "${n.text}"${n.reason ? ` (motivo: ${n.reason})` : ""}`).join("\n") +
+						"\n";
+				}
+			} catch {
+				// best-effort, não bloqueia
+			}
+		}
+
+		const userPrompt = this.buildUserPrompt(ctx) + antiExamples;
 
 		// v0.47 E5: cache hit check ANTES de qualquer LLM call
 		if (this.cache) {

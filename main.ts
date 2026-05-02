@@ -1740,6 +1740,16 @@ captured_via: webhook
 			callback: () => this.showBookmarkletModal(),
 		});
 
+		// v0.51: Active Learning — review extrações pra confirmar/rejeitar
+		this.addCommand({
+			id: "active-learning-review",
+			name: "🎓 Active Learning: revisar extrações do KG",
+			callback: async () => {
+				const m = await import("./src/ui/active-learning-modal");
+				new m.ActiveLearningModal(this.app, this).open();
+			},
+		});
+
 		// v0.50.1: Vision OCR — analisar imagem do vault (whiteboard / screenshot / handwritten)
 		this.addCommand({
 			id: "vision-analyze",

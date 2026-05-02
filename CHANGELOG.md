@@ -4,6 +4,30 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.51.0] — 2026-05-02 — "Active Learning loop — extraction feedback + anti-examples"
+
+### Active Learning Loop
+- `src/kg/extraction-feedback.ts` (NEW) — `ExtractionFeedbackStore` JSONL persistente em `.atlas/extraction-feedback.jsonl`
+- Schema: `{ ts, kind, action: accept|reject, text, notePath?, reason? }` rolling window 500 entries
+- `src/ui/active-learning-modal.ts` (NEW) — modal interativo:
+  - Lista 30 entities recém-extraídas (top 10 by updatedAt × 5 kinds)
+  - Filter dropdown: all / person / system / product / course / theme
+  - Stats summary: total · ✓ N confirmados · ✗ N rejeitados
+  - Buttons: ✓ Confirmar (registra accept) · ✗ Rejeitar (prompt motivo + remove do KG)
+- Comando: `atlas:active-learning-review` no Command Palette
+- KGExtractor agora **lê anti-exemplos** do feedback store e adiciona ao prompt:
+  - "## Anti-exemplos (NÃO extrair como entity — usuário rejeitou):" + últimos 8 rejects
+- Ciclo de melhoria: rejeitou "Reunião" como Person 3× → próximas extrações ignoram
+- Wired automaticamente em index-vault command
+
+### Files
+- `src/kg/extraction-feedback.ts` (NEW ~135 LOC)
+- `src/ui/active-learning-modal.ts` (NEW ~190 LOC)
+- `src/kg/extractor.ts` — setFeedback + anti-examples no prompt
+- `src/commands/index-vault.ts` — wire feedback store
+- `main.ts` — atlas:active-learning-review command
+- `styles.css` — `.atlas-active-learning-*` (~95 LOC)
+
 ## [0.50.1] — 2026-05-02 — "iCal stubs auto + Vision OCR command"
 
 ### iCal: criar stubs pré-meeting (24h ahead)

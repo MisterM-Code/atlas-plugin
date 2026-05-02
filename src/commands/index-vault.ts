@@ -37,6 +37,15 @@ export async function indexVaultCommand(plugin: AtlasPlugin): Promise<void> {
 		if (plugin.llm) extractor.setLLMService(plugin.llm);
 		// v0.47 E5: wire extraction cache — re-index pula LLM em notas inalteradas (~90% economia)
 		if (plugin.extractionCache) extractor.setCache(plugin.extractionCache);
+		// v0.51: wire feedback store — anti-examples melhoram extração ao longo do tempo
+		try {
+			const fbMod = await import("../kg/extraction-feedback");
+			const fb = new fbMod.ExtractionFeedbackStore(plugin.app, plugin.settings.folders.atlas);
+			await fb.load();
+			extractor.setFeedback(fb);
+		} catch {
+			// feedback é opcional; falhar não bloqueia indexação
+		}
 
 		// Foco em pastas onde a extração estruturada faz sentido
 		const targetFolders = [
