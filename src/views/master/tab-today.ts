@@ -35,6 +35,11 @@ export async function renderTodayTab(container: HTMLElement, plugin: AtlasPlugin
 		void badge;
 	}
 
+	// v0.45 E1: Status bar topo — live IA model + provider + cost/day
+	// Slim row sempre visível no topo da Home (1 linha 36px)
+	const statusBar = container.createDiv({ cls: "atlas-today-status-bar" });
+	void renderTodayStatusBar(statusBar, plugin);
+
 	// ─── ZONE 1: ALERTS ───────────────────────────────────────────
 	const zone1 = container.createDiv({ cls: "atlas-today-zone atlas-today-zone-alerts" });
 	const ticker = zone1.createDiv({ cls: "atlas-today-alerts-ticker" });
@@ -968,4 +973,115 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 		})),
 		() => void plugin.activateMasterTab("study")
 	);
+}
+
+
+// ══ v0.45: STATUS BAR TOPO — live IA + cost ════════════════════════════
+
+async function renderTodayStatusBar(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
+	el.empty();
+
+	// Health dot (pings Ollama daemon real)
+	const dot = el.createSpan({ cls: "atlas-today-status-dot is-checking" });
+	dot.title = "Verificando Ollama...";
+
+	// Active model from routing
+	const modelLabel = el.createSpan({ cls: "atlas-today-status-model" });
+	const updateModel = (): void => {
+		const route = plugin.providerRouter?.resolveTask("chat");
+		if (route) {
+			const isCloud = route.provider !== "ollama";
+			const emoji = isCloud ? "⚡" : "🤖";
+			modelLabel.empty();
+			modelLabel.createSpan({ cls: "atlas-today-status-emoji", text: emoji });
+			modelLabel.createSpan({ cls: "atlas-today-status-model-name", text: route.model });
+			modelLabel.createSpan({ cls: "atlas-today-status-provider", text: ` · ${route.provider}` });
+		} else {
+			const m = plugin.settings.ollama?.generationModel ?? "ollama";
+			modelLabel.empty();
+			modelLabel.createSpan({ cls: "atlas-today-status-emoji", text: "🤖" });
+			modelLabel.createSpan({ cls: "atlas-today-status-model-name", text: m });
+		}
+	};
+	updateModel();
+	modelLabel.title = "Click pra trocar modelo / abrir Status";
+	modelLabel.addEventListener("click", () => {
+		void plugin.activateMasterTab("status");
+	});
+	(modelLabel.style as CSSStyleDeclaration).cursor = "pointer";
+
+	// Cost pill (async aggregate via CostTracker.getSpend)
+	const costPill = el.createSpan({ cls: "atlas-today-status-cost is-zero", text: "💰 $0 hoje" });
+	const updateCost = async (): Promise<void> => {
+		try {
+			const tracker = (plugin as unknown as {
+				costTracker?: {
+					getSpend: (opts: { window: "day" }) => Promise<{ totalUSD: number }>;
+				};
+			}).costTracker;
+			if (!tracker) {
+				costPill.setText("💰 $0 hoje (local)");
+				return;
+			}
+			const agg = await tracker.getSpend({ window: "day" });
+			const usd = agg.totalUSD;
+			if (usd > 0) {
+				costPill.removeClass("is-zero");
+				costPill.addClass("is-spend");
+				costPill.setText(`💰 $${usd.toFixed(2)} hoje`);
+			} else {
+				costPill.removeClass("is-spend");
+				costPill.addClass("is-zero");
+				costPill.setText("💰 $0 hoje (local)");
+			}
+		} catch {
+			costPill.setText("💰 $0 hoje");
+		}
+	};
+	void updateCost();
+	costPill.title = "Gasto cloud do dia (click → Spend dashboard)";
+	costPill.addEventListener("click", () => {
+		void plugin.activateMasterTab("status");
+	});
+	(costPill.style as CSSStyleDeclaration).cursor = "pointer";
+
+	// Settings shortcut
+	const settingsBtn = el.createSpan({ cls: "atlas-today-status-settings", text: "⚙️" });
+	settingsBtn.title = "Configurações Atlas";
+	settingsBtn.addEventListener("click", () => {
+		const w = plugin.app as unknown as {
+			setting?: { open?: () => void; openTabById?: (id: string) => void };
+		};
+		try {
+			w.setting?.open?.();
+			w.setting?.openTabById?.("atlas");
+		} catch {
+			// noop
+		}
+	});
+
+	// Live health ping (every 30s)
+	const pingHealth = async (): Promise<void> => {
+		dot.removeClass("is-checking", "is-up", "is-degraded", "is-down");
+		try {
+			const ok = await plugin.ollama?.ping?.();
+			if (ok) {
+				dot.addClass("is-up");
+				dot.title = "Ollama daemon: UP";
+			} else {
+				dot.addClass("is-down");
+				dot.title = "Ollama daemon: DOWN";
+			}
+		} catch {
+			dot.addClass("is-down");
+			dot.title = "Ollama: erro";
+		}
+	};
+	void pingHealth();
+	const pingTimer = window.setInterval(() => {
+		void pingHealth();
+		updateModel();
+		void updateCost();
+	}, 30_000);
+	liveTimers.push(pingTimer);
 }

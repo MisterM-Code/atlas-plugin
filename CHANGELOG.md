@@ -4,6 +4,23 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.49.0] — 2026-05-02 — "Today Status Bar live (v0.45 E1)"
+
+### Live IA + Cost Status Bar topo da Home
+- Slim row 36px no topo da Today tab — sempre visível
+- 🟢/🟡/🔴 health dot (ping Ollama daemon real a cada 30s)
+- ⚡/🤖 emoji + provider routing ativo + model name (ex: "claude-sonnet-4-6 · anthropic")
+- 💰 cost pill: "$X.XX hoje" (laranja com gasto) ou "$0 hoje (local)" (verde)
+- ⚙️ settings shortcut (rotate animation on hover)
+- Click no model name → Status tab pra trocar
+- Click no cost → Spend dashboard
+- Async aggregate via CostTracker.getSpend({ window: "day" })
+- Auto-refresh 30s
+
+### Files
+- `src/views/master/tab-today.ts` — wire renderTodayStatusBar no topo + função (~100 LOC)
+- `styles.css` — `.atlas-today-status-*` (~95 LOC)
+
 ## [0.48.0] — 2026-05-02 — "Multi-agent Orchestrator: Researcher + Writer pipeline"
 
 ### E3 — Multi-agent Orchestrator (v0.47 deferred)

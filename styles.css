@@ -10891,3 +10891,98 @@ button.atlas-btn:active::after,
 	line-height: 1.55;
 }
 
+
+/* ═══ v0.45 E1: Today Status Bar (live IA + cost + settings) ═══ */
+.atlas-today-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+  margin: 0 0 8px;
+  background: linear-gradient(90deg, rgba(0, 229, 229, 0.06), rgba(99, 102, 241, 0.04));
+  border: 1px solid rgba(139, 211, 251, 0.18);
+  border-radius: 10px;
+  font-size: 12.5px;
+  line-height: 1.2;
+  backdrop-filter: blur(6px);
+  font-family: var(--font-monospace, ui-monospace, monospace);
+}
+.atlas-today-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+  transition: background-color 240ms ease, box-shadow 240ms ease;
+}
+.atlas-today-status-dot.is-checking {
+  background: #facc15;
+  animation: atlas-pulse-soft 1.4s infinite;
+}
+.atlas-today-status-dot.is-up {
+  background: #00e5e5;
+  box-shadow: 0 0 6px rgba(0, 229, 229, 0.6);
+}
+.atlas-today-status-dot.is-degraded {
+  background: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+}
+.atlas-today-status-dot.is-down {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+  animation: atlas-pulse-soft 1.6s infinite;
+}
+.atlas-today-status-model {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+.atlas-today-status-model:hover {
+  background: rgba(0, 229, 229, 0.10);
+  transform: translateY(-1px);
+}
+.atlas-today-status-emoji { font-size: 13px; }
+.atlas-today-status-model-name {
+  color: var(--text-normal);
+  font-weight: 600;
+}
+.atlas-today-status-provider {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+.atlas-today-status-cost {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 200ms ease, transform 200ms ease;
+}
+.atlas-today-status-cost.is-zero {
+  background: rgba(34, 197, 94, 0.10);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.20);
+}
+.atlas-today-status-cost.is-spend {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.atlas-today-status-cost:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.10);
+}
+.atlas-today-status-settings {
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 180ms ease, transform 180ms ease;
+  padding: 2px 4px;
+}
+.atlas-today-status-settings:hover {
+  opacity: 1;
+  transform: rotate(45deg);
+}
