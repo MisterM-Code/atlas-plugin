@@ -28,6 +28,8 @@ export async function generateWeeklyReportCommand(plugin: AtlasPlugin): Promise<
 				incidents: plugin.settings.folders.incidents,
 			}
 		);
+		// v0.23: wire LLMService — map-reduce interno usa cloud quando configured
+		if (plugin.llm) tool.setLLMService(plugin.llm);
 
 		const result = await tool.run({});
 		notice.hide();

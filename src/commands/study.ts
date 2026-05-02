@@ -33,6 +33,7 @@ export async function generateFlashcardsFromActiveNote(plugin: AtlasPlugin): Pro
 		}
 
 		const gen = new FlashcardGenerator(plugin.ollama, plugin.settings.ollama.generationModel);
+		if (plugin.llm) gen.setLLMService(plugin.llm);
 		const cards = await gen.generate({
 			notePath: file.path,
 			noteTitle: indexed.frontmatter.title as string | undefined,
@@ -342,6 +343,7 @@ export class SocraticModal extends Modal {
 		const notice = new Notice("Atlas: gerando perguntas socráticas...", 0);
 		try {
 			const tool = new SocraticTool(this.plugin.ollama, this.plugin.settings.ollama.generationModel);
+			if (this.plugin.llm) tool.setLLMService(this.plugin.llm);
 			const out = await tool.questions({
 				concept: this.concept,
 				userExplanation: this.explanation,

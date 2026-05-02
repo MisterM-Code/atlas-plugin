@@ -9,12 +9,18 @@ export interface Prepare1on1Input {
 }
 
 export class Prepare1on1Tool {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(
 		private app: App,
 		private kg: KGStore,
 		private ollama: OllamaClient,
 		private model: string
 	) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async run(input: Prepare1on1Input): Promise<string> {
 		const person = this.kg.findPersonByName(input.personName);
@@ -57,11 +63,18 @@ ${sessionTexts.join("\n\n---\n\n")}
 Resumo (PT-BR, factual, ≤150 palavras):`;
 
 				try {
-					recentSummary = await this.ollama.generate(prompt, {
-						model: this.model,
-						temperature: 0.3,
-						max_tokens: 500,
-					});
+					recentSummary = this.llm
+						? await this.llm.generate(prompt, {
+								feature: "tools.prepare-1on1.summary",
+								taskKind: "summarization",
+								temperature: 0.3,
+								maxTokens: 500,
+						  })
+						: await this.ollama.generate(prompt, {
+								model: this.model,
+								temperature: 0.3,
+								max_tokens: 500,
+						  });
 				} catch (e) {
 					logger.warn("prepare_1on1: LLM falhou", { error: String(e) });
 					recentSummary =
@@ -85,11 +98,18 @@ As 4 perguntas devem ser abertas, não-julgamentais, em PT-BR, prontas para usar
 
 Formato: numerada de 1 a 4, sem texto extra.`;
 
-			const qOut = await this.ollama.generate(qPrompt, {
-				model: this.model,
-				temperature: 0.6,
-				max_tokens: 400,
-			});
+			const qOut = this.llm
+				? await this.llm.generate(qPrompt, {
+						feature: "tools.prepare-1on1.questions",
+						taskKind: "chat",
+						temperature: 0.6,
+						maxTokens: 400,
+				  })
+				: await this.ollama.generate(qPrompt, {
+						model: this.model,
+						temperature: 0.6,
+						max_tokens: 400,
+				  });
 			suggestedQuestions = qOut.trim();
 		} catch {
 			suggestedQuestions =

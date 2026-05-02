@@ -21,7 +21,13 @@ export interface AutoSummaryOptions {
 }
 
 export class AutoSummaryTool {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(private app: App, private ollama: OllamaClient, private opts: AutoSummaryOptions) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async generateForFile(file: TFile): Promise<string | null> {
 		try {
@@ -45,11 +51,18 @@ ${truncated}
 
 TLDR (2-4 linhas):`;
 
-			const out = await this.ollama.generate(prompt, {
-				model: this.opts.model,
-				temperature: 0.3,
-				max_tokens: 250,
-			});
+			const out = this.llm
+				? await this.llm.generate(prompt, {
+						feature: "tools.auto-summary",
+						taskKind: "summarization",
+						temperature: 0.3,
+						maxTokens: 250,
+				  })
+				: await this.ollama.generate(prompt, {
+						model: this.opts.model,
+						temperature: 0.3,
+						max_tokens: 250,
+				  });
 
 			return cleanSummary(out);
 		} catch (e) {
@@ -158,6 +171,7 @@ export async function generateSummaryForActiveNote(plugin: import("../../main").
 		minWords: 100,
 		model: plugin.settings.ollama.smallModel,
 	});
+	if (plugin.llm) tool.setLLMService(plugin.llm);
 
 	try {
 		const applied = await tool.applyToFile(file);

@@ -21,7 +21,13 @@ REGRAS:
 `;
 
 export class ChainOfDensity {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(private ollama: OllamaClient, private model: string) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async densify(text: string, targetLength = 200): Promise<string> {
 		const prompt = `${COD_PROMPT_PT}
@@ -36,15 +42,23 @@ ${text}
 Resumo final (iteração 4):`;
 
 		try {
-			const out = await this.ollama.generate(prompt, {
-				model: this.model,
-				temperature: 0.3,
-				max_tokens: 800,
-			});
+			// v0.23: route via LLMService — cloud (Sonnet/4o) produz CoD muito melhor que 7B
+			const out = this.llm
+				? await this.llm.generate(prompt, {
+						feature: "summarizer.chain-of-density",
+						taskKind: "summarization",
+						temperature: 0.3,
+						maxTokens: 800,
+				  })
+				: await this.ollama.generate(prompt, {
+						model: this.model,
+						temperature: 0.3,
+						max_tokens: 800,
+				  });
 			return out.trim();
 		} catch (e) {
 			logger.warn("CoD: falhou", { error: String(e) });
-			return text.substring(0, targetLength * 6); // fallback
+			return text.substring(0, targetLength * 6);
 		}
 	}
 }

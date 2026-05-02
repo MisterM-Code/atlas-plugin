@@ -339,6 +339,8 @@ export class ReportComposer {
 			if (!ok) return baseMarkdown;
 
 			const mr = new MapReduceSummarizer(this.plugin.ollama);
+			// v0.23: wire LLMService — cloud preferred for long doc summarization
+			if (this.plugin.llm) mr.setLLMService(this.plugin.llm);
 			const chunks = notes
 				.slice(0, 30)
 				.map((n) => `Path: ${n.path}\n\n${n.body.substring(0, 1500)}`);

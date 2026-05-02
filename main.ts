@@ -501,6 +501,8 @@ export default class AtlasPlugin extends Plugin {
 			this.settings.ollama.smallModel,
 			serendipityStatePath(this.settings.folders.atlas)
 		);
+		// v0.23: wire LLMService for cloud routing opt-in
+		if (this.llm) this.serendipity.setLLMService(this.llm);
 		await this.serendipity.load();
 
 		// Time Capsule watcher

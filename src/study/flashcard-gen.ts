@@ -65,35 +65,47 @@ export interface GeneratedCard {
 }
 
 export class FlashcardGenerator {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(private ollama: OllamaClient, private model: string) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async generate(input: FlashcardGenInput): Promise<GeneratedCard[]> {
 		const max = input.maxCards ?? 8;
 		const body = input.body.length > 8000 ? input.body.slice(0, 8000) + "\n[...]" : input.body;
 
 		try {
-			const raw = await this.ollama.chat(
-				[
-					{ role: "system", content: SYSTEM_PROMPT },
-					{ role: "user", content: FEW_SHOT_USER },
-					{ role: "assistant", content: FEW_SHOT_ASSISTANT },
-					{
-						role: "user",
-						content: `Texto:
+			const messages = [
+				{ role: "system" as const, content: SYSTEM_PROMPT },
+				{ role: "user" as const, content: FEW_SHOT_USER },
+				{ role: "assistant" as const, content: FEW_SHOT_ASSISTANT },
+				{
+					role: "user" as const,
+					content: `Texto:
 """
 ${input.noteTitle ? `Título: ${input.noteTitle}\n\n` : ""}${body}
 """
 
 Gere até ${max} flashcards.`,
-					},
-				],
-				{
-					model: this.model,
-					temperature: 0.3,
-					format: "json",
-					max_tokens: 2500,
-				}
-			);
+				},
+			];
+			const raw = this.llm
+				? await this.llm.chat(messages, {
+						feature: "study.flashcard-gen",
+						taskKind: "extraction",
+						temperature: 0.3,
+						maxTokens: 2500,
+						jsonFormat: true,
+				  })
+				: await this.ollama.chat(messages, {
+						model: this.model,
+						temperature: 0.3,
+						format: "json",
+						max_tokens: 2500,
+				  });
 
 			const cleaned = this.cleanJson(raw);
 			const parsed = JSON.parse(cleaned);

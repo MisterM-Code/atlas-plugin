@@ -89,6 +89,8 @@ export class SummarizePersonModal extends Modal {
 				this.plugin.settings.ollama.generationModel,
 				this.plugin.settings.folders.reports
 			);
+			// v0.23: wire LLMService pra map-reduce interno usar cloud quando configured
+			if (this.plugin.llm) tool.setLLMService(this.plugin.llm);
 
 			const result = await tool.run({
 				personName: this.personName,

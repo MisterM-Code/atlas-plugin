@@ -26,6 +26,8 @@ export interface WeeklyReportOutput {
 }
 
 export class WeeklyReportTool {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(
 		private app: App,
 		private kg: KGStore,
@@ -33,6 +35,10 @@ export class WeeklyReportTool {
 		private model: string,
 		private folders: { daily: string; meetings: string; reports: string; raid: string; incidents: string }
 	) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async run(input: WeeklyReportInput = {}): Promise<WeeklyReportOutput> {
 		const periodEnd = input.weekEnd ?? new Date();
@@ -80,6 +86,7 @@ export class WeeklyReportTool {
 
 		// 3. LLM map-reduce on notes
 		const mr = new MapReduceSummarizer(this.ollama);
+		if (this.llm) mr.setLLMService(this.llm);
 		const noteChunks = periodNotes
 			.slice(0, 30)
 			.map((n) => `Path: ${n.path}\n\n${n.body.substring(0, 1800)}`);

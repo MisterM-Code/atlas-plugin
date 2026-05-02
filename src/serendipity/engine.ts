@@ -30,6 +30,7 @@ export class SerendipityEngine {
 	private state: SerendipityState = { version: 1, lastShown: {}, dismissed: {} };
 	private dirty = false;
 	private flushTimer: ReturnType<typeof setTimeout> | null = null;
+	private llm: import("../providers/llm-service").LLMService | null = null;
 
 	constructor(
 		private app: App,
@@ -38,6 +39,10 @@ export class SerendipityEngine {
 		private smallModel: string,
 		private statePath: string
 	) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async load(): Promise<void> {
 		const file = this.app.vault.getAbstractFileByPath(this.statePath);
@@ -175,11 +180,18 @@ ${excerpt}
 
 Por quê hoje (1 frase ≤80 chars):`;
 
-			const out = await this.ollama.generate(prompt, {
-				model: this.smallModel,
-				temperature: 0.7,
-				max_tokens: 50,
-			});
+			const out = this.llm
+				? await this.llm.generate(prompt, {
+						feature: "serendipity.engine",
+						taskKind: "chat",
+						temperature: 0.7,
+						maxTokens: 50,
+				  })
+				: await this.ollama.generate(prompt, {
+						model: this.smallModel,
+						temperature: 0.7,
+						max_tokens: 50,
+				  });
 			const cleaned = out.trim().split("\n")[0].substring(0, 100);
 			return cleaned || `Você escreveu há ${ageDays} dias.`;
 		} catch {

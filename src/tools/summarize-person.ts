@@ -12,6 +12,8 @@ export interface SummarizePersonInput {
 }
 
 export class SummarizePersonTool {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(
 		private app: App,
 		private kg: KGStore,
@@ -20,6 +22,11 @@ export class SummarizePersonTool {
 		private model: string,
 		private reportsFolder: string
 	) {}
+
+	/** v0.23: wire LLMService — propagada pra MapReduceSummarizer interno */
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async run(input: SummarizePersonInput): Promise<{ notePath: string; markdown: string }> {
 		const person = this.kg.findPersonByName(input.personName);
@@ -79,6 +86,7 @@ export class SummarizePersonTool {
 
 		// 4. Map-Reduce: cada nota vira summary curto, depois consolida
 		const mapReduce = new MapReduceSummarizer(this.ollama);
+		if (this.llm) mapReduce.setLLMService(this.llm);
 
 		const chunks = sessionContents.map(
 			(s) => `Data: ${s.date}\nNota: ${s.path}\n\n${s.content.substring(0, 2500)}`

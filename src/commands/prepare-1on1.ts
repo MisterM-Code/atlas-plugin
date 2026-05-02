@@ -87,6 +87,8 @@ export class Prepare1on1Modal extends Modal {
 				this.plugin.ollama,
 				this.plugin.settings.ollama.generationModel
 			);
+			// v0.23: wire LLMService
+			if (this.plugin.llm) tool.setLLMService(this.plugin.llm);
 			const brief = await tool.run({ personName: this.personName });
 			notice.hide();
 

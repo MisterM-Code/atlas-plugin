@@ -12,7 +12,13 @@ export interface MapReduceOptions {
 }
 
 export class MapReduceSummarizer {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(private ollama: OllamaClient) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async run(chunks: string[], opts: MapReduceOptions): Promise<string> {
 		if (chunks.length === 0) return "";
@@ -22,11 +28,19 @@ export class MapReduceSummarizer {
 		const mapResults: string[] = [];
 		for (let i = 0; i < chunks.length; i++) {
 			try {
-				const summary = await this.ollama.generate(opts.mapPrompt(chunks[i]), {
-					model: opts.model,
-					temperature: opts.mapTemperature ?? 0.2,
-					max_tokens: opts.maxTokensMap ?? 400,
-				});
+				const prompt = opts.mapPrompt(chunks[i]);
+				const summary = this.llm
+					? await this.llm.generate(prompt, {
+							feature: "summarizer.map-reduce.map",
+							taskKind: "summarization",
+							temperature: opts.mapTemperature ?? 0.2,
+							maxTokens: opts.maxTokensMap ?? 400,
+					  })
+					: await this.ollama.generate(prompt, {
+							model: opts.model,
+							temperature: opts.mapTemperature ?? 0.2,
+							max_tokens: opts.maxTokensMap ?? 400,
+					  });
 				mapResults.push(summary.trim());
 			} catch (e) {
 				logger.warn(`MapReduce: map ${i} falhou`, { error: String(e) });
@@ -38,11 +52,19 @@ export class MapReduceSummarizer {
 		// REDUCE: combine summaries
 		logger.info("MapReduce: reducing...");
 		try {
-			const final = await this.ollama.generate(opts.reducePrompt(mapResults), {
-				model: opts.model,
-				temperature: opts.reduceTemperature ?? 0.3,
-				max_tokens: opts.maxTokensReduce ?? 1500,
-			});
+			const reducePrompt = opts.reducePrompt(mapResults);
+			const final = this.llm
+				? await this.llm.generate(reducePrompt, {
+						feature: "summarizer.map-reduce.reduce",
+						taskKind: "summarization",
+						temperature: opts.reduceTemperature ?? 0.3,
+						maxTokens: opts.maxTokensReduce ?? 1500,
+				  })
+				: await this.ollama.generate(reducePrompt, {
+						model: opts.model,
+						temperature: opts.reduceTemperature ?? 0.3,
+						max_tokens: opts.maxTokensReduce ?? 1500,
+				  });
 			return final.trim();
 		} catch (e) {
 			logger.error("MapReduce: reduce falhou", { error: String(e) });

@@ -4,6 +4,50 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.23.0] — 2026-05-02 — "Cloud routing 100%: 13/13 LLM sites wired via LLMService"
+
+### Sprint H2 — Wire 9 remaining LLM sites
+Cada classe ganha `setLLMService(llm)` setter + ternary fallback (`llm ? cloud : ollama`).
+Wired via call site nos commands ou main.ts:
+
+| File | Feature tag | Wired at |
+|---|---|---|
+| **kg/extractor.ts** | `kg.extractor` (taskKind: extraction) | commands/index-vault.ts |
+| **summarizer/chain-of-density.ts** | `summarizer.chain-of-density` | (called by tools) |
+| **summarizer/map-reduce.ts** | `summarizer.map-reduce.{map,reduce}` | wrapper tools (weekly/summarize-person/composer) |
+| **study/socratic.ts** | `study.socratic-tutor` | commands/study.ts |
+| **study/flashcard-gen.ts** | `study.flashcard-gen` | commands/study.ts |
+| **tools/prepare-1on1.ts** | `tools.prepare-1on1.{summary,questions}` | commands/prepare-1on1.ts |
+| **tools/auto-summary.ts** | `tools.auto-summary` | tools/auto-summary.ts (helper fn) |
+| **tools/summarize-person.ts** | propaga MapReduce internamente | commands/summarize-person.ts |
+| **tools/weekly-report.ts** | propaga MapReduce internamente | commands/weekly-report.ts |
+| **tools/report-composer.ts** | propaga MapReduce internamente | (this.plugin já disponível) |
+| **serendipity/engine.ts** | `serendipity.engine` | main.ts onload |
+
+**TOTAL: 13/13 LLM call-sites do plugin agora rotam via LLMService** (cloud-or-ollama auto + cost tracking + budget enforcement).
+
+### Skipped (defer)
+- Reranker (`retrieval/reranker.ts`): per-search overhead, local default sane (não roteia cloud — Ollama sempre)
+- Embedder fallback paths em llm-service: já usam `this.plugin.ollama.embed` corretamente
+- Loading skeletons em ECharts (Analytics): deferido — ECharts já carrega via lazy import + cada chart tem error catch state
+
+### Files modified (15)
+- **Wired classes (10)**: kg/extractor.ts, summarizer/{chain-of-density,map-reduce}.ts, study/{socratic,flashcard-gen}.ts, tools/{prepare-1on1,auto-summary,summarize-person,weekly-report}.ts, serendipity/engine.ts
+- **Wire call sites (5)**: commands/{index-vault,study,prepare-1on1,summarize-person,weekly-report}.ts, tools/{auto-summary,report-composer}.ts
+- main.ts: serendipity wire after llm init
+- CHANGELOG, manifest, package, versions → 0.23.0
+
+### Verification
+- [ ] Configure cloud routing.extraction = anthropic:claude-haiku → roda Cmd+P "Atlas: Index vault" → Spend dashboard mostra calls com `feature: kg.extractor`
+- [ ] Cmd+P "Atlas: Summarize person Maria" → Spend dashboard mostra `feature: summarizer.map-reduce.{map,reduce}` (cloud)
+- [ ] Cmd+P "Atlas: Prepare 1:1 com X" → Spend mostra `feature: tools.prepare-1on1.summary` + `tools.prepare-1on1.questions`
+- [ ] Cmd+P "Atlas: Generate flashcards" → Spend mostra `feature: study.flashcard-gen`
+- [ ] Cmd+P "Atlas: Socratic tutor" → Spend mostra `feature: study.socratic-tutor`
+- [ ] Cmd+P "Atlas: Weekly report" → Spend mostra map-reduce com cloud (se configured)
+- [ ] Serendipity background — quando dispara insight, Spend mostra `serendipity.engine` (low-freq, ok)
+- [ ] Local-only path: zerar todas API keys → tudo continua funcionando como Ollama (zero spend log)
+- [ ] Build TypeScript zero errors
+
 ## [0.22.0] — 2026-05-02 — "Polish backend: Whisper UX + Quick Presets + Analytics fixes + LLM wiring"
 
 ### Sprint F — Whisper Settings UX

@@ -33,6 +33,8 @@ export async function indexVaultCommand(plugin: AtlasPlugin): Promise<void> {
 			".trash",
 		]);
 		const extractor = new KGExtractor(plugin.ollama, settings.ollama.generationModel);
+		// v0.23: wire LLMService — extraction routing pode ser cloud (Haiku) ou local
+		if (plugin.llm) extractor.setLLMService(plugin.llm);
 
 		// Foco em pastas onde a extração estruturada faz sentido
 		const targetFolders = [

@@ -24,7 +24,13 @@ export interface SocraticInput {
 }
 
 export class SocraticTool {
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(private ollama: OllamaClient, private model: string) {}
+
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async questions(input: SocraticInput): Promise<string> {
 		const level = input.level ?? "intermediario";
@@ -39,17 +45,22 @@ ${input.userExplanation}
 Sua tarefa: gere 5 perguntas socráticas que vão expor as lacunas dessa explicação. PT-BR. Sem dar respostas.`;
 
 		try {
-			const out = await this.ollama.chat(
-				[
-					{ role: "system", content: SYSTEM_PROMPT },
-					{ role: "user", content: prompt },
-				],
-				{
-					model: this.model,
-					temperature: 0.7,
-					max_tokens: 600,
-				}
-			);
+			const messages = [
+				{ role: "system" as const, content: SYSTEM_PROMPT },
+				{ role: "user" as const, content: prompt },
+			];
+			const out = this.llm
+				? await this.llm.chat(messages, {
+						feature: "study.socratic-tutor",
+						taskKind: "chat",
+						temperature: 0.7,
+						maxTokens: 600,
+				  })
+				: await this.ollama.chat(messages, {
+						model: this.model,
+						temperature: 0.7,
+						max_tokens: 600,
+				  });
 			return out.trim();
 		} catch (e) {
 			logger.warn("socratic: falhou", { error: String(e) });

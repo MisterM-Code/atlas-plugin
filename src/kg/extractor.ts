@@ -73,26 +73,41 @@ export interface ExtractContext {
 }
 
 export class KGExtractor {
+	// v0.23: optional LLMService — quando set, roteia via cloud-or-ollama com cost tracking
+	private llm: import("../providers/llm-service").LLMService | null = null;
+
 	constructor(private ollama: OllamaClient, private model: string) {}
+
+	/** v0.23: wire LLMService pra cloud routing opt-in */
+	setLLMService(llm: import("../providers/llm-service").LLMService): void {
+		this.llm = llm;
+	}
 
 	async extract(ctx: ExtractContext): Promise<ExtractionResultT | null> {
 		const userPrompt = this.buildUserPrompt(ctx);
 
 		try {
-			const raw = await this.ollama.chat(
-				[
-					{ role: "system", content: SYSTEM_PROMPT },
-					{ role: "user", content: FEW_SHOT_USER },
-					{ role: "assistant", content: FEW_SHOT_ASSISTANT },
-					{ role: "user", content: userPrompt },
-				],
-				{
-					model: this.model,
-					temperature: 0.1,
-					format: "json",
-					max_tokens: 2000,
-				}
-			);
+			const messages = [
+				{ role: "system" as const, content: SYSTEM_PROMPT },
+				{ role: "user" as const, content: FEW_SHOT_USER },
+				{ role: "assistant" as const, content: FEW_SHOT_ASSISTANT },
+				{ role: "user" as const, content: userPrompt },
+			];
+			// v0.23: route via LLMService quando configured (cloud auto se routing.extraction = cloud)
+			const raw = this.llm
+				? await this.llm.chat(messages, {
+						feature: "kg.extractor",
+						taskKind: "extraction",
+						temperature: 0.1,
+						maxTokens: 2000,
+						jsonFormat: true,
+				  })
+				: await this.ollama.chat(messages, {
+						model: this.model,
+						temperature: 0.1,
+						format: "json",
+						max_tokens: 2000,
+				  });
 
 			const cleaned = this.cleanJson(raw);
 			const parsed = JSON.parse(cleaned);
