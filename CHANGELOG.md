@@ -4,6 +4,49 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.14.0] — 2026-05-02 — "5 pattern detectors + Memory Loop Visualization"
+
+### Added — 5 features avançadas do Power Catalog
+
+#### 📡 Repeating Theme Alert (`Cmd+P → Atlas: Repeating Theme Alert`)
+Temas mencionados por **5+ pessoas distintas** = sinal sistêmico (problema organizacional, não individual). Para cada tema:
+- Lista de pessoas que mencionaram (até 12, depois `+N`)
+- Total de menções
+- Sentiment badge (blocker/growth/neutral)
+- **Tip contextual** baseado no sentiment ("considere all-hands", "tech talk?", "skip-level")
+
+#### 🌱 Coachee Plateau Detector (`Cmd+P → Atlas: Coachee Plateau Detector`)
+Para coaches: detecta coachees com **mesmos temas em 3+ sessões consecutivas** sem evolução. Critérios:
+- 3+ sessões coaching obrigatórias
+- Plateau score = themes repetidos / themes únicos (>40% = plateau)
+- Verdict: `progressing` / `watch` / `plateau`
+- **Sugestão de ação**: trocar framework (GROW → CLEAR/OSKAR), perguntar "o que está te impedindo?", pausa de 1 mês com tarefa concreta
+
+#### ⚖️ Inconsistency Detector (`Cmd+P → Atlas: Inconsistency Detector`)
+Análise LLM de pares de notas próximas no tempo (1:1 + meeting da mesma semana). Detecta contradições factuais entre o que você diz em contextos diferentes. Limit: 8 pares (proteção custo). Resultado: descrição em 1-2 frases por contradição encontrada.
+
+#### 🎯 Stale OKR Alert (`Cmd+P → Atlas: Stale OKR Alert`)
+Scan de notas marcadas como `type: okr/goal` ou tag `#okr/#goal` ou nome contendo "okr"/"goal". KRs sem update há 14+ dias. Severity: `warning` (14-30d) / `critical` (>30d). Click abre nota.
+
+#### 🌀 Memory Loop Visualization (`Cmd+P → Atlas: Memory Loop`)
+**Inovação meta-cognitiva**: visualiza COMO você revisita ideias ao longo do tempo, não só "quantas vezes".
+- Canvas timeline horizontal (30/90/180/365 dias)
+- Para cada tema (top 10): dots em cada data de menção, linha de connection
+- Para cada tema (top 12 list): insight per-pattern:
+  - 🔄 **Obsessive** (gap < 5d): mente girando muito
+  - ⚖️ **Balanced** (gap 5-30d): padrão saudável
+  - ✨ **Rare** (gap > 30d): aparece quando relevante
+  - 🌅 **Forgotten** (max gap > 60d): você abandonou e voltou
+- Stats overview: temas ressurgentes vs esquecidos
+- Mini timeline text-based per theme (gap proporcional ao spacing)
+
+### Stack
+- main.js: 1.8 MB (sem deps adicionais)
+- styles.css: 68 KB → **75 KB**
+- 2 novos arquivos: `pattern-detectors.ts` (4 modais) + `memory-loop.ts`
+- 5 novos commands (total: 130)
+- Reaproveita: KG (themes/sessions/people), Ollama, Canvas 2D nativo
+
 ## [0.13.0] — 2026-05-02 — "4 detectores de bem-estar + Smart Paste"
 
 ### Added — 4 features do Power Catalog do roadmap

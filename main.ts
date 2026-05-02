@@ -925,6 +925,51 @@ captured_via: webhook
 		});
 
 		this.addCommand({
+			id: "repeating-theme-alert",
+			name: "📡 Repeating Theme Alert (sinal sistêmico)",
+			callback: async () => {
+				const m = await import("./src/innovations/pattern-detectors");
+				new m.RepeatingThemeAlertModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "coachee-plateau",
+			name: "🌱 Coachee Plateau Detector",
+			callback: async () => {
+				const m = await import("./src/innovations/pattern-detectors");
+				new m.CoacheePlateauModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "inconsistency-detector",
+			name: "⚖️ Inconsistency Detector (LLM)",
+			callback: async () => {
+				const m = await import("./src/innovations/pattern-detectors");
+				new m.InconsistencyDetectorModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "stale-okr-alert",
+			name: "🎯 Stale OKR Alert (KRs sem update)",
+			callback: async () => {
+				const m = await import("./src/innovations/pattern-detectors");
+				new m.StaleOkrAlertModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
+			id: "memory-loop",
+			name: "🌀 Memory Loop Visualization",
+			callback: async () => {
+				const m = await import("./src/innovations/memory-loop");
+				new m.MemoryLoopModal(this.app, this).open();
+			},
+		});
+
+		this.addCommand({
 			id: "create-reminder",
 			name: "🔔 Criar reminder com data",
 			callback: async () => {
