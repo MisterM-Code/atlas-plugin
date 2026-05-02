@@ -837,8 +837,31 @@ export class JarvisCore {
 						void this.processTranscript(txt);
 					},
 					onError: (err) => {
-						// v0.43: Don't spam — only show err if mic permission denied
+						// v0.44 E4: NÃO silenciar — feedback contextual com sugestão actionable
 						if (err.includes("denied") || err.includes("permission")) {
+							new Notice(
+								`Atlas Jarvis: mic bloqueado. Permita acesso ao microfone nas configs do sistema.`,
+								8000
+							);
+						} else if (
+							err.includes("Sem transcri") ||
+							err.includes("no-speech") ||
+							err.includes("Não detectei") ||
+							err.includes("nao detectei")
+						) {
+							new Notice(
+								`Atlas Jarvis: não detectei sua voz. Fale mais alto/perto do mic.`,
+								6000
+							);
+							this.subtitleEl.setText(
+								"💡 Tente: 'criar pessoa João' ou 'lembrar reunião sexta 14h'"
+							);
+						} else if (err.includes("network")) {
+							new Notice(
+								`Atlas Jarvis: Web Speech offline. Configure whisper.cpp em Settings → Voice pra usar 100% local.`,
+								10000
+							);
+						} else {
 							new Notice(`Atlas Jarvis: ${err}`, 6000);
 						}
 						this.applyState("idle");

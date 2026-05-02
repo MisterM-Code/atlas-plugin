@@ -43,6 +43,10 @@ export async function renderTodayTab(container: HTMLElement, plugin: AtlasPlugin
 	const hero = zone1.createDiv({ cls: "atlas-today-hero" });
 	void renderHero(hero, plugin);
 
+	// v0.44 E6: Chat bar inline — pergunte direto da home + sugestões
+	const chatBridge = zone1.createDiv({ cls: "atlas-today-chat-bridge" });
+	renderChatBridge(chatBridge, plugin);
+
 	// ─── ZONE 2: ACTION ───────────────────────────────────────────
 	const zone2 = container.createDiv({ cls: "atlas-today-zone atlas-today-zone-action" });
 	zone2.createDiv({ cls: "atlas-today-zone-title", text: ZONE_TITLES.action });
@@ -88,6 +92,10 @@ export async function renderTodayTab(container: HTMLElement, plugin: AtlasPlugin
 
 	const xp = awareGrid.createDiv({ cls: "atlas-today-widget atlas-today-xp" });
 	void renderXp(xp, plugin);
+
+	// v0.44 E6: Knowledge cards — Pessoas/Sistemas/Produtos clicáveis
+	const knowledge = awareGrid.createDiv({ cls: "atlas-today-widget atlas-today-knowledge" });
+	void renderKnowledgeCards(knowledge, plugin);
 
 	// Stagger entrance animations via CSS — adicionar delay incremental nos widgets
 	const allWidgets = container.querySelectorAll(".atlas-today-widget, .atlas-today-hero, .atlas-today-alerts-ticker");
@@ -753,4 +761,211 @@ function renderHeroStarfield(el: HTMLElement): void {
 		}
 	});
 	stopWatcher.observe(document.body, { childList: true, subtree: true });
+}
+
+// ══ v0.44 E6: CHAT BRIDGE — pergunte ao Atlas direto da home ═════════
+const SUGGESTED_PROMPTS = [
+	"gere relatório de todos os 1:1 com Miguel",
+	"email sobre todos os sistemas da semana",
+	"padrões dos últimos 7 dias",
+	"resumir Maria",
+	"pre-mortem do projeto X",
+];
+
+function renderChatBridge(el: HTMLElement, plugin: AtlasPlugin): void {
+	const inputWrap = el.createDiv({ cls: "atlas-today-chat-bridge-input-wrap" });
+	inputWrap.createSpan({ cls: "atlas-today-chat-bridge-icon", text: "💬" });
+	const input = inputWrap.createEl("input", {
+		cls: "atlas-today-chat-bridge-input",
+		type: "text",
+		attr: { placeholder: "Pergunte ao Atlas... (ex: gere relatório do Miguel)" },
+	});
+	const sendBtn = inputWrap.createEl("button", {
+		cls: "atlas-today-chat-bridge-send mod-cta",
+		text: "→",
+	});
+
+	const submit = async (): Promise<void> => {
+		const text = input.value.trim();
+		if (!text) return;
+		input.value = "";
+		// Activate Chat tab + dispatch send event
+		await plugin.activateMasterTab("chat");
+		document.dispatchEvent(
+			new CustomEvent("atlas:chat-send", { detail: { text } })
+		);
+	};
+
+	input.addEventListener("keydown", (e) => {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			void submit();
+		}
+	});
+	sendBtn.addEventListener("click", () => void submit());
+
+	// Suggestion chips
+	const chips = el.createDiv({ cls: "atlas-today-chat-bridge-chips" });
+	const suggestions = SUGGESTED_PROMPTS.slice(0, 3);
+	for (const s of suggestions) {
+		const chip = chips.createEl("button", {
+			cls: "atlas-today-chat-bridge-chip",
+			text: s,
+		});
+		chip.addEventListener("click", () => {
+			input.value = s;
+			void submit();
+		});
+	}
+}
+
+// ══ v0.44 E6: KNOWLEDGE CARDS — Pessoas/Sistemas/Produtos clicáveis ═════
+async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
+	el.empty();
+	el.createEl("div", { cls: "atlas-today-widget-title", text: "🌐 KNOWLEDGE" });
+
+	const grid = el.createDiv({ cls: "atlas-today-knowledge-grid" });
+
+	const people = plugin.kg.listPeople();
+	const systems = plugin.kg.listSystems();
+	const products = plugin.kg.listProducts();
+	const courses = plugin.kg.listCourses();
+
+	// Card constructor helper
+	const buildCard = (
+		emoji: string,
+		title: string,
+		count: number,
+		topItems: { name: string; onClick: () => void }[],
+		onAllClick: () => void
+	): void => {
+		const card = grid.createDiv({ cls: "atlas-today-knowledge-card" });
+		const top = card.createDiv({ cls: "atlas-today-knowledge-card-top" });
+		top.createSpan({ cls: "atlas-today-knowledge-card-emoji", text: emoji });
+		top.createSpan({ cls: "atlas-today-knowledge-card-title", text: title });
+		top.createSpan({ cls: "atlas-today-knowledge-card-count", text: String(count) });
+		top.addEventListener("click", () => onAllClick());
+
+		if (topItems.length > 0) {
+			const list = card.createDiv({ cls: "atlas-today-knowledge-card-list" });
+			for (const item of topItems.slice(0, 3)) {
+				const row = list.createDiv({ cls: "atlas-today-knowledge-card-row" });
+				row.setText(item.name);
+				row.addEventListener("click", (ev) => {
+					ev.stopPropagation();
+					item.onClick();
+				});
+			}
+		} else {
+			card.createDiv({
+				cls: "atlas-today-knowledge-card-empty",
+				text: "(nenhum cadastrado)",
+			});
+		}
+
+		const seeAll = card.createDiv({
+			cls: "atlas-today-knowledge-card-see-all",
+			text: "Ver todos →",
+		});
+		seeAll.addEventListener("click", (ev) => {
+			ev.stopPropagation();
+			onAllClick();
+		});
+	};
+
+	// People card
+	const sortedPeople = [...people].sort((a, b) =>
+		(b.updatedAt ?? "").localeCompare(a.updatedAt ?? "")
+	);
+	buildCard(
+		"👥",
+		"Pessoas",
+		people.length,
+		sortedPeople.map((p) => ({
+			name: p.name,
+			onClick: async () => {
+				if (p.notePath) {
+					const f = plugin.app.vault.getAbstractFileByPath(p.notePath);
+					if (f && "stat" in f) {
+						await plugin.app.workspace.getLeaf().openFile(f as never);
+						return;
+					}
+				}
+				await plugin.activateMasterTab("knowledge");
+			},
+		})),
+		() => void plugin.activateMasterTab("knowledge")
+	);
+
+	// Systems card
+	const sortedSystems = [...systems].sort((a, b) =>
+		(b.updatedAt ?? "").localeCompare(a.updatedAt ?? "")
+	);
+	buildCard(
+		"🖥️",
+		"Sistemas",
+		systems.length,
+		sortedSystems.map((s) => ({
+			name: s.name,
+			onClick: async () => {
+				if (s.notePath) {
+					const f = plugin.app.vault.getAbstractFileByPath(s.notePath);
+					if (f && "stat" in f) {
+						await plugin.app.workspace.getLeaf().openFile(f as never);
+						return;
+					}
+				}
+				await plugin.activateMasterTab("systems");
+			},
+		})),
+		() => void plugin.activateMasterTab("systems")
+	);
+
+	// Products card
+	const sortedProducts = [...products].sort((a, b) =>
+		(b.updatedAt ?? "").localeCompare(a.updatedAt ?? "")
+	);
+	buildCard(
+		"📦",
+		"Produtos",
+		products.length,
+		sortedProducts.map((p) => ({
+			name: p.name,
+			onClick: async () => {
+				if (p.notePath) {
+					const f = plugin.app.vault.getAbstractFileByPath(p.notePath);
+					if (f && "stat" in f) {
+						await plugin.app.workspace.getLeaf().openFile(f as never);
+						return;
+					}
+				}
+				await plugin.activateMasterTab("products");
+			},
+		})),
+		() => void plugin.activateMasterTab("products")
+	);
+
+	// Courses card
+	const sortedCourses = [...courses].sort((a, b) =>
+		(b.updatedAt ?? "").localeCompare(a.updatedAt ?? "")
+	);
+	buildCard(
+		"🎓",
+		"Cursos",
+		courses.length,
+		sortedCourses.map((c) => ({
+			name: c.name,
+			onClick: async () => {
+				if (c.notePath) {
+					const f = plugin.app.vault.getAbstractFileByPath(c.notePath);
+					if (f && "stat" in f) {
+						await plugin.app.workspace.getLeaf().openFile(f as never);
+						return;
+					}
+				}
+				await plugin.activateMasterTab("study");
+			},
+		})),
+		() => void plugin.activateMasterTab("study")
+	);
 }

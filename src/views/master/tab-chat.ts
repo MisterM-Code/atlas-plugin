@@ -317,6 +317,25 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	});
 	sendBtn.addEventListener("click", () => void send());
 
+	// v0.44 E6: External event listener — Today chat bridge dispatches "atlas:chat-send"
+	// pra mandar mensagem direto sem precisar abrir tab e digitar.
+	const externalSendHandler = (ev: Event): void => {
+		const detail = (ev as CustomEvent).detail as { text?: string } | undefined;
+		const text = detail?.text?.trim();
+		if (!text) return;
+		inputEl.value = text;
+		void send();
+	};
+	document.addEventListener("atlas:chat-send", externalSendHandler);
+	// Cleanup quando container destroi (re-render trigger)
+	const cleanupObserver = new MutationObserver(() => {
+		if (!document.body.contains(container)) {
+			document.removeEventListener("atlas:chat-send", externalSendHandler);
+			cleanupObserver.disconnect();
+		}
+	});
+	cleanupObserver.observe(document.body, { childList: true, subtree: true });
+
 	newBtn.addEventListener("click", () => {
 		plugin.memory.clearCurrentSession();
 		plugin.memory.startNewSession();

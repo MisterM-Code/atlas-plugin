@@ -390,6 +390,32 @@ async function renderDiagnosticsSub(container: HTMLElement, plugin: AtlasPlugin)
 		const fill = bar.createDiv({ cls: `atlas-progress-bar-fill ${fillCls}`.trim() });
 		fill.style.width = `${usedPct}%`;
 
+		// v0.44 E3: Active routing display (shows cloud provider when configured)
+		const routing = body.createDiv({ cls: "atlas-status-routing" });
+		routing.createEl("div", {
+			cls: "atlas-status-routing-title",
+			text: "🌐 ROUTING ATIVO",
+		});
+		const tasks: { id: "chat" | "reasoning" | "embedding" | "vision" | "summarization"; label: string }[] = [
+			{ id: "chat", label: "💬 Chat" },
+			{ id: "reasoning", label: "🧠 Reasoning" },
+			{ id: "embedding", label: "📊 Embeddings" },
+			{ id: "vision", label: "👁️ Vision" },
+			{ id: "summarization", label: "📝 Summarize" },
+		];
+		const router = plugin.providerRouter;
+		const grid = routing.createDiv({ cls: "atlas-status-routing-grid" });
+		for (const t of tasks) {
+			const r = router?.resolveTask(t.id);
+			const row = grid.createDiv({ cls: "atlas-status-routing-row" });
+			row.createSpan({ cls: "atlas-status-routing-task", text: t.label });
+			const provBadge = r && r.provider !== "ollama" ? "is-cloud" : "is-local";
+			row.createSpan({
+				cls: `atlas-status-routing-value ${provBadge}`,
+				text: r ? `${r.provider}:${r.model}` : "— (none)",
+			});
+		}
+
 		// Models
 		const modelsSection = body.createDiv();
 		modelsSection.style.marginBottom = "8px";

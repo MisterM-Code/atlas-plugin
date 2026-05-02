@@ -665,8 +665,16 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		logger.info("Atlas plugin pronto.");
 	}
 
-	onunload(): void {
+	async onunload(): Promise<void> {
 		logger.info("Atlas plugin descarregando...");
+		// v0.44 E1: P0 — flush pending KG saves antes de unmount.
+		// Sem isso, debounced timer (1.5s) é cancelado no disable → última edição
+		// (ex: criar pessoa) fica só em RAM e perde.
+		try {
+			await this.kg?.save();
+		} catch (e) {
+			logger.error("v0.44: failed to flush KG on unload", { error: String(e) });
+		}
 		this.scheduler?.cancelAll();
 		this.hud?.hide();
 		this.easterEggs?.unmount();
@@ -2262,6 +2270,85 @@ captured_via: webhook
 				}
 			},
 		});
+
+		// v0.44 E2: New 1:1 — cria página markdown com template + brief auto
+		this.addCommand({
+			id: "new-1on1",
+			name: "🤝 Novo 1:1 (cria página)",
+			callback: async () => {
+				const m = await import("./src/commands/new-1on1");
+				new m.New1on1Modal(this.app, this).open();
+			},
+		});
+
+		// v0.44 E3: Switch chat routing to Ollama (used by cloud error actions)
+		this.addCommand({
+			id: "switch-to-ollama",
+			name: "🤖 Trocar chat pra Ollama (local)",
+			callback: async () => {
+				if (!this.settings.providers) {
+					this.settings.providers = {
+						apiKeys: {},
+						routing: {},
+						failoverChain: ["ollama"],
+						budget: { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 },
+					};
+				}
+				this.settings.providers.routing = {
+					...(this.settings.providers.routing ?? {}),
+					chat: { provider: "ollama", model: this.settings.ollama.generationModel },
+				};
+				await this.saveSettings();
+				this.providerRouter?.updateConfig({
+					routing: this.settings.providers.routing as never,
+				});
+				new Notice(`✓ Atlas: chat agora via Ollama local (${this.settings.ollama.generationModel})`, 6000);
+			},
+		});
+
+		// v0.44 E1: KG backup/restore commands
+		this.addCommand({
+			id: "export-kg-backup",
+			name: "📦 Export KG backup (manual)",
+			callback: async () => {
+				try {
+					const path = await this.kg.exportBackup();
+					new Notice(`✅ Backup salvo em ${path}`, 8000);
+				} catch (e) {
+					new Notice(`Atlas: erro no backup — ${String(e)}`, 10000);
+				}
+			},
+		});
+
+		this.addCommand({
+			id: "import-kg-backup",
+			name: "♻️ Restore KG from backup",
+			callback: async () => {
+				const folder = `${this.settings.folders.atlas}/backups`;
+				const files = this.app.vault
+					.getFiles()
+					.filter((f) => f.path.startsWith(folder + "/") && f.name.endsWith(".json"))
+					.sort((a, b) => b.stat.mtime - a.stat.mtime);
+				if (files.length === 0) {
+					new Notice(`Atlas: nenhum backup em ${folder}`, 6000);
+					return;
+				}
+				const { confirmAsync } = await import("./src/ui/confirm-modal");
+				const newest = files[0];
+				const ok = await confirmAsync(
+					this.app,
+					`Restaurar KG de ${newest.path}? Substitui dados atuais.`,
+					{ title: "♻️ Restore KG", yesLabel: "Restaurar", danger: true }
+				);
+				if (!ok) return;
+				try {
+					await this.kg.importBackup(newest.path);
+					new Notice(`✅ KG restaurado. Recarregue Atlas pra ver UI atualizada.`, 10000);
+				} catch (e) {
+					new Notice(`Atlas: erro restore — ${String(e)}`, 10000);
+				}
+			},
+		});
 	}
 
 	updateStatusBar(): void {
@@ -2551,6 +2638,21 @@ captured_via: webhook
 			cronExpression: "0 9,14 * * *", // 9h and 14h
 			description: "Watcher: tasks vencidas (KG)",
 			handler: () => this.runTaskWatcher(),
+		});
+
+		// v0.44 E1: KG backup semanal aos domingos 03h (rolling 4 backups)
+		this.scheduler.schedule({
+			id: "kg-backup-weekly",
+			cronExpression: "0 3 * * 0", // domingos 03:00
+			description: "Backup semanal do KG",
+			handler: async () => {
+				try {
+					const path = await this.kg.exportBackup();
+					logger.info("KG weekly backup created", { path });
+				} catch (e) {
+					logger.warn("KG weekly backup failed", { error: String(e) });
+				}
+			},
 		});
 
 		// Reminder watcher: every 5 min check (@datetime) markers

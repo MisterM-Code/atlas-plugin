@@ -4,6 +4,9 @@ import { setupVaultStructure } from "../commands/setup-vault";
 import { PROFILES, PROFILE_CATEGORIES, ProfileId, mergeProfiles } from "../profiles/registry";
 
 export class AtlasSettingTab extends PluginSettingTab {
+	/** v0.44 E3: track which provider keys triggered modal in this Settings open */
+	private modalShownThisSession = new Set<string>();
+
 	constructor(app: App, private plugin: AtlasPlugin) {
 		super(app, plugin);
 	}
@@ -93,14 +96,21 @@ export class AtlasSettingTab extends PluginSettingTab {
 							apiKeys: this.collectApiKeysPlain(),
 						});
 
-						// v0.21 Sprint J: detected new API key (empty → preenchido) → open ApiKeyDetectedModal
-						if (previouslyEmpty && v && v !== "•••••••••••" && v.length > 10) {
-							// Debounce: wait 1.5s after typing stops before opening modal
-							// (user might be still typing/pasting)
+						// v0.21 Sprint J / v0.44 E3: detected new API key → open ApiKeyDetectedModal
+						// Relaxed gate: any reasonably-long key (>20 chars) opens modal once per session.
+						// Avoids cases where wasEmpty mis-detects (e.g., user re-pasting after blanking).
+						if (
+							v &&
+							v !== "•••••••••••" &&
+							v.length > 20 &&
+							!this.modalShownThisSession.has(p.id)
+						) {
+							this.modalShownThisSession.add(p.id);
 							setTimeout(() => {
 								void this.maybeOpenApiKeyModal(p.id);
-							}, 1500);
+							}, 1200);
 						}
+						void previouslyEmpty;
 					});
 				});
 		}

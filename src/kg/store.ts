@@ -91,6 +91,75 @@ export class KGStore {
 		}, 1500);
 	}
 
+	/**
+	 * v0.44 E1: Export current KG to backup file.
+	 * Used by atlas:export-kg-backup command + weekly scheduler.
+	 * @returns the backup file path on success
+	 */
+	async exportBackup(): Promise<string> {
+		const backupFolder = normalizePath(`${this.atlasFolder}/backups`);
+		if (!this.app.vault.getAbstractFileByPath(backupFolder)) {
+			await this.app.vault.createFolder(backupFolder);
+		}
+		// Use ISO week format YYYY-Www for rolling 4-week backup
+		const now = new Date();
+		const week = isoWeek(now);
+		const filename = `kg-${now.getFullYear()}-W${String(week).padStart(2, "0")}.json`;
+		const path = normalizePath(`${backupFolder}/${filename}`);
+		const json = JSON.stringify(this.graph, null, 2);
+
+		const existing = this.app.vault.getAbstractFileByPath(path);
+		if (existing instanceof TFile) {
+			await this.app.vault.modify(existing, json);
+		} else {
+			await this.app.vault.create(path, json);
+		}
+
+		// Rotation: keep last 4 weeks
+		await this.rotateBackups(backupFolder, 4);
+
+		logger.info(`KG backup exported: ${path}`);
+		return path;
+	}
+
+	/**
+	 * Restore KG from backup file path. After restore, in-memory graph is replaced.
+	 * Caller should reload UI / reindex if needed.
+	 */
+	async importBackup(filePath: string): Promise<void> {
+		const file = this.app.vault.getAbstractFileByPath(filePath);
+		if (!(file instanceof TFile)) {
+			throw new Error(`Backup file not found: ${filePath}`);
+		}
+		const raw = await this.app.vault.read(file);
+		const parsed = JSON.parse(raw);
+		const result = KnowledgeGraph.safeParse(parsed);
+		if (!result.success) {
+			throw new Error(`Backup invalid: ${result.error.message}`);
+		}
+		this.graph = result.data;
+		await this.save();
+		logger.info(`KG restored from backup: ${filePath}`);
+	}
+
+	/** Internal: keep only N most recent backup files. */
+	private async rotateBackups(folder: string, keep: number): Promise<void> {
+		const files = this.app.vault
+			.getFiles()
+			.filter(
+				(f) => f.path.startsWith(folder + "/") && f.name.startsWith("kg-") && f.name.endsWith(".json")
+			)
+			.sort((a, b) => b.stat.mtime - a.stat.mtime);
+		const toDelete = files.slice(keep);
+		for (const f of toDelete) {
+			try {
+				await this.app.vault.delete(f);
+			} catch (e) {
+				logger.warn("backup rotate: delete failed", { path: f.path, error: String(e) });
+			}
+		}
+	}
+
 	get data(): KnowledgeGraphT {
 		return this.graph;
 	}
@@ -493,4 +562,17 @@ export class KGStore {
 		this.touch();
 		return newMod;
 	}
+}
+
+/** v0.44 E1: ISO week number (1-53) helper for backup filenames */
+function isoWeek(d: Date): number {
+	const target = new Date(d.valueOf());
+	const dayNr = (d.getDay() + 6) % 7;
+	target.setDate(target.getDate() - dayNr + 3);
+	const firstThursday = target.valueOf();
+	target.setMonth(0, 1);
+	if (target.getDay() !== 4) {
+		target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+	}
+	return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
 }

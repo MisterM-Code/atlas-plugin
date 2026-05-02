@@ -4,6 +4,114 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.44.0] — 2026-05-02 — "Foundation Critical Fixes — persistence + chat trust + new 1:1 + Jarvis-grade home"
+
+User feedback fundamental: persistência, chat 500 cloud, new 1:1 só brief, vinculações faltando, home incompleta, Jarvis silencioso.
+
+### E1 — KG persistence safety + backup semanal (P0)
+- `onunload()` agora `async` e chama `await this.kg.save()` — fim da janela de race onde 1.5s debounce era cancelado e dados perdiam ao desabilitar plugin
+- Novos comandos `atlas:export-kg-backup` (manual) e `atlas:import-kg-backup` (restore)
+- Scheduler weekly: domingos 03h cria backup `.atlas/backups/kg-${YYYY}-W${week}.json` rolling 4 backups
+- Helper `KGStore.exportBackup()` + `importBackup(path)` + rotation interna
+
+### E2 — New 1:1 cria PÁGINA real (era só brief)
+- Comando novo `atlas:new-1on1` (separado do prepare-1on1 que continua só pra inserir brief inline)
+- Modal: pessoa picker + 5 frameworks (GROW/CLEAR/BICEPS/OSKAR/Adhoc) + data
+- Cria folder `03_Meetings/1on1/<slug>/` se não existir
+- Cria arquivo `<YYYY-MM-DD>-<slug>.md` com template Atlas aplicado + brief auto-gerado no topo
+- `KGStore.upsertSession({ id, date, type:"1on1", personId, framework, sourceNotePath })` registra no KG
+- Audit log `1on1.created`
+- Quick action "🤝 Brief 1:1" no Today vai pra prepare-1on1; **adicione comando "🤝 Novo 1:1" pra new-1on1**
+
+### E3 — Cloud error classifier + Status routing display
+- Novo `classifyCloudError(e)` em error-classifier.ts cobre **9 cloud providers** (OpenAI/Anthropic/Google/Mistral/xAI/Groq/DeepSeek/OpenRouter/Cohere)
+  - 401/403 → "API key inválida ou sem permissão" + botão "Abrir Settings"
+  - 429 quota → "Quota mensal excedida"
+  - 429 rate → "Aguarde ~1 min"
+  - 400 context_length → "Contexto excede limite — limpe memory"
+  - 400 invalid model → "Modelo não existe — atualize routing"
+  - 5xx → "Provider instável — troque provider ou Ollama"
+- LLMService wrap throws via `classifyAndRethrow` quando `shouldFallback === false`
+- Status tab → Diagnostics: nova section **"🌐 ROUTING ATIVO"** mostra provider:model por task (chat/reasoning/embedding/vision/summarization). Cloud routes em chip cyan-tinted, local em badge cinza
+- ApiKeyDetectedModal trigger relaxado: `length > 20 && !modalShownThisSession.has(provider)` (era `previouslyEmpty` muito strict)
+- Comando novo `atlas:switch-to-ollama` referenciado por error actions
+
+### E4 — Jarvis Web Speech UX
+- Web Speech onError não é mais silent
+- "denied/permission" → Notice claro pra abrir mic config
+- "no-speech/Sem transcrição" → "não detectei sua voz" + dica no subtitle: "Tente: criar pessoa João"
+- "network" → guia pra configurar whisper.cpp local
+
+### E5 — Person aggregation report tool (chat capacity)
+- Tool novo `report_person_sessions(person_name, since?)` no agent registry
+- LLM agora pode gerar relatório markdown completo: "gere relatório de todos os 1:1 com Miguel"
+- Cria `05_Reports/1on1-reports/<date>-<slug>.md`:
+  - Sumário: período, sessões, frameworks, action items (open/done), decisões count
+  - Tabela cronológica: Data | Framework | Tópicos | Decisões | Link
+  - Decisions agregadas (extraídas de cada nota via regex `## ✅ Decisões`)
+  - Themes ranked
+  - Backlinks pra pessoa + folder de sessões
+- ZERO LLM calls — pura aggregation KG + regex parsing
+
+### E6 — Today Home: Knowledge cards + Chat bridge inline
+- **Chat bridge inline** entre hero e action grid:
+  - Input "Pergunte ao Atlas... (ex: gere relatório do Miguel)"
+  - 3 chips de sugestões clicáveis (relatório/email/padrões)
+  - Enter ou click → ativa Chat tab + dispatcha `atlas:chat-send` event
+  - Chat tab listener completa o fluxo (preenche input + send automático)
+- **Knowledge cards** na zone Awareness (full-width):
+  - 4 cards: 👥 Pessoas / 🖥️ Sistemas / 📦 Produtos / 🎓 Cursos
+  - Cada card mostra count + top 3 entities recém-atualizadas
+  - Click numa entity → abre file diretamente (`_person.md`/`system.md`/etc)
+  - Click "Ver todos →" ou no card title → ativa tab respectiva
+  - Empty state: "(nenhum cadastrado)"
+
+### E7 — Person auto-link retroativo
+- Novo `PersonMentionDetector` mirror do SystemDetector
+- Quando user cria Person nova: scan vault em background (regex word-boundary com aliases)
+- Notas que mencionam: frontmatter merge non-destructive `participants: [...prev, "PersonName"]`
+- Toast: "Atlas: 5 notas vinculadas ao Carla"
+- ZERO LLM calls — 100% regex
+- Pessoa criada agora popula timeline automática via Dataview embedded em `_person.md`
+
+### E8 — Model switcher chip inline na Master Sidebar
+- Novo componente `AtlasModelChip` sempre visível abaixo do header
+- Mostra: emoji provider + nome modelo + arrow dropdown
+- Click → dropdown com:
+  - Modelos curados por provider configurado (Anthropic 3, OpenAI 3, Google 2, etc.)
+  - Pricing por modelo ($3/$15·1M, "grátis", etc.)
+  - Active highlighted com ✓
+  - Section "Ollama (local)" sempre visível
+  - Providers não configurados aparecem como "⚠️ Adicione API key →" → click abre Settings
+  - Footer "Configurar providers..." → Settings tab
+- Click modelo → `routing.chat = {provider, model}` + `saveSettings` + `updateConfig` router + Notice "✓ Atlas usando X"
+- Pop-in animation spring + cosmic styling
+
+### Files modified
+- `main.ts` — onunload async, 3 commands novos, scheduler weekly backup
+- `src/kg/store.ts` — exportBackup/importBackup/rotateBackups + isoWeek helper
+- `src/automation/error-classifier.ts` — classifyCloudError (~120 LOC) + 7 novos error codes
+- `src/providers/llm-service.ts` — classifyAndRethrow wrapper em 5 catch blocks
+- `src/views/master/tab-simple.ts` — Status routing display section
+- `src/views/settings-tab.ts` — paste detection gate relaxado + modalShownThisSession
+- `src/ui/jarvis-core.ts` — Web Speech onError com 4 mensagens contextuais
+- `src/agent/tool-registry.ts` — tool report_person_sessions (~150 LOC)
+- `src/views/master/tab-today.ts` — chatBridge + knowledgeCards + 4 cards clicáveis
+- `src/views/master/tab-chat.ts` — listener atlas:chat-send + cleanup MutationObserver
+- `src/commands/new-1on1.ts` (NEW) — modal + create flow
+- `src/automation/person-mention-detector.ts` (NEW) — scanVaultForPerson + backlinkInFrontmatter
+- `src/views/master/person-form.ts` — auto-link após upsertPerson
+- `src/ui/atlas-model-chip.ts` (NEW) — chip + dropdown
+- `src/views/master/master-sidebar-view.ts` — mount chip after header
+- `styles.css` — ~450 LOC novas (cards/chat-bridge/chip/dropdown/status-routing/new-1on1)
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Web Speech fallback continua funcionando zero-config
+- Whisper opt-in continua funcionando se ambos paths configurados
+- Backup é additive (não substitui kg.json principal)
+
 ## [0.43.0] — 2026-05-02 — "Bug fixes Today + FAB scroll + Jarvis automático"
 
 User feedback acumulado: spacing card, tirar sparkles, diminuir clock, FAB não scrolla, Jarvis whisper reclamando.

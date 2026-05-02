@@ -16,6 +16,7 @@ import type AtlasPlugin from "../../main";
 import type { OllamaClient, ChatMessage as OllamaChatMessage, ToolSpec, ChatWithToolsResult } from "../ollama/client";
 import type { TaskKind, ChatMessage as ProviderChatMessage } from "./types";
 import { logger } from "../utils/logger";
+import { classifyCloudError } from "../automation/error-classifier";
 
 export interface LLMChatOpts {
 	feature: string; // for cost tracking — e.g. "agent.chat", "ti-tools.adr", "innovation.ghost-mentor"
@@ -80,6 +81,7 @@ class LLMServiceImpl implements LLMService {
 				});
 				return r.content;
 			} catch (e) {
+				if (!this.shouldFallback(e)) this.classifyAndRethrow(e);
 				if (this.shouldFallback(e)) {
 					logger.warn("llm: cloud failed, falling back to ollama", { feature: opts.feature, error: String(e) });
 					return this.fallbackOllamaChat(messages, opts);
@@ -118,6 +120,7 @@ class LLMServiceImpl implements LLMService {
 				}
 				return acc;
 			} catch (e) {
+				if (!this.shouldFallback(e)) this.classifyAndRethrow(e);
 				if (this.shouldFallback(e)) {
 					logger.warn("llm: cloud stream failed, falling back", { feature: opts.feature, error: String(e) });
 					return this.plugin.ollama.chatStream(messages, this.toOllamaOpts(opts), onToken);
@@ -162,6 +165,7 @@ class LLMServiceImpl implements LLMService {
 					})),
 				};
 			} catch (e) {
+				if (!this.shouldFallback(e)) this.classifyAndRethrow(e);
 				if (this.shouldFallback(e)) {
 					logger.warn("llm: cloud tools failed, fallback ollama", { feature: opts.feature, error: String(e) });
 					return this.plugin.ollama.chatWithTools(messages, tools, this.toOllamaOpts(opts));
@@ -193,6 +197,7 @@ class LLMServiceImpl implements LLMService {
 				});
 				return r.embeddings;
 			} catch (e) {
+				if (!this.shouldFallback(e)) this.classifyAndRethrow(e);
 				if (this.shouldFallback(e)) {
 					logger.warn("llm: cloud embed failed, fallback ollama", { feature: opts.feature, error: String(e) });
 					return this.plugin.ollama.embed(texts, this.plugin.settings.ollama.embeddingModel);
@@ -222,6 +227,7 @@ class LLMServiceImpl implements LLMService {
 				});
 				return r.content;
 			} catch (e) {
+				if (!this.shouldFallback(e)) this.classifyAndRethrow(e);
 				if (this.shouldFallback(e)) {
 					logger.warn("llm: cloud vision failed, no local fallback", { feature: opts.feature, error: String(e) });
 					throw new Error("Vision indisponível (cloud falhou + Ollama não tem modelo vision configurado).");
@@ -267,6 +273,13 @@ class LLMServiceImpl implements LLMService {
 		}
 		// Default fallback for unknown errors (better UX than crash)
 		return true;
+	}
+
+	/** v0.44 E3: Wrap raw cloud errors com AtlasError descritivo se possível */
+	private classifyAndRethrow(e: unknown): never {
+		const cloud = classifyCloudError(e);
+		if (cloud) throw cloud;
+		throw e;
 	}
 
 	private parseJsonSafe(s: string): Record<string, unknown> {

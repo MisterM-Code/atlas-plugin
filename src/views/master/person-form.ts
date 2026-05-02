@@ -158,6 +158,29 @@ export function renderPersonEditForm(
 					new Notice(`Atlas: pessoa "${saved.name}" ${isNew ? "criada" : "salva"}.`);
 					panel.close();
 					onSave?.();
+
+					// v0.44 E7: Auto-link retroativo — varre vault em background pra
+					// vincular notas que mencionam a pessoa (frontmatter participants).
+					// Apenas em criação (não em edits) pra evitar trabalho redundante.
+					if (isNew) {
+						void (async () => {
+							try {
+								const m = await import("../../automation/person-mention-detector");
+								const detector = new m.PersonMentionDetector(plugin.app, plugin);
+								const personFull = plugin.kg.data.people.find((p) => p.id === saved.id);
+								if (!personFull) return;
+								const linked = await detector.scanAndLink(personFull);
+								if (linked > 0) {
+									new Notice(
+										`Atlas: ${linked} nota${linked > 1 ? "s" : ""} vinculada${linked > 1 ? "s" : ""} ao ${saved.name}`,
+										6000
+									);
+								}
+							} catch (e) {
+								console.warn("Atlas: person auto-link failed", e);
+							}
+						})();
+					}
 				},
 				() => panel.close()
 			);

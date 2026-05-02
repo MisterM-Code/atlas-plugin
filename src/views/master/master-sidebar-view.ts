@@ -89,6 +89,15 @@ export class AtlasMasterSidebarView extends ItemView {
 		// v0.7.2: Atlas header (logo breathing + profile) sempre no topo
 		this.header = renderAtlasHeader(this.tabContentEl, this.plugin);
 
+		// v0.44 E8: Model switcher chip — sempre visível, mostra modelo ativo + dropdown pra trocar
+		try {
+			const m = await import("../../ui/atlas-model-chip");
+			m.renderAtlasModelChip(this.tabContentEl, this.plugin);
+		} catch (e) {
+			// silent — chip is non-critical
+			console.warn("Atlas: model chip mount failed", e);
+		}
+
 		// Tab content vai num wrapper separado (header não é re-renderizado)
 		const tabBody = this.tabContentEl.createDiv({ cls: "atlas-tab-body" });
 

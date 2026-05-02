@@ -550,6 +550,212 @@ framework: ${framework}
 			};
 		},
 	},
+	// v0.44 E5: Person aggregation report tool
+	{
+		name: "report_person_sessions",
+		description:
+			"Gera relatório completo de TODAS as 1:1s feitas com uma pessoa. Tabela cronológica, decisions, action items, themes recorrentes. Cria nota markdown em 05_Reports/1on1-reports/.",
+		parameters: {
+			type: "object",
+			properties: {
+				person_name: {
+					type: "string",
+					description: "Nome da pessoa (ex: Miguel)",
+				},
+				since: {
+					type: "string",
+					description: "Data início ISO YYYY-MM-DD (opcional, default = todas as sessões)",
+				},
+			},
+			required: ["person_name"],
+		},
+		destructive: false,
+		handler: async (params, plugin): Promise<ToolResult> => {
+			const personName = asStr(params.person_name);
+			if (!personName) return { ok: false, message: "person_name obrigatório." };
+			const person = plugin.kg.findPersonByName(personName);
+			if (!person) {
+				return {
+					ok: false,
+					message: `Pessoa "${personName}" não encontrada. Cadastre via Quick Add primeiro.`,
+				};
+			}
+
+			const since = asStr(params.since) || undefined;
+			const sinceDate = since && /^\d{4}-\d{2}-\d{2}$/.test(since) ? new Date(since) : undefined;
+			const sessions = plugin.kg.listSessionsByPerson(person.id, sinceDate);
+
+			if (sessions.length === 0) {
+				return {
+					ok: false,
+					message: `Nenhuma sessão encontrada com ${personName}${since ? ` desde ${since}` : ""}.`,
+				};
+			}
+
+			// Build markdown report
+			const today = new Date().toISOString().split("T")[0];
+			const personSlug = person.id;
+			const reportFolder = normalizePath(`05_Reports/1on1-reports`);
+			const reportPath = normalizePath(`${reportFolder}/${today}-${personSlug}.md`);
+
+			// Aggregate themes
+			const themes = plugin.kg.listTopThemesForPerson(person.id);
+
+			// Read each session note to extract action items + decisions
+			const rows: Array<{ date: string; framework: string; topics: string; decisions: string; notePath: string }> = [];
+			let allDecisions: string[] = [];
+			let openActionItems = 0;
+			let doneActionItems = 0;
+
+			for (const s of sessions) {
+				const file = plugin.app.vault.getAbstractFileByPath(s.sourceNotePath);
+				let topicsStr = (s.topics ?? []).join(", ");
+				let decisionsStr = (s.decisions ?? []).join("; ");
+				if (file && "stat" in file) {
+					try {
+						const text = await plugin.app.vault.read(file as never);
+						// Extract action items via regex
+						const opens = (text.match(/^\s*-\s*\[\s\]/gm) ?? []).length;
+						const dones = (text.match(/^\s*-\s*\[x\]/gim) ?? []).length;
+						openActionItems += opens;
+						doneActionItems += dones;
+						// Extract decisions section if present
+						const decMatch = text.match(/##\s*✅?\s*Decis[õo]es([\s\S]*?)(##|$)/i);
+						if (decMatch) {
+							const decs = decMatch[1]
+								.split("\n")
+								.filter((l) => l.trim().startsWith("-"))
+								.map((l) => l.replace(/^[-\s]+/, "").trim())
+								.filter(Boolean);
+							allDecisions.push(...decs);
+							if (!decisionsStr) decisionsStr = decs.slice(0, 2).join("; ");
+						}
+					} catch (e) {
+						logger.warn("report_person_sessions: read failed", { path: s.sourceNotePath, error: String(e) });
+					}
+				}
+				rows.push({
+					date: s.date,
+					framework: s.framework,
+					topics: topicsStr || "—",
+					decisions: decisionsStr || "—",
+					notePath: s.sourceNotePath,
+				});
+			}
+
+			const firstDate = sessions[sessions.length - 1].date;
+			const lastDate = sessions[0].date;
+			const frameworkCounts = new Map<string, number>();
+			for (const s of sessions) {
+				frameworkCounts.set(s.framework, (frameworkCounts.get(s.framework) ?? 0) + 1);
+			}
+			const fwSummary = Array.from(frameworkCounts.entries())
+				.map(([k, v]) => `${k}: ${v}`)
+				.join(" · ");
+
+			// Markdown body
+			const tableRows = rows
+				.map(
+					(r) =>
+						`| ${r.date} | ${r.framework} | ${r.topics.substring(0, 60)} | ${r.decisions.substring(0, 80)} | [link](${r.notePath}) |`
+				)
+				.join("\n");
+
+			const themesBlock =
+				themes.length > 0
+					? themes
+							.map((t) => `- **${t.name}** (${t.frequency}× · ${t.sentiment})`)
+							.join("\n")
+					: "_(Nenhum tema identificado)_";
+
+			const allDecisionsBlock =
+				allDecisions.length > 0
+					? Array.from(new Set(allDecisions))
+							.slice(0, 30)
+							.map((d) => `- ${d}`)
+							.join("\n")
+					: "_(Nenhuma decisão registrada)_";
+
+			const body = `---
+type: report
+report_type: 1on1-aggregated
+person: "${personName}"
+person_id: ${personSlug}
+generated_by: atlas
+generated_at: ${new Date().toISOString()}
+sessions_count: ${sessions.length}
+period_start: ${firstDate}
+period_end: ${lastDate}
+tags: [report, 1on1, ${personSlug}]
+---
+
+# 📊 Relatório 1:1 — ${personName}
+
+> Gerado por Atlas · ${new Date().toLocaleDateString("pt-BR")}
+
+## 📈 Sumário
+
+- **Período:** ${firstDate} → ${lastDate}
+- **Sessões realizadas:** ${sessions.length}
+- **Frameworks usados:** ${fwSummary}
+- **Action items:** ${doneActionItems} concluídos · ${openActionItems} abertos
+- **Decisões agregadas:** ${allDecisions.length}
+
+## 📅 Cronologia
+
+| Data | Framework | Tópicos | Decisões | Nota |
+|---|---|---|---|---|
+${tableRows}
+
+## 🎯 Decisions agregadas
+
+${allDecisionsBlock}
+
+## 🏷️ Themes recorrentes
+
+${themesBlock}
+
+## 💡 Próximos passos sugeridos
+
+_(Edite manualmente após revisão. Atlas pode gerar análise via 'gere insights deste relatório' no chat.)_
+
+---
+
+_📎 Backlinks_
+- Pessoa: [[${person.notePath ?? `06_People/${personSlug}/_person`}]]
+- Sessões: ${sessions.length} arquivos em \`03_Meetings/1on1/${personSlug}/\`
+`;
+
+			// Ensure folder
+			if (!plugin.app.vault.getAbstractFileByPath(reportFolder)) {
+				await plugin.app.vault.createFolder(reportFolder);
+			}
+
+			// Create or update report
+			const existing = plugin.app.vault.getAbstractFileByPath(reportPath);
+			let file: import("obsidian").TFile;
+			if (existing && "stat" in existing) {
+				await plugin.app.vault.modify(existing as never, body);
+				file = existing as never;
+			} else {
+				file = await plugin.app.vault.create(reportPath, body);
+			}
+
+			await plugin.app.workspace.getLeaf().openFile(file);
+			await plugin.auditLog({
+				action: "tool.report_person_sessions",
+				personName,
+				sessionsCount: sessions.length,
+				path: reportPath,
+			});
+
+			return {
+				ok: true,
+				message: `Relatório criado: ${sessions.length} sessões com ${personName} (${firstDate} → ${lastDate}). Veja [${reportPath}](${reportPath}).`,
+				data: { path: reportPath, sessionsCount: sessions.length, personName },
+			};
+		},
+	},
 ];
 
 /**
