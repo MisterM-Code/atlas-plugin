@@ -4,6 +4,44 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.42.0] — 2026-05-02 — "Whisper model download button — copia comando + abre Terminal"
+
+User feedback: "tentei usar o jarvis e o modelo bin tá faltando instalar, faça ser clicável igual o do brew"
+
+### Sprint A — Botão "Baixar modelo" no WhisperSetupModal
+- Novo botão 🧠 **"Baixar modelo (base)"** no grid de actions (mod-cta destaque)
+- Funciona idêntico ao botão Homebrew: copia comando pro clipboard + abre Terminal
+- Comando platform-aware:
+  - **macOS/Linux:** `mkdir -p ~/whisper.cpp/models && curl -L https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin -o ~/whisper.cpp/models/ggml-base.bin`
+  - **Windows:** `curl.exe -L ... -o "%USERPROFILE%\whisper.cpp\models\ggml-base.bin"`
+- Modelo `ggml-base.bin` ~150 MB, baixa em 1-2 min
+- Notice persistente 16s com instruções pro user
+- User cola comando no Terminal com Cmd+V → executa → click "Auto-detect agora" pra Atlas encontrar
+
+### Sprint B — `openTerminal()` helper extraído
+- Refatorado: ambos botões (Homebrew install + Model download) agora usam mesmo helper
+- Cross-platform: macOS = `open -a Terminal`, Windows = `start cmd`, Linux = fallback chain (`x-terminal-emulator || gnome-terminal || konsole || xterm`)
+
+### Files modified
+- `src/ui/whisper-setup-modal.ts`:
+  - +29 LOC: `handleModelDownload()` method
+  - +12 LOC: `openTerminal()` helper (DRY refactor)
+  - +12 LOC: novo botão `🧠 Baixar modelo (base)` na actions grid
+
+### UX flow agora completo
+1. Cmd+Shift+J abre Jarvis → tenta voice
+2. Sem whisper config → WhisperSetupModal aparece
+3. **2 botões clicáveis**: 📦 Instalar binário + 🧠 Baixar modelo
+4. Click cada um → comando copiado + Terminal aberto
+5. User cola Cmd+V → executa → volta no Atlas
+6. Click "🔍 Auto-detect agora" → Atlas encontra ambos
+7. Voice funciona offline 100% local
+
+### Compatibility
+- Zero breaking changes
+- Build TypeScript zero errors
+- Funciona macOS / Linux / Windows com comandos platform-specific
+
 ## [0.41.0] — 2026-05-02 — "Today HOME premium polish — starfield + cursor spotlight + glow titles + alert pulse"
 
 User feedback: "a home tá totalmente avançada com efeitos, animações e design UX?"

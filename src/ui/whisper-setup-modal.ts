@@ -73,7 +73,20 @@ export class WhisperSetupModal extends Modal {
 			});
 		}
 
-		// 3. Open docs
+		// 3. Download model (.bin) — opens Terminal with curl command pre-filled
+		const modelBtn = actions.createEl("button", { cls: "atlas-whisper-action mod-cta" });
+		modelBtn.createDiv({ cls: "atlas-whisper-action-icon", text: "🧠" });
+		const modelText = modelBtn.createDiv({ cls: "atlas-whisper-action-text" });
+		modelText.createDiv({ cls: "atlas-whisper-action-title", text: "Baixar modelo (base)" });
+		modelText.createDiv({
+			cls: "atlas-whisper-action-desc",
+			text: "ggml-base.bin (~150 MB) · copia curl + abre Terminal",
+		});
+		modelBtn.addEventListener("click", () => {
+			void this.handleModelDownload();
+		});
+
+		// 4. Open docs
 		const docsBtn = actions.createEl("button", { cls: "atlas-whisper-action" });
 		docsBtn.createDiv({ cls: "atlas-whisper-action-icon", text: "🌐" });
 		const docsText = docsBtn.createDiv({ cls: "atlas-whisper-action-text" });
@@ -183,9 +196,47 @@ export class WhisperSetupModal extends Modal {
 			`📋 Comando copiado: ${cmd}\n\nCole no Terminal pra instalar.\n\nApós instalar, click "Auto-detect agora" pra finalizar.`,
 			14000
 		);
-		// Open Terminal on macOS
+		this.openTerminal();
+	}
+
+	/**
+	 * v0.41: download whisper model (.bin) — copies curl command + opens Terminal.
+	 *
+	 * Cria pasta ~/whisper.cpp/models/ se não existir, baixa ggml-base.bin direto
+	 * do Hugging Face (oficial repo whisper.cpp). ~150 MB.
+	 */
+	private async handleModelDownload(): Promise<void> {
+		const platform = process.platform;
+		// Same one-line command for mac/linux. Windows users get instruction note.
+		const url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin";
+		const cmd =
+			platform === "win32"
+				? `curl.exe -L "${url}" -o "%USERPROFILE%\\whisper.cpp\\models\\ggml-base.bin"`
+				: `mkdir -p ~/whisper.cpp/models && curl -L ${url} -o ~/whisper.cpp/models/ggml-base.bin`;
+
 		try {
-			exec("open -a Terminal", (err) => {
+			await navigator.clipboard.writeText(cmd);
+		} catch {
+			// fallback below
+		}
+
+		new Notice(
+			`📋 Comando copiado!\n\nCole no Terminal pra baixar o modelo (~150 MB, leva 1-2 min).\n\nApós baixar, click "Auto-detect agora" pra Atlas encontrar.`,
+			16000
+		);
+
+		this.openTerminal();
+	}
+
+	/** Opens the platform's default terminal app (Terminal.app on macOS, etc). */
+	private openTerminal(): void {
+		const platform = process.platform;
+		const cmd =
+			platform === "darwin" ? "open -a Terminal" :
+			platform === "win32" ? "start cmd" :
+			"x-terminal-emulator || gnome-terminal || konsole || xterm";
+		try {
+			exec(cmd, (err) => {
 				if (err) logger.warn("whisper-setup: failed to open Terminal", { error: String(err) });
 			});
 		} catch (e) {
