@@ -1727,10 +1727,49 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 
 	updateStatusBar(): void {
 		if (!this.statusBar) return;
+		// v0.7.2: status bar rico com indicador Ollama pulsante
+		this.statusBar.empty();
+		this.statusBar.style.display = "flex";
+		this.statusBar.style.alignItems = "center";
+		this.statusBar.style.gap = "4px";
+
+		// Bolinha Ollama (verde=up, vermelho=down, laranja=thinking)
+		const indicator = this.statusBar.createSpan();
+		indicator.addClass("atlas-statusbar-indicator");
+		// Default verde (assume up); ping async pra atualizar
+		this.statusBar.createSpan({ text: "🧠 Atlas" });
+
+		// Coach mode badge
+		const modeLabel = getModeLabel();
+		if (modeLabel) {
+			this.statusBar.createSpan({ text: ` · ${modeLabel}` });
+		}
+
+		// Cards due badge
 		const stats = this.flashcards?.stats();
 		const due = stats?.due ?? 0;
-		const dueLabel = due > 0 ? ` · 🃏 ${due}` : "";
-		this.statusBar.setText(`${getModeLabel()}${dueLabel}`);
+		if (due > 0) {
+			this.statusBar.createSpan({ text: ` · 🃏 ${due}` });
+		}
+
+		// Async Ollama ping para atualizar indicator
+		void this.ollama.ping().then((up) => {
+			if (!up) {
+				indicator.addClass("atlas-status-down");
+			} else {
+				indicator.removeClass("atlas-status-down");
+				indicator.removeClass("atlas-status-thinking");
+			}
+		});
+	}
+
+	/** v0.7.2: marca status bar como "thinking" (durante LLM streaming). */
+	setStatusBarThinking(thinking: boolean): void {
+		if (!this.statusBar) return;
+		const indicator = this.statusBar.querySelector(".atlas-statusbar-indicator") as HTMLElement | null;
+		if (!indicator) return;
+		if (thinking) indicator.addClass("atlas-status-thinking");
+		else indicator.removeClass("atlas-status-thinking");
 	}
 
 	async activateChatView(): Promise<void> {

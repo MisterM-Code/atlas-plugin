@@ -141,10 +141,13 @@ function renderSystemCard(
 	onChange: () => void
 ): void {
 	const card = parent.createDiv();
+	card.addClass("atlas-card-interactive");
+	if (system.status === "down") card.addClass("atlas-card-system-down");
+	else if (system.status === "degraded") card.addClass("atlas-card-system-degraded");
 	card.style.padding = "10px 12px";
 	card.style.marginBottom = "6px";
 	card.style.background = "var(--background-secondary)";
-	card.style.borderRadius = "6px";
+	card.style.borderRadius = "var(--atlas-radius-md, 6px)";
 	card.style.cursor = "pointer";
 	card.style.borderLeft = `3px solid ${statusColor(system.status)}`;
 

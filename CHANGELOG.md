@@ -4,6 +4,47 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.7.2] — 2026-05-02 — "Visual Identity"
+
+Sprint 22 — eleva nota da identidade visual de 3.9/10 → 7+/10.
+
+### Added — Atlas Header persistente
+
+- **Sidebar header** sempre no topo do tabContentEl com logo Atlas SVG (32px, breathing animation 4s loop) + nome "Atlas" + nome do perfil ativo
+- Logo recebe class `.atlas-thinking` durante chat streaming → glow pulse animado
+- Click no header → abre Atlas Settings
+- Hover state: border accent + settings icon revealed
+
+### Added — 15 Lucide icons (substitui emojis nas tabs)
+
+- ☀️ Today → `sun`, 💬 Chat → `message-circle`, ✅ Hub → `check-square`
+- 🔗 Suggest → `link`, 🌐 Knowledge → `network`, 🖥️ Sistemas → `server`
+- 📦 Produtos → `package`, 🎓 Cargos → `graduation-cap`
+- 🎙️ Reports → `file-bar-chart`, 📈 Analytics → `trending-up`
+- 🧪 Lab → `flask-conical`, 🤖 Auto → `bot`
+- 🃏 Study → `book-open`, 🩺 Health → `stethoscope`, ⚙️ Status → `settings-2`
+- Active tab agora usa `--atlas-accent` com `box-shadow` glow (não só bg change)
+
+### Added — Card categorias aplicadas
+
+- `.atlas-card-system-down` aplica em sistemas com status="down" → pulse contínuo vermelho
+- `.atlas-card-system-degraded` em status="degraded" → border-left orange
+- `.atlas-card-interactive` aplicado universalmente → hover lift+shadow
+
+### Added — Status bar Atlas rico
+
+- Bolinha indicador (verde=Ollama up, vermelho=down pulsando, orange=thinking)
+- "🧠 Atlas" + Coach mode badge + cards due badge
+- Async ping atualiza estado em tempo real
+- API `setStatusBarThinking(true/false)` para sinalizar LLM ativo
+
+### Métricas
+
+| | v0.7.1 | v0.7.2 |
+|---|---|---|
+| main.js | 1.77 MB | 1.78 MB |
+| Arquivos .ts | 137 | 138 |
+
 ## [0.7.1] — 2026-05-02 — "P0 Fixes"
 
 Sprint 21 — corrige features-fantasma críticas detectadas em auditoria honesta de v0.7.

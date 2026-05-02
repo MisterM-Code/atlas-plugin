@@ -19,7 +19,10 @@ export type TabId =
 
 export interface TabDef {
 	id: TabId;
+	/** Emoji fallback (usado quando Lucide não disponível). */
 	icon: string;
+	/** Lucide icon name (preferido). v0.7.2+ */
+	lucideIcon?: string;
 	label: string;
 	description: string;
 	badge?: () => string | null;

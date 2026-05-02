@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
 import type AtlasPlugin from "../../../main";
 import { TabId, TabDef } from "./types";
+import { renderAtlasHeader, AtlasHeaderHandle } from "../../ui/atlas-header";
 import { renderTodayTab } from "./tab-today";
 import { renderChatTab } from "./tab-chat";
 import { renderHubTab } from "./tab-hub";
@@ -29,6 +30,7 @@ export class AtlasMasterSidebarView extends ItemView {
 	private tabs: TabDef[];
 
 	private fab: QuickAddFab | null = null;
+	private header: AtlasHeaderHandle | null = null;
 
 	constructor(leaf: WorkspaceLeaf, private plugin: AtlasPlugin) {
 		super(leaf);
@@ -93,11 +95,19 @@ export class AtlasMasterSidebarView extends ItemView {
 		this.currentTab = id;
 		this.renderActivityBar();
 		this.tabContentEl.empty();
+
+		// v0.7.2: Atlas header (logo breathing + profile) sempre no topo
+		this.header = renderAtlasHeader(this.tabContentEl, this.plugin);
+
+		// Tab content vai num wrapper separado (header não é re-renderizado)
+		const tabBody = this.tabContentEl.createDiv();
+		tabBody.style.minHeight = "0";
+
 		try {
-			await tab.render(this.tabContentEl, this.plugin);
+			await tab.render(tabBody, this.plugin);
 		} catch (e) {
-			this.tabContentEl.empty();
-			const err = this.tabContentEl.createEl("div");
+			tabBody.empty();
+			const err = tabBody.createEl("div");
 			err.style.padding = "16px";
 			err.style.color = "var(--color-red)";
 			err.style.fontSize = "12px";
@@ -108,6 +118,11 @@ export class AtlasMasterSidebarView extends ItemView {
 		this.fab?.unmount();
 		this.fab = new QuickAddFab(this.plugin);
 		this.fab.mount(this.tabContentEl);
+	}
+
+	/** v0.7.2: API pública pra outros components disparar logo glow durante LLM thinking. */
+	setThinking(thinking: boolean): void {
+		this.header?.setThinking(thinking);
 	}
 
 	private renderActivityBar(): void {
@@ -126,10 +141,13 @@ export class AtlasMasterSidebarView extends ItemView {
 			btn.title = `${tab.label} — ${tab.description}`;
 
 			if (tab.id === this.currentTab) {
-				btn.style.background = "var(--interactive-accent)";
-				btn.style.color = "var(--text-on-accent)";
+				btn.style.background = "var(--atlas-accent, var(--interactive-accent))";
+				btn.style.color = "white";
+				btn.style.boxShadow = "0 0 12px var(--atlas-accent-glow, rgba(99,102,241,0.4))";
+				btn.addClass("atlas-activity-tab-active");
 			} else {
 				btn.style.background = "transparent";
+				btn.style.transition = "background var(--atlas-transition-fast, 120ms)";
 				btn.addEventListener("mouseenter", () => {
 					btn.style.background = "var(--background-modifier-hover)";
 				});
@@ -138,7 +156,22 @@ export class AtlasMasterSidebarView extends ItemView {
 				});
 			}
 
-			btn.setText(tab.icon);
+			// v0.7.2: usa Lucide icon se disponível, senão emoji
+			if (tab.lucideIcon) {
+				const iconWrap = btn.createDiv();
+				iconWrap.style.width = "20px";
+				iconWrap.style.height = "20px";
+				iconWrap.style.display = "flex";
+				iconWrap.style.alignItems = "center";
+				iconWrap.style.justifyContent = "center";
+				try {
+					setIcon(iconWrap, tab.lucideIcon);
+				} catch {
+					iconWrap.setText(tab.icon);
+				}
+			} else {
+				btn.setText(tab.icon);
+			}
 
 			// Badge
 			const badge = tab.badge?.();
@@ -195,6 +228,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "today",
 				icon: "☀️",
+				lucideIcon: "sun",
 				label: "Today",
 				description: "Dashboard do dia",
 				render: renderTodayTab,
@@ -202,6 +236,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "chat",
 				icon: "💬",
+				lucideIcon: "message-circle",
 				label: "Chat",
 				description: "Atlas Chat com KG",
 				render: renderChatTab,
@@ -209,6 +244,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "hub",
 				icon: "✅",
+				lucideIcon: "check-square",
 				label: "Hub",
 				description: "Action Items consolidados",
 				badge: () => {
@@ -227,6 +263,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "suggest",
 				icon: "🔗",
+				lucideIcon: "link",
 				label: "Suggest",
 				description: "Smart link suggestions live",
 				render: renderSuggestionsTab,
@@ -234,6 +271,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "knowledge",
 				icon: "🌐",
+				lucideIcon: "network",
 				label: "Knowledge",
 				description: "Pessoas, projetos, temas (cards)",
 				render: renderKnowledgeTab,
@@ -241,6 +279,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "systems",
 				icon: "🖥️",
+				lucideIcon: "server",
 				label: "Sistemas",
 				description: "PIX, Stripe, apps internos — CRUD completo",
 				badge: () => {
@@ -254,6 +293,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "products",
 				icon: "📦",
+				lucideIcon: "package",
 				label: "Produtos",
 				description: "Portfolio de produtos com sistemas associados",
 				render: renderProductsTab,
@@ -261,6 +301,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "roles",
 				icon: "🎓",
+				lucideIcon: "graduation-cap",
 				label: "Cargos",
 				description: "Cargos padronizados do time",
 				render: renderRolesTab,
@@ -268,6 +309,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "reports",
 				icon: "🎙️",
+				lucideIcon: "file-bar-chart",
 				label: "Reports",
 				description: "Timeline · Composer · Templates (3 sub-tabs)",
 				render: renderReportsTab,
@@ -275,6 +317,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "analytics",
 				icon: "📈",
+				lucideIcon: "trending-up",
 				label: "Analytics",
 				description: "Heatmap · Trends · KG Graph · Mood (ECharts)",
 				render: renderAnalyticsTab,
@@ -282,6 +325,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "lab",
 				icon: "🧪",
+				lucideIcon: "flask-conical",
 				label: "Lab",
 				description: "Tools IA · Serendipity · Time Capsules · Entity Tree",
 				render: renderLabTab,
@@ -289,6 +333,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "automations",
 				icon: "🤖",
+				lucideIcon: "bot",
 				label: "Auto",
 				description: "AutoTagger · Aliaser · Rules · Atlas Percebeu (monitoramento)",
 				render: renderAutomationsTab,
@@ -296,6 +341,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "study",
 				icon: "🃏",
+				lucideIcon: "book-open",
 				label: "Study",
 				description: "Flashcards + papers + cursos",
 				badge: () => {
@@ -307,6 +353,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "health",
 				icon: "🩺",
+				lucideIcon: "stethoscope",
 				label: "Health",
 				description: "Workspace health score",
 				render: renderHealthTab,
@@ -314,6 +361,7 @@ export class AtlasMasterSidebarView extends ItemView {
 			{
 				id: "status",
 				icon: "⚙️",
+				lucideIcon: "settings-2",
 				label: "Status",
 				description: "Diagnóstico Ollama + RAM",
 				render: renderStatusTab,
