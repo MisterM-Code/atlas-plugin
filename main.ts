@@ -682,6 +682,15 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		}
 
 		logger.info("Atlas plugin pronto.");
+
+		// v0.51.3: auto-detect version upgrade → show What's New modal once per version
+		try {
+			const m = await import("./src/ui/whats-new-modal");
+			// Defer 4s pra não competir com onboarding/splash/tour de first-run
+			window.setTimeout(() => void m.maybeShowWhatsNew(this), 4000);
+		} catch (e) {
+			logger.warn("whats-new auto-show failed", { error: String(e) });
+		}
 	}
 
 	async onunload(): Promise<void> {
@@ -1738,6 +1747,16 @@ captured_via: webhook
 			id: "bookmarklet-show",
 			name: "🔖 Bookmarklet: mostrar código pra arrastar pra browser",
 			callback: () => this.showBookmarkletModal(),
+		});
+
+		// v0.51.3: What's New modal
+		this.addCommand({
+			id: "whats-new",
+			name: "🌌 Atlas: What's New (recent features)",
+			callback: async () => {
+				const m = await import("./src/ui/whats-new-modal");
+				new m.WhatsNewModal(this.app, this).open();
+			},
 		});
 
 		// v0.51.2: Self-test diagnostic — checa todos os sistemas críticos

@@ -4,6 +4,22 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.51.3] — 2026-05-02 — "What's New modal — auto-aparece após upgrade"
+
+### 🌌 What's New
+- Modal interativo mostra novidades das últimas 8 versões com cards
+- Cada card: badge versão + título + bullets das features
+- Auto-show 4s após plugin onload se versão atual !== `lastWhatsNewVersion` salva
+- Persiste última versão vista — só aparece UMA vez por upgrade
+- Comando manual: `atlas:whats-new` no Command Palette
+- Botões no rodapé: 📚 CHANGELOG completo, 🩺 Self-Test, ✓ Entendi
+- Design cosmic: gradient title cyan→indigo→violet, version pills, hover lift
+
+### Files
+- `src/ui/whats-new-modal.ts` (NEW ~155 LOC) — WhatsNewModal + maybeShowWhatsNew helper
+- `main.ts` — atlas:whats-new command + setTimeout 4s auto-show no onload
+- `styles.css` — `.atlas-whats-new-*` (~70 LOC)
+
 ## [0.51.2] — 2026-05-02 — "Atlas Self-Test diagnostic command"
 
 ### 🩺 Self-Test
