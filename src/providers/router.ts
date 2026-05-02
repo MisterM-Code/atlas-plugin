@@ -140,21 +140,39 @@ export class ProviderRouter {
 	async chat(req: ChatRequest): Promise<ChatResponse> {
 		const route = this.resolveTask(req.taskKind ?? "chat");
 		if (!route) throw new AIProviderError("Nenhum provider configurado para chat", "ollama", "missing-key");
-		return this.callWithFailover<ChatResponse>(route, req.taskKind ?? "chat", req.feature, async (p, model) => {
-			if (!p.chat) throw new AIProviderError(`${p.id} não suporta chat`, p.id, "unknown");
-			const promptTokens = estimateTokens(req.messages.map((m) => m.content).join("\n"));
-			await this.preflightBudget(p.id, model, promptTokens, req.maxTokens ?? 1024, req.feature);
-			const r = await p.chat({ ...req, model });
-			await this.cost.log({
-				provider: p.id,
-				model,
-				usage: r.usage,
-				taskKind: req.taskKind,
-				feature: req.feature,
-				success: true,
+		// v0.51.4: pre-compute promptTokens for failure logging (provider may charge on 5xx)
+		const promptTokens = estimateTokens(req.messages.map((m) => m.content).join("\n"));
+		try {
+			return await this.callWithFailover<ChatResponse>(route, req.taskKind ?? "chat", req.feature, async (p, model) => {
+				if (!p.chat) throw new AIProviderError(`${p.id} não suporta chat`, p.id, "unknown");
+				await this.preflightBudget(p.id, model, promptTokens, req.maxTokens ?? 1024, req.feature);
+				const r = await p.chat({ ...req, model });
+				await this.cost.log({
+					provider: p.id,
+					model,
+					usage: r.usage,
+					taskKind: req.taskKind,
+					feature: req.feature,
+					success: true,
+				});
+				return r;
 			});
-			return r;
-		});
+		} catch (e) {
+			// v0.51.4: ALL failures registered (provider may have charged in 5xx). Skip pure auth/budget pre-flight (didn't reach provider).
+			const code = (e as AIProviderError)?.code;
+			if (code !== "missing-key" && code !== "budget-exceeded") {
+				await this.cost.log({
+					provider: route.provider,
+					model: route.model,
+					usage: { promptTokens, completionTokens: 0, totalTokens: promptTokens },
+					taskKind: req.taskKind,
+					feature: req.feature,
+					success: false,
+					errorCode: code ?? "unknown",
+				});
+			}
+			throw e;
+		}
 	}
 
 	async *chatStream(req: ChatRequest): AsyncIterable<ChatStreamChunk> {
@@ -184,14 +202,19 @@ export class ProviderRouter {
 				});
 			}
 		} catch (e) {
-			await this.cost.log({
-				provider: p.id,
-				model: route.model,
-				usage: { promptTokens, completionTokens: 0, totalTokens: promptTokens },
-				taskKind: req.taskKind,
-				feature: req.feature,
-				success: false,
-			});
+			// v0.51.4: include errorCode pra distinguir auth/rate-limit/server
+			const code = (e as AIProviderError)?.code;
+			if (code !== "missing-key" && code !== "budget-exceeded") {
+				await this.cost.log({
+					provider: p.id,
+					model: route.model,
+					usage: { promptTokens, completionTokens: 0, totalTokens: promptTokens },
+					taskKind: req.taskKind,
+					feature: req.feature,
+					success: false,
+					errorCode: code ?? "unknown",
+				});
+			}
 			throw e;
 		}
 	}
@@ -199,37 +222,73 @@ export class ProviderRouter {
 	async embed(req: EmbedRequest, taskKind: TaskKind = "embedding"): Promise<EmbedResponse> {
 		const route = this.resolveTask("embedding");
 		if (!route) throw new AIProviderError("Nenhum provider configurado para embedding", "ollama", "missing-key");
-		return this.callWithFailover<EmbedResponse>(route, taskKind, req.feature, async (p, model) => {
-			if (!p.embed) throw new AIProviderError(`${p.id} não suporta embeddings`, p.id, "unknown");
-			const r = await p.embed({ ...req, model });
-			await this.cost.log({
-				provider: p.id,
-				model,
-				usage: r.usage,
-				taskKind,
-				feature: req.feature,
-				success: true,
+		// v0.51.4: estimate input tokens for failure logging
+		const promptTokens = estimateTokens(req.texts.join("\n"));
+		try {
+			return await this.callWithFailover<EmbedResponse>(route, taskKind, req.feature, async (p, model) => {
+				if (!p.embed) throw new AIProviderError(`${p.id} não suporta embeddings`, p.id, "unknown");
+				const r = await p.embed({ ...req, model });
+				await this.cost.log({
+					provider: p.id,
+					model,
+					usage: r.usage,
+					taskKind,
+					feature: req.feature,
+					success: true,
+				});
+				return r;
 			});
-			return r;
-		});
+		} catch (e) {
+			const code = (e as AIProviderError)?.code;
+			if (code !== "missing-key" && code !== "budget-exceeded") {
+				await this.cost.log({
+					provider: route.provider,
+					model: route.model,
+					usage: { promptTokens, completionTokens: 0, totalTokens: promptTokens },
+					taskKind,
+					feature: req.feature,
+					success: false,
+					errorCode: code ?? "unknown",
+				});
+			}
+			throw e;
+		}
 	}
 
 	async vision(req: VisionRequest): Promise<ChatResponse> {
 		const route = this.resolveTask("vision");
 		if (!route) throw new AIProviderError("Nenhum provider configurado para vision", "openai", "missing-key");
-		return this.callWithFailover<ChatResponse>(route, "vision", req.feature, async (p, model) => {
-			if (!p.vision) throw new AIProviderError(`${p.id} não suporta vision`, p.id, "unknown");
-			const r = await p.vision({ ...req, model });
-			await this.cost.log({
-				provider: p.id,
-				model,
-				usage: r.usage,
-				taskKind: "vision",
-				feature: req.feature,
-				success: true,
+		// v0.51.4: estimate prompt tokens for failure logging (image base64 counts as ~85 tokens conservadora + prompt)
+		const promptTokens = estimateTokens(req.prompt) + 85;
+		try {
+			return await this.callWithFailover<ChatResponse>(route, "vision", req.feature, async (p, model) => {
+				if (!p.vision) throw new AIProviderError(`${p.id} não suporta vision`, p.id, "unknown");
+				const r = await p.vision({ ...req, model });
+				await this.cost.log({
+					provider: p.id,
+					model,
+					usage: r.usage,
+					taskKind: "vision",
+					feature: req.feature,
+					success: true,
+				});
+				return r;
 			});
-			return r;
-		});
+		} catch (e) {
+			const code = (e as AIProviderError)?.code;
+			if (code !== "missing-key" && code !== "budget-exceeded") {
+				await this.cost.log({
+					provider: route.provider,
+					model: route.model,
+					usage: { promptTokens, completionTokens: 0, totalTokens: promptTokens },
+					taskKind: "vision",
+					feature: req.feature,
+					success: false,
+					errorCode: code ?? "unknown",
+				});
+			}
+			throw e;
+		}
 	}
 
 	private async preflightBudget(

@@ -19,6 +19,11 @@ export interface SpendEntry {
 	usage: TokenUsage;
 	costUSD: number;
 	success: boolean;
+	/**
+	 * v0.51.4: error code quando success=false (auth, rate-limit, server-error, timeout, etc).
+	 * Useful pra distinguir falhas que cobraram (5xx OpenAI) das que não cobraram (auth 401).
+	 */
+	errorCode?: string;
 }
 
 export interface BudgetSettings {
@@ -72,6 +77,7 @@ export class CostTracker {
 		taskKind?: TaskKind;
 		feature?: string;
 		success?: boolean;
+		errorCode?: string;
 	}): Promise<void> {
 		const m = findModel(params.provider, params.model);
 		const cost = m
@@ -87,6 +93,7 @@ export class CostTracker {
 			usage: params.usage,
 			costUSD: cost,
 			success: params.success ?? true,
+			errorCode: params.errorCode,
 		};
 
 		await this.appendEntry(entry);

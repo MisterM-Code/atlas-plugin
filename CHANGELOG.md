@@ -4,6 +4,28 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.51.4] — 2026-05-02 — "🚨 HOTFIX: Cost integrity — registra spend mesmo em erro 5xx"
+
+### Bug crítico corrigido
+- Antes: chamada cloud que retornava HTTP 5xx (Anthropic/OpenAI/etc) **NÃO era registrada** no spend-log → user perdia dinheiro silenciosamente (provider já cobrou, Atlas não loga)
+- Depois: TODA chamada falhada agora vira entry `success: false` no `.atlas/spend-log.jsonl` com `errorCode` (auth/rate-limit/server-error/timeout/etc) + tokens estimados
+- Excludes: `missing-key` e `budget-exceeded` (não chegam no provider, não cobram)
+
+### Mudanças
+- `src/providers/cost-tracker.ts`:
+  - `SpendEntry.errorCode?: string` (novo campo)
+  - `log()` aceita parâmetro `errorCode` opcional
+- `src/providers/router.ts`:
+  - `chat()` wrap em try/catch externo — sempre registra spend
+  - `embed()` wrap em try/catch — sempre registra spend
+  - `vision()` wrap em try/catch — sempre registra spend
+  - `chatStream()` já tinha catch (mantido) + adicionado errorCode
+
+### Por que isso importa
+- User vai ver no Spend dashboard quando uma chamada cloud falhou + qual foi o erro
+- Cost tracking honesto: 5xx OpenAI cobra → agora registra
+- 401 auth: NÃO chegou no provider → não registra (correto)
+
 ## [0.51.3] — 2026-05-02 — "What's New modal — auto-aparece após upgrade"
 
 ### 🌌 What's New
