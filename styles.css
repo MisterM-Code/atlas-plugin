@@ -958,6 +958,271 @@
 .atlas-jarvis-orb-v2.is-thinking  { animation: atlas-jarvis-think 2s linear infinite; }
 .atlas-jarvis-orb-v2.is-speaking  { animation: atlas-jarvis-speak 0.32s ease-in-out infinite; }
 
+/* ════════════════════════════════════════════════════════════════
+ * v0.20 — JARVIS HUD v3: orb multi-layer + HUD frame + readouts
+ * ════════════════════════════════════════════════════════════════ */
+
+/* ══ Outer ring com tick marks (12 ticks rotando) ══ */
+.atlas-jarvis-ring {
+	position: absolute;
+	border-radius: 50%;
+	border: 1px solid rgba(165, 180, 252, 0.25);
+	pointer-events: none;
+}
+.atlas-jarvis-orb-stage.state-idle .atlas-jarvis-ring,
+.atlas-jarvis-orb-stage.state-thinking .atlas-jarvis-ring {
+	animation: atlas-jarvis-ring-rotate 30s linear infinite;
+}
+.atlas-jarvis-orb-stage.state-listening .atlas-jarvis-ring,
+.atlas-jarvis-orb-stage.state-speaking .atlas-jarvis-ring {
+	animation: atlas-jarvis-ring-rotate 8s linear infinite;
+}
+@keyframes atlas-jarvis-ring-rotate {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+.atlas-jarvis-ring-tick {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 2px;
+	height: 8px;
+	background: rgba(165, 180, 252, 0.7);
+	transform-origin: center;
+	margin-left: -1px;
+	margin-top: -4px;
+	box-shadow: 0 0 4px rgba(99, 102, 241, 0.5);
+}
+
+/* ══ Inner ring contra-rotativo ══ */
+.atlas-jarvis-ring-inner {
+	position: absolute;
+	border-radius: 50%;
+	border: 1px dashed rgba(129, 140, 248, 0.3);
+	pointer-events: none;
+	animation: atlas-jarvis-ring-rotate-rev 22s linear infinite;
+}
+@keyframes atlas-jarvis-ring-rotate-rev {
+	from { transform: rotate(360deg); }
+	to { transform: rotate(0deg); }
+}
+
+/* ══ 8 Energy nodes em volta do orb ══ */
+.atlas-jarvis-energy-nodes {
+	position: absolute;
+	pointer-events: none;
+}
+.atlas-jarvis-energy-node {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 8px;
+	height: 8px;
+	margin-left: -4px;
+	margin-top: -4px;
+	border-radius: 50%;
+	background: radial-gradient(circle, #c7d2fe 0%, #6366f1 70%, transparent 100%);
+	box-shadow: 0 0 12px rgba(99, 102, 241, 0.85),
+	            0 0 24px rgba(129, 140, 248, 0.55);
+	transform-origin: center;
+	animation: atlas-jarvis-node-pulse 2.5s ease-in-out infinite;
+}
+@keyframes atlas-jarvis-node-pulse {
+	0%, 100% { opacity: 0.4; box-shadow: 0 0 6px rgba(99, 102, 241, 0.45); }
+	50% { opacity: 1; box-shadow: 0 0 18px rgba(165, 180, 252, 1), 0 0 36px rgba(129, 140, 248, 0.7); }
+}
+/* Nodes color-shift per state */
+.atlas-jarvis-orb-stage.state-listening .atlas-jarvis-energy-node {
+	background: radial-gradient(circle, #fecaca 0%, #ef4444 70%, transparent 100%);
+	box-shadow: 0 0 14px rgba(239, 68, 68, 0.9), 0 0 28px rgba(248, 113, 113, 0.6);
+	animation-duration: 1s;
+}
+.atlas-jarvis-orb-stage.state-thinking .atlas-jarvis-energy-node {
+	background: radial-gradient(circle, #fde68a 0%, #f59e0b 70%, transparent 100%);
+	box-shadow: 0 0 14px rgba(251, 191, 36, 0.9), 0 0 28px rgba(253, 224, 71, 0.6);
+	animation-duration: 1.6s;
+}
+.atlas-jarvis-orb-stage.state-speaking .atlas-jarvis-energy-node {
+	background: radial-gradient(circle, #bbf7d0 0%, #22c55e 70%, transparent 100%);
+	box-shadow: 0 0 16px rgba(34, 197, 94, 0.95), 0 0 32px rgba(74, 222, 128, 0.7);
+	animation-duration: 0.5s;
+}
+
+/* ══ Hex pattern overlay (rotativo dentro do orb) ══ */
+.atlas-jarvis-orb-hex {
+	position: absolute;
+	inset: 8%;
+	border-radius: 50%;
+	pointer-events: none;
+	opacity: 0.35;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='46' viewBox='0 0 40 46'><polygon points='20,2 38,12 38,34 20,44 2,34 2,12' fill='none' stroke='%23e0e7ff' stroke-width='1' opacity='0.7'/></svg>");
+	background-size: 20px 23px;
+	mix-blend-mode: screen;
+	animation: atlas-jarvis-hex-rotate 60s linear infinite;
+}
+@keyframes atlas-jarvis-hex-rotate {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+/* ══ ARC reactor — 3 anéis concêntricos + center dot ══ */
+.atlas-jarvis-arc-reactor {
+	position: absolute;
+	inset: 18%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+}
+.atlas-jarvis-arc-ring {
+	position: absolute;
+	border-radius: 50%;
+	border: 2px solid;
+}
+.atlas-jarvis-arc-ring-1 {
+	inset: 0;
+	border-color: rgba(199, 210, 254, 0.65);
+	box-shadow: inset 0 0 12px rgba(165, 180, 252, 0.5),
+	            0 0 16px rgba(99, 102, 241, 0.6);
+	animation: atlas-jarvis-arc-pulse 1.6s ease-in-out infinite;
+}
+.atlas-jarvis-arc-ring-2 {
+	inset: 22%;
+	border-color: rgba(165, 180, 252, 0.85);
+	border-width: 1.5px;
+	animation: atlas-jarvis-arc-pulse 1.6s ease-in-out infinite 0.3s;
+}
+.atlas-jarvis-arc-ring-3 {
+	inset: 40%;
+	border-color: rgba(224, 231, 255, 1);
+	border-width: 1px;
+	animation: atlas-jarvis-arc-pulse 1.6s ease-in-out infinite 0.6s;
+}
+@keyframes atlas-jarvis-arc-pulse {
+	0%, 100% { opacity: 0.6; transform: scale(1); }
+	50% { opacity: 1; transform: scale(1.06); }
+}
+.atlas-jarvis-arc-center {
+	width: 14%;
+	height: 14%;
+	border-radius: 50%;
+	background: radial-gradient(circle, #ffffff 0%, #c7d2fe 50%, #6366f1 100%);
+	box-shadow: 0 0 18px #ffffff,
+	            0 0 36px rgba(199, 210, 254, 0.95),
+	            0 0 54px rgba(99, 102, 241, 0.7);
+	animation: atlas-jarvis-arc-heartbeat 1s ease-in-out infinite;
+}
+/* Heartbeat — 60bpm constante (1s = 1 beat) */
+@keyframes atlas-jarvis-arc-heartbeat {
+	0%, 90%, 100% { transform: scale(1); opacity: 0.95; }
+	10% { transform: scale(1.18); opacity: 1; }
+	20% { transform: scale(1); opacity: 0.85; }
+	30% { transform: scale(1.12); opacity: 1; }
+	40% { transform: scale(1); opacity: 0.95; }
+}
+/* ARC reactor color shift by state */
+.atlas-jarvis-orb-v2.is-listening .atlas-jarvis-arc-center {
+	background: radial-gradient(circle, #ffffff 0%, #fecaca 50%, #dc2626 100%);
+	box-shadow: 0 0 20px #ffffff, 0 0 38px rgba(252, 165, 165, 1), 0 0 60px rgba(239, 68, 68, 0.85);
+}
+.atlas-jarvis-orb-v2.is-thinking .atlas-jarvis-arc-center {
+	background: radial-gradient(circle, #ffffff 0%, #fde68a 50%, #d97706 100%);
+	box-shadow: 0 0 20px #ffffff, 0 0 38px rgba(253, 224, 71, 1), 0 0 60px rgba(251, 191, 36, 0.85);
+}
+.atlas-jarvis-orb-v2.is-speaking .atlas-jarvis-arc-center {
+	background: radial-gradient(circle, #ffffff 0%, #bbf7d0 50%, #16a34a 100%);
+	box-shadow: 0 0 22px #ffffff, 0 0 40px rgba(187, 247, 208, 1), 0 0 64px rgba(34, 197, 94, 0.9);
+}
+
+/* ══ HUD frame: corner brackets + scan line (apenas fullscreen) ══ */
+.atlas-jarvis-hud-frame {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 5;
+}
+.atlas-jarvis-hud-corner {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	border: 2px solid rgba(165, 180, 252, 0.6);
+}
+.atlas-jarvis-hud-corner.is-tl { top: 24px; left: 24px; border-right: none; border-bottom: none; }
+.atlas-jarvis-hud-corner.is-tr { top: 24px; right: 24px; border-left: none; border-bottom: none; }
+.atlas-jarvis-hud-corner.is-bl { bottom: 24px; left: 24px; border-right: none; border-top: none; }
+.atlas-jarvis-hud-corner.is-br { bottom: 24px; right: 24px; border-left: none; border-top: none; }
+/* Tick decoration nas pontas internas dos brackets */
+.atlas-jarvis-hud-corner::before,
+.atlas-jarvis-hud-corner::after {
+	content: "";
+	position: absolute;
+	background: rgba(165, 180, 252, 0.6);
+}
+.atlas-jarvis-hud-corner.is-tl::before { top: 0; left: 12px; width: 14px; height: 1px; }
+.atlas-jarvis-hud-corner.is-tl::after  { top: 12px; left: 0; width: 1px; height: 14px; }
+.atlas-jarvis-hud-corner.is-tr::before { top: 0; right: 12px; width: 14px; height: 1px; }
+.atlas-jarvis-hud-corner.is-tr::after  { top: 12px; right: 0; width: 1px; height: 14px; }
+.atlas-jarvis-hud-corner.is-bl::before { bottom: 0; left: 12px; width: 14px; height: 1px; }
+.atlas-jarvis-hud-corner.is-bl::after  { bottom: 12px; left: 0; width: 1px; height: 14px; }
+.atlas-jarvis-hud-corner.is-br::before { bottom: 0; right: 12px; width: 14px; height: 1px; }
+.atlas-jarvis-hud-corner.is-br::after  { bottom: 12px; right: 0; width: 1px; height: 14px; }
+
+.atlas-jarvis-hud-scanline {
+	position: absolute;
+	left: 5%;
+	right: 5%;
+	height: 1px;
+	background: linear-gradient(90deg,
+		transparent 0%,
+		rgba(165, 180, 252, 0.7) 20%,
+		rgba(199, 210, 254, 0.95) 50%,
+		rgba(165, 180, 252, 0.7) 80%,
+		transparent 100%);
+	box-shadow: 0 0 12px rgba(165, 180, 252, 0.7);
+	animation: atlas-jarvis-scanline 5s linear infinite;
+	pointer-events: none;
+}
+@keyframes atlas-jarvis-scanline {
+	0% { top: 8%; opacity: 0; }
+	5% { opacity: 1; }
+	95% { opacity: 1; }
+	100% { top: 92%; opacity: 0; }
+}
+
+/* ══ Data readouts JARVIS-style (fullscreen) ══ */
+.atlas-jarvis-readouts {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 6;
+}
+.atlas-jarvis-readout {
+	position: absolute;
+	font-family: "SF Mono", "Monaco", "Menlo", monospace;
+	font-size: 10px;
+	letter-spacing: 0.6px;
+	color: rgba(199, 210, 254, 0.78);
+	text-shadow: 0 0 8px rgba(99, 102, 241, 0.5);
+	line-height: 1.55;
+	min-width: 200px;
+}
+.atlas-jarvis-readout.is-tl { top: 96px; left: 32px; }
+.atlas-jarvis-readout.is-bl { bottom: 96px; left: 32px; text-align: left; }
+.atlas-jarvis-readout.is-br { bottom: 96px; right: 32px; text-align: right; }
+.atlas-jarvis-readout-line {
+	white-space: nowrap;
+}
+.atlas-jarvis-status-line {
+	color: rgba(224, 231, 255, 1);
+	font-weight: 600;
+	letter-spacing: 1px;
+}
+/* Status color por state */
+.atlas-jarvis-container.state-listening .atlas-jarvis-status-line { color: #fecaca; text-shadow: 0 0 10px rgba(239, 68, 68, 0.7); }
+.atlas-jarvis-container.state-thinking  .atlas-jarvis-status-line { color: #fde68a; text-shadow: 0 0 10px rgba(251, 191, 36, 0.7); }
+.atlas-jarvis-container.state-speaking  .atlas-jarvis-status-line { color: #bbf7d0; text-shadow: 0 0 10px rgba(34, 197, 94, 0.7); }
+
 /* v0.9.5 — Jarvis fullscreen modal */
 .atlas-jarvis-modal {
 	border: none !important;

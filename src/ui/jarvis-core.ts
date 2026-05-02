@@ -15,6 +15,7 @@
  */
 
 import { App, Notice } from "obsidian";
+import * as os from "os";
 import type AtlasPlugin from "../../main";
 import {
 	startVoiceRecording,
@@ -53,6 +54,10 @@ interface Particle {
 	layer: ParticleLayer;
 	baseAlpha: number;
 	pulsePhase: number; // 0..2π, individual flicker
+	life: number; // 0..1, dies at 0 (absorbed by orb or off-screen)
+	flowMode: "inflow" | "orbital"; // inflow = streaming toward orb; orbital = ring around orb
+	orbitalAngle: number; // for orbital mode
+	orbitalRadius: number; // for orbital mode
 }
 
 export class JarvisCore {
@@ -65,10 +70,12 @@ export class JarvisCore {
 	private hintEl!: HTMLElement;
 	private particlesCanvas!: HTMLCanvasElement;
 	private waveformCanvas!: HTMLCanvasElement;
+	private readoutsEl: HTMLElement | null = null;
 
 	private recording: VoiceRecordingHandle | null = null;
 	private webSpeech: WebSpeechHandle | null = null;
 	private animFrame = 0;
+	private readoutsTimer: number | null = null;
 	private particles: Particle[] = [];
 	private ripples: { r: number; opacity: number }[] = [];
 	private rippleSpawnInterval = 0;
@@ -171,13 +178,35 @@ export class JarvisCore {
 		this.waveformCanvas.width = this.opts.orbSize * 1.6;
 		this.waveformCanvas.height = this.opts.orbSize * 1.6;
 
-		// Outer ring (decorativo) — size dynamic
+		// v0.20 — JARVIS HUD v3: orb totalmente reconstruído com camadas sci-fi
+		// Outer rotating ring com tick marks (decorativo)
 		this.orbRingEl = orbStage.createDiv({ cls: "atlas-jarvis-ring" });
-		const ringDim = `${this.opts.orbSize * 1.4}px`;
+		const ringDim = `${this.opts.orbSize * 1.55}px`;
 		this.orbRingEl.style.setProperty("width", ringDim);
 		this.orbRingEl.style.setProperty("height", ringDim);
+		// Renderizar tick marks no ring (12 ticks)
+		for (let i = 0; i < 12; i++) {
+			const tick = this.orbRingEl.createDiv({ cls: "atlas-jarvis-ring-tick" });
+			tick.style.transform = `rotate(${i * 30}deg) translateY(-${this.opts.orbSize * 0.775}px)`;
+		}
 
-		// Orb itself — size + colors dynamic per state (applyState sets bg/shadow)
+		// Inner ring contra-rotativo
+		const innerRing = orbStage.createDiv({ cls: "atlas-jarvis-ring-inner" });
+		const innerDim = `${this.opts.orbSize * 1.22}px`;
+		innerRing.style.setProperty("width", innerDim);
+		innerRing.style.setProperty("height", innerDim);
+
+		// 8 Energy nodes em torno do orb (perímetro)
+		const nodesRing = orbStage.createDiv({ cls: "atlas-jarvis-energy-nodes" });
+		nodesRing.style.setProperty("width", `${this.opts.orbSize * 1.1}px`);
+		nodesRing.style.setProperty("height", `${this.opts.orbSize * 1.1}px`);
+		for (let i = 0; i < 8; i++) {
+			const node = nodesRing.createDiv({ cls: "atlas-jarvis-energy-node" });
+			node.style.transform = `rotate(${i * 45}deg) translateY(-${this.opts.orbSize * 0.55}px)`;
+			node.style.animationDelay = `${i * 0.15}s`;
+		}
+
+		// Orb — agora multi-layer
 		this.orbEl = orbStage.createDiv({ cls: "atlas-jarvis-orb-v2" });
 		const orbDim = `${this.opts.orbSize}px`;
 		this.orbEl.style.setProperty("width", orbDim);
@@ -185,9 +214,34 @@ export class JarvisCore {
 		this.orbEl.style.setProperty("background", ORB_GRADIENT_IDLE);
 		this.orbEl.style.setProperty("box-shadow", ORB_SHADOW_IDLE);
 
-		// Reflective highlight + inner core
+		// Hex pattern overlay (rotating slow)
+		this.orbEl.createDiv({ cls: "atlas-jarvis-orb-hex" });
+		// Reflective highlight (top glow)
 		this.orbEl.createDiv({ cls: "atlas-jarvis-orb-highlight" });
+		// Inner ARC reactor — 3 anéis concêntricos + center dot
+		const arcReactor = this.orbEl.createDiv({ cls: "atlas-jarvis-arc-reactor" });
+		arcReactor.createDiv({ cls: "atlas-jarvis-arc-ring atlas-jarvis-arc-ring-1" });
+		arcReactor.createDiv({ cls: "atlas-jarvis-arc-ring atlas-jarvis-arc-ring-2" });
+		arcReactor.createDiv({ cls: "atlas-jarvis-arc-ring atlas-jarvis-arc-ring-3" });
+		arcReactor.createDiv({ cls: "atlas-jarvis-arc-center" });
+		// Inner core pulse (legacy mantém)
 		this.orbEl.createDiv({ cls: "atlas-jarvis-orb-core" });
+
+		// HUD frame: 4 corner brackets + scan line (apenas fullscreen)
+		if (isFullscreen) {
+			const frame = container.createDiv({ cls: "atlas-jarvis-hud-frame" });
+			frame.createDiv({ cls: "atlas-jarvis-hud-corner is-tl" });
+			frame.createDiv({ cls: "atlas-jarvis-hud-corner is-tr" });
+			frame.createDiv({ cls: "atlas-jarvis-hud-corner is-bl" });
+			frame.createDiv({ cls: "atlas-jarvis-hud-corner is-br" });
+			frame.createDiv({ cls: "atlas-jarvis-hud-scanline" });
+		}
+
+		// Data readouts JARVIS-style (apenas fullscreen — sidebar é compacto demais)
+		if (isFullscreen) {
+			this.readoutsEl = container.createDiv({ cls: "atlas-jarvis-readouts" });
+			this.updateReadouts();
+		}
 
 		// Subtitle (transcript live)
 		this.subtitleEl = container.createDiv({ cls: `atlas-jarvis-subtitle ${modeClass}` });
@@ -255,37 +309,87 @@ export class JarvisCore {
 		// Init particles
 		this.initParticles();
 		this.startAnimation();
+
+		// v0.20: refresh readouts a cada 5s (KG counts mudam ao longo da sessão)
+		if (this.readoutsEl) {
+			this.readoutsTimer = window.setInterval(() => this.updateReadouts(), 5000);
+		}
 	}
 
 	private initParticles(): void {
 		this.particles = [];
 		const isFullscreen = this.opts.mode === "fullscreen";
-		// 3-layer parallax: back (subtle blur), mid (default), front (bright + larger)
-		const layerCounts: [number, number, number] = isFullscreen
-			? [80, 90, 40]   // ~210 particles fullscreen
-			: [60, 70, 35];  // ~165 particles sidebar
+		const total = isFullscreen ? 200 : 150;
+		// Spawn initial population — mistura inflow + orbital
+		for (let i = 0; i < total; i++) {
+			this.particles.push(this.spawnParticle(i % 5 === 0 ? "orbital" : "inflow"));
+		}
+	}
+
+	/** v0.20: Spawn a particle. inflow = nasce nas bordas e flui pro orb. orbital = circula em volta. */
+	private spawnParticle(mode: "inflow" | "orbital" = "inflow"): Particle {
 		const w = this.particlesCanvas.width || 800;
 		const h = this.particlesCanvas.height || 600;
-		const SPEED_MUL = [0.18, 0.35, 0.55] as const;
-		const SIZE_MUL = [0.7, 1.2, 1.8] as const;
-		const ALPHA_BASE = [0.28, 0.55, 0.92] as const;
-		layerCounts.forEach((count, layer) => {
-			const speedMul = SPEED_MUL[layer];
-			const sizeMul = SIZE_MUL[layer];
-			const alphaBase = ALPHA_BASE[layer];
-			for (let i = 0; i < count; i++) {
-				this.particles.push({
-					x: Math.random() * w,
-					y: Math.random() * h,
-					vx: (Math.random() - 0.5) * speedMul,
-					vy: (Math.random() - 0.5) * speedMul,
-					radius: (0.6 + Math.random() * 1.4) * sizeMul,
-					layer: layer as ParticleLayer,
-					baseAlpha: alphaBase,
-					pulsePhase: Math.random() * Math.PI * 2,
-				});
-			}
-		});
+		const cx = w / 2;
+		const cy = h / 2;
+		const layer = (Math.random() < 0.4 ? 0 : Math.random() < 0.7 ? 1 : 2) as ParticleLayer;
+		const SIZE_MUL = [0.7, 1.2, 1.9];
+		const ALPHA_BASE = [0.28, 0.62, 0.95];
+
+		if (mode === "orbital") {
+			// Orbital particle: circula a uma distância do orb
+			const orbR = this.opts.orbSize * (0.85 + Math.random() * 0.6);
+			const angle = Math.random() * Math.PI * 2;
+			return {
+				x: cx + Math.cos(angle) * orbR,
+				y: cy + Math.sin(angle) * orbR,
+				vx: 0, vy: 0, // velocity computed from angle in update
+				radius: (0.5 + Math.random() * 0.9) * SIZE_MUL[layer],
+				layer,
+				baseAlpha: ALPHA_BASE[layer],
+				pulsePhase: Math.random() * Math.PI * 2,
+				life: 1,
+				flowMode: "orbital",
+				orbitalAngle: angle,
+				orbitalRadius: orbR,
+			};
+		}
+
+		// Inflow particle: spawn nas bordas, fluxo pra orb
+		// Edge picker: 0=top, 1=right, 2=bottom, 3=left
+		const edge = Math.floor(Math.random() * 4);
+		let x = 0;
+		let y = 0;
+		switch (edge) {
+			case 0: x = Math.random() * w; y = -10; break;
+			case 1: x = w + 10; y = Math.random() * h; break;
+			case 2: x = Math.random() * w; y = h + 10; break;
+			default: x = -10; y = Math.random() * h; break;
+		}
+
+		// Velocity vector pointing toward center (with slight perpendicular jitter)
+		const dx = cx - x;
+		const dy = cy - y;
+		const dist = Math.sqrt(dx * dx + dy * dy);
+		const speedBase = 0.3 + Math.random() * 0.4;
+		// Perpendicular component for elegant curve (não reta direta)
+		const perpX = -dy / dist;
+		const perpY = dx / dist;
+		const perpAmount = (Math.random() - 0.5) * 0.6;
+
+		return {
+			x, y,
+			vx: (dx / dist) * speedBase + perpX * perpAmount,
+			vy: (dy / dist) * speedBase + perpY * perpAmount,
+			radius: (0.5 + Math.random() * 1.2) * SIZE_MUL[layer],
+			layer,
+			baseAlpha: ALPHA_BASE[layer],
+			pulsePhase: Math.random() * Math.PI * 2,
+			life: 1,
+			flowMode: "inflow",
+			orbitalAngle: 0,
+			orbitalRadius: 0,
+		};
 	}
 
 	private startAnimation(): void {
@@ -370,27 +474,54 @@ export class JarvisCore {
 	}
 
 	private updateParticlePosition(p: Particle, m: MotionCtx): void {
-		// Base velocity with state activity boost
+		if (p.flowMode === "orbital") {
+			// Orbital: circula em volta do orb, velocidade angular varia com state
+			const orbitalSpeed = 0.008 * m.activityMul;
+			p.orbitalAngle += orbitalSpeed;
+			p.x = m.cx + Math.cos(p.orbitalAngle) * p.orbitalRadius;
+			p.y = m.cy + Math.sin(p.orbitalAngle) * p.orbitalRadius;
+			// Slight orbital radius oscillation for organic feel
+			p.orbitalRadius += Math.sin(p.orbitalAngle * 3) * 0.05;
+			return;
+		}
+
+		// Inflow: flui nas bordas pro orb. Quanto mais perto, mais rápido (gravity-ish).
+		const dxc = m.cx - p.x;
+		const dyc = m.cy - p.y;
+		const dSq = dxc * dxc + dyc * dyc;
+		const dist = Math.sqrt(dSq);
+
+		// Atração gravitacional pro orb (mais forte quando próximo)
+		const orbRadius = this.opts.orbSize * 0.5;
+		if (dist < orbRadius * 1.2) {
+			// Absorvido pelo orb — life vai pra 0
+			p.life -= 0.06;
+			if (p.life <= 0) {
+				// Re-spawn — recicla particle pra evitar GC pressure
+				const fresh = this.spawnParticle(Math.random() < 0.2 ? "orbital" : "inflow");
+				Object.assign(p, fresh);
+				return;
+			}
+		} else {
+			// Acelera em direção ao orb (gravidade leve)
+			const pull = 0.012 * m.activityMul;
+			p.vx += (dxc / dist) * pull;
+			p.vy += (dyc / dist) * pull;
+		}
+
+		// Damping pra não acumular velocidade infinita
+		p.vx *= 0.985;
+		p.vy *= 0.985;
+
+		// Update position
 		p.x += p.vx * m.activityMul;
 		p.y += p.vy * m.activityMul;
 
-		// Orbital flow: particles near orb get tangential velocity → swirl effect
-		const dxc = p.x - m.cx;
-		const dyc = p.y - m.cy;
-		const dSq = dxc * dxc + dyc * dyc;
-		if (dSq < m.orbitalRadiusSq && dSq > 100) {
-			const d = Math.sqrt(dSq);
-			const swirlStrength = (1 - d / m.orbitalRadius) * 0.18 * m.activityMul;
-			// Perpendicular to radial = tangent direction
-			p.x += (-dyc / d) * swirlStrength;
-			p.y += (dxc / d) * swirlStrength;
+		// Off-screen → re-spawn em outra borda
+		if (p.x < -30 || p.x > m.w + 30 || p.y < -30 || p.y > m.h + 30) {
+			const fresh = this.spawnParticle("inflow");
+			Object.assign(p, fresh);
 		}
-
-		// Wrap edges (cleaner than bounce for trail effect)
-		if (p.x < -10) p.x = m.w + 10;
-		else if (p.x > m.w + 10) p.x = -10;
-		if (p.y < -10) p.y = m.h + 10;
-		else if (p.y > m.h + 10) p.y = -10;
 	}
 
 	private renderParticle(
@@ -399,14 +530,14 @@ export class JarvisCore {
 		colors: typeof STATE_COLORS[JarvisState],
 		now: number
 	): void {
-		// Individual flicker
+		// Individual flicker + life-based alpha (fade quando absorvido)
 		const flicker = 0.7 + Math.sin(now * 1.5 + p.pulsePhase) * 0.3;
-		const alpha = p.baseAlpha * flicker;
+		const alpha = p.baseAlpha * flicker * p.life;
 
 		// Layer-aware glow via shadow blur
 		const glow = LAYER_GLOW[p.layer];
 		if (glow.blur > 0) {
-			ctx.shadowColor = `rgba(${colors.ripple},${glow.alpha})`;
+			ctx.shadowColor = `rgba(${colors.ripple},${glow.alpha * p.life})`;
 			ctx.shadowBlur = glow.blur;
 		} else {
 			ctx.shadowBlur = 0;
@@ -525,6 +656,20 @@ export class JarvisCore {
 		// Animation switch via classes (one class per state)
 		this.orbEl.removeClass("is-idle", "is-listening", "is-thinking", "is-speaking");
 		this.orbEl.addClass(`is-${state}`);
+		// v0.20: orb stage também ganha state class para HUD frame reagir
+		const stage = this.orbEl.parentElement;
+		if (stage) {
+			stage.removeClass("state-idle", "state-listening", "state-thinking", "state-speaking");
+			stage.addClass(`state-${state}`);
+		}
+		// v0.20: container raiz também
+		const container = stage?.parentElement;
+		if (container) {
+			container.removeClass("state-idle", "state-listening", "state-thinking", "state-speaking");
+			container.addClass(`state-${state}`);
+		}
+		// Update readouts (status changes, kg counts may shift)
+		this.updateReadouts();
 	}
 
 	private async startListening(): Promise<void> {
@@ -710,6 +855,44 @@ export class JarvisCore {
 		setTimeout(() => this.applyState("idle"), 400);
 	}
 
+	/** v0.20: JARVIS-style data readouts (top-left + bottom corners) */
+	private updateReadouts(): void {
+		if (!this.readoutsEl) return;
+		this.readoutsEl.empty();
+
+		// Top-left: model + RAM (system info)
+		const tl = this.readoutsEl.createDiv({ cls: "atlas-jarvis-readout is-tl" });
+		const model = this.plugin.settings.ollama.generationModel;
+		tl.createDiv({ cls: "atlas-jarvis-readout-line", text: `▸ MODEL: ${model.toUpperCase()}` });
+		try {
+			const totalGB = (os.totalmem() / 1024 / 1024 / 1024).toFixed(1);
+			const freeGB = (os.freemem() / 1024 / 1024 / 1024).toFixed(1);
+			tl.createDiv({ cls: "atlas-jarvis-readout-line", text: `▸ RAM: ${freeGB} / ${totalGB} GB` });
+		} catch {
+			// non-Node env, skip
+		}
+
+		// Bottom-left: KG counts
+		const bl = this.readoutsEl.createDiv({ cls: "atlas-jarvis-readout is-bl" });
+		try {
+			const peopleN = this.plugin.kg?.listPeople()?.length ?? 0;
+			const sysN = this.plugin.kg?.data.systems?.length ?? 0;
+			const sessionsN = this.plugin.kg?.data.sessions?.length ?? 0;
+			const themesN = this.plugin.kg?.data.themes?.length ?? 0;
+			bl.createDiv({ cls: "atlas-jarvis-readout-line", text: `◆ KG · ${peopleN} people · ${sysN} systems` });
+			bl.createDiv({ cls: "atlas-jarvis-readout-line", text: `◆ ${sessionsN} sessions · ${themesN} themes` });
+		} catch {
+			bl.createDiv({ cls: "atlas-jarvis-readout-line", text: "◆ KG: indexing..." });
+		}
+
+		// Bottom-right: status indicator
+		const br = this.readoutsEl.createDiv({ cls: "atlas-jarvis-readout is-br" });
+		const statusText = `▸ STATUS: ${this.state.toUpperCase()}`;
+		br.createDiv({ cls: "atlas-jarvis-readout-line atlas-jarvis-status-line", text: statusText });
+		const provider = this.plugin.providerRouter?.resolveTask("chat")?.provider ?? "ollama";
+		br.createDiv({ cls: "atlas-jarvis-readout-line", text: `▸ PROVIDER: ${provider.toUpperCase()}` });
+	}
+
 	private appendHistory(text: string): void {
 		if (!this.historyEl) return;
 		const line = this.historyEl.createDiv({ cls: "atlas-jarvis-history-line", text });
@@ -721,6 +904,10 @@ export class JarvisCore {
 
 	destroy(): void {
 		if (this.animFrame) window.cancelAnimationFrame(this.animFrame);
+		if (this.readoutsTimer !== null) {
+			window.clearInterval(this.readoutsTimer);
+			this.readoutsTimer = null;
+		}
 		if (this.recording) {
 			try {
 				this.recording.cancel();

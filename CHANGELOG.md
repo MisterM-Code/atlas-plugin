@@ -4,6 +4,68 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.20.0] — 2026-05-02 — "JARVIS HUD v3: Real Iron Man (orb redesign + coherent particle flow + HUD frame + data readouts)"
+
+### Context
+User reportou na v0.19: *"esta atualizado a versao mas ainda continua aquela bola azul que eu nao gostei e particulas atras dele rapidas nada como combinamos e nem parecendo real uma inteligencia artifical falando"*
+
+Análise: Sprint 33 já tinha 165–210 partículas com glow/trails/parallax (confirmado deployed na v0.19). MAS o orb em si era **gradient sphere estático** — só tinha highlight pequeno + inner core pulse. As partículas voavam em padrão Brownian random (sem coerência). Sem HUD frame Iron Man, sem readouts JARVIS-style, sem energy nodes, sem ARC reactor. Logo: parecia bola azul com partículas voando atrás.
+
+v0.20 reconstrói o orb COMPLETAMENTE em camadas sci-fi + faz partículas FLUÍREM coerentemente para o orb (energia sendo absorvida) + adiciona corner brackets + scan line + readouts JARVIS-style.
+
+### Added — Orb redesign multi-layer (jarvis-core.ts:174-238)
+1. **Outer ring (size×1.55)** com **12 tick marks** rotando — 30s linear no idle/thinking, 8s linear no listening/speaking
+2. **Inner ring contra-rotativo** (size×1.22) com border dashed — gira na direção oposta a 22s
+3. **8 Energy nodes em volta do orb** (perímetro size×1.1) — cada um pulsa com glow box-shadow, animação stagger 0.15s entre nodes. Cor muda por state (azul→vermelho/âmbar/verde)
+4. **Hex pattern overlay** dentro do orb (SVG inline rotativo 60s, `mix-blend-mode: screen`)
+5. **ARC reactor inner** — 3 anéis concêntricos pulsando em sequência (1.6s ease-in-out staggered 0.3s)
+6. **ARC center dot** com **heartbeat 60bpm constante** (1s loop com 2 picos a 10% e 30% — like real heartbeat)
+7. ARC center color shift por state (white→indigo idle / white→red listening / white→amber thinking / white→green speaking)
+
+### Added — Coherent particle flow (jarvis-core.ts:316-408)
+**Antes**: 165–210 partículas bouncing random com Brownian noise — feel de "voando atrás"
+**Agora**:
+- Partículas **inflow** (80%): nascem nas 4 bordas → fluem TOWARD o orb com gravity-ish atração + componente perpendicular elegante (curva, não reta direta)
+- Quando entram em `orbRadius * 1.2` → `life` decresce 0.06/frame → fade out → re-spawn em outra borda
+- Damping 0.985/frame previne acumulação de velocidade infinita
+- Partículas **orbital** (20%): circulam em volta do orb a raio random + slight oscillation (sin³)
+- Particle Object pool — re-use via `Object.assign(p, fresh)` evita GC pressure
+
+### Added — HUD frame Iron Man (jarvis-core.ts:240-247 + styles.css)
+- **4 corner brackets** L-shaped (top-left, top-right, bottom-left, bottom-right)
+- Cada bracket tem 2 small ticks decorativos via `::before` + `::after`
+- **Scan line horizontal** varrendo verticalmente 8% → 92% em 5s linear infinite com fade-in/fade-out
+- Scan line tem gradient horizontal centrado + box-shadow accent
+
+### Added — Data readouts JARVIS-style (jarvis-core.ts:760-803 + CSS)
+3 áreas com texto monospaced (SF Mono / Monaco):
+- **Top-left**: `▸ MODEL: <model.toUpperCase()>` + `▸ RAM: X.X / Y.Y GB` (Node.js os.totalmem/freemem)
+- **Bottom-left**: `◆ KG · X people · Y systems` + `◆ Z sessions · W themes`
+- **Bottom-right**: `▸ STATUS: <state.toUpperCase()>` + `▸ PROVIDER: <provider>`
+- Refresh automático a cada 5s (KG counts mudam ao longo da sessão)
+- Status text muda de cor por state (vermelho/âmbar/verde com text-shadow accent)
+
+### Added — State propagation
+- `applyState` agora propaga state class também pro `.atlas-jarvis-orb-stage` (`state-idle`, `state-listening`, etc) e pro container raiz
+- CSS reage: ring rotation acelera no listening/speaking, energy nodes mudam cor + duração de pulse, status text muda cor
+
+### Files modified
+- `src/ui/jarvis-core.ts` — Orb structure rebuild + particle flow refactor + readouts method (~120 LOC adicionadas)
+- `styles.css` — JARVIS HUD v3 section (~250 linhas: rings, nodes, hex, ARC reactor, HUD frame, readouts)
+- `manifest.json`, `package.json`, `versions.json`, `CHANGELOG.md` — bump 0.20.0
+
+### Verification (E2E)
+- [ ] Force update via BRAT → reload Obsidian Cmd+R
+- [ ] Cmd+Shift+J → JarvisOverlay fullscreen abre
+- [ ] **Visual check**: orb tem rings rotando, 8 energy nodes pulsando ao redor, ARC reactor visível dentro, hex pattern girando, center dot fazendo heartbeat
+- [ ] **Corner brackets** visíveis em 4 cantos
+- [ ] **Scan line** varre verticalmente 1×/5s
+- [ ] **Readouts** mostram MODEL / RAM / KG counts / STATUS no canto
+- [ ] Push-to-talk (Spacebar): orb vira vermelho + nodes ficam vermelhos + status muda pra LISTENING
+- [ ] Após transcrição: thinking state (âmbar) → speaking state (verde) com 24-bar equalizer "boca"
+- [ ] **Particles**: você consegue VER que elas fluem das bordas para o orb (não bouncing random)
+- [ ] Sidebar Jarvis tab mantém versão compacta (sem HUD frame nem readouts — só essencial)
+
 ## [0.19.0] — 2026-05-02 — "Roadmap mop-up: Obsidian-compliance + webhook hardening + inline-ai wiring"
 
 ### Discovered (no work needed)
