@@ -25,21 +25,17 @@ export async function renderStudyCourses(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-study-courses", "atlas-section-stagger");
 
 	// Header
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "8px";
-	intro.setText("Cursos: módulos checkable, progresso, takeaways, rating, certificado.");
+	container.createEl("div", {
+		cls: "atlas-tab-section-subtitle",
+		text: "Cursos: módulos checkable, progresso, takeaways, rating, certificado.",
+	});
 
 	// Stats
 	const courses = plugin.kg.listCourses();
-	const stats = container.createDiv();
-	stats.style.display = "grid";
-	stats.style.gridTemplateColumns = "repeat(4, 1fr)";
-	stats.style.gap = "6px";
-	stats.style.marginBottom = "10px";
+	const stats = container.createDiv({ cls: "atlas-study-stats-grid" });
 
 	const active = courses.filter((c) => c.status === "active").length;
 	const completed = courses.filter((c) => c.status === "completed").length;
@@ -55,16 +51,9 @@ export async function renderStudyCourses(
 	statBlock(stats, "📦 Módulos", `${doneModules}/${totalModules}`);
 
 	// Filter bar
-	const filters = container.createDiv();
-	filters.style.display = "flex";
-	filters.style.gap = "4px";
-	filters.style.marginBottom = "10px";
-	filters.style.alignItems = "center";
+	const filters = container.createDiv({ cls: "atlas-study-courses-filters" });
 
-	const newBtn = filters.createEl("button", { text: "+ Novo curso" });
-	newBtn.style.fontSize = "11px";
-	newBtn.style.padding = "5px 12px";
-	newBtn.addClass("mod-cta");
+	const newBtn = filters.createEl("button", { cls: "mod-cta", text: "+ Novo curso" });
 	newBtn.addEventListener("click", () => {
 		new CourseEditModal(plugin, null, () => void renderStudyCourses(container, plugin)).open();
 	});
@@ -72,18 +61,15 @@ export async function renderStudyCourses(
 	let activeFilter: string = "all";
 	const statusButtons: { btn: HTMLButtonElement; status: string }[] = [];
 
-	const allBtn = filters.createEl("button", { text: "Todos" });
-	allBtn.style.fontSize = "10px";
-	allBtn.style.padding = "4px 8px";
-	allBtn.style.marginLeft = "8px";
+	const allBtn = filters.createEl("button", { cls: "mod-cta atlas-study-filter-pill", text: "Todos" });
 	statusButtons.push({ btn: allBtn, status: "all" });
-	allBtn.addClass("mod-cta");
 
 	for (const status of ["active", "planning", "paused", "completed"]) {
 		const meta = STATUS_LABELS[status];
-		const btn = filters.createEl("button", { text: `${meta.emoji} ${meta.label}` });
-		btn.style.fontSize = "10px";
-		btn.style.padding = "4px 8px";
+		const btn = filters.createEl("button", {
+			cls: "atlas-study-filter-pill",
+			text: `${meta.emoji} ${meta.label}`,
+		});
 		statusButtons.push({ btn, status });
 	}
 
@@ -103,28 +89,26 @@ export async function renderStudyCourses(
 	});
 
 	// Grid
-	const grid = container.createDiv();
-	grid.style.display = "grid";
-	grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(280px, 1fr))";
-	grid.style.gap = "10px";
-	grid.style.maxHeight = "calc(100vh - 380px)";
-	grid.style.overflowY = "auto";
+	const grid = container.createDiv({ cls: "atlas-study-courses-grid" });
 
-	const renderList = () => {
+	const renderList = (): void => {
 		grid.empty();
 		const items = activeFilter === "all" ? courses : courses.filter((c) => c.status === activeFilter);
 
 		if (items.length === 0) {
-			const empty = grid.createDiv();
+			const empty = grid.createDiv({ cls: "atlas-tab-empty-state" });
 			empty.style.gridColumn = "1 / -1";
-			empty.style.padding = "32px";
-			empty.style.textAlign = "center";
-			empty.style.opacity = "0.6";
-			empty.setText(
-				activeFilter === "all"
-					? "🎓 Nenhum curso ainda. Click '+ Novo curso' acima."
-					: `Nenhum curso com status "${activeFilter}".`
-			);
+			empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🎓" });
+			empty.createEl("div", {
+				cls: "atlas-tab-empty-title",
+				text: activeFilter === "all" ? "Nenhum curso ainda" : `Nenhum curso "${activeFilter}"`,
+			});
+			if (activeFilter === "all") {
+				empty.createEl("div", {
+					cls: "atlas-tab-empty-desc",
+					text: "Click '+ Novo curso' acima para começar.",
+				});
+			}
 			return;
 		}
 
@@ -142,42 +126,37 @@ function renderCourseCard(
 	plugin: AtlasPlugin,
 	onChange: () => void
 ): void {
-	const card = parent.createDiv();
-	card.addClass("atlas-card-interactive");
-	card.style.padding = "12px";
-	card.style.background = "var(--background-secondary)";
-	card.style.borderRadius = "8px";
-	card.style.border = "1px solid var(--background-modifier-border)";
-	card.style.borderLeft = `4px solid ${STATUS_LABELS[course.status]?.color ?? "#6b7280"}`;
-	card.style.cursor = "pointer";
-	card.style.display = "flex";
-	card.style.flexDirection = "column";
-	card.style.gap = "6px";
+	const card = parent.createDiv({
+		cls: `atlas-tab-card-premium atlas-study-course-card is-status-${course.status}`,
+	});
+	const accentColor = STATUS_LABELS[course.status]?.color ?? "#6b7280";
+	card.style.borderLeft = `4px solid ${accentColor}`;
 
 	// Top: nome + status
-	const top = card.createDiv();
-	top.style.display = "flex";
-	top.style.alignItems = "center";
-	top.style.gap = "8px";
-
+	const top = card.createDiv({ cls: "atlas-study-course-top" });
 	const statusMeta = STATUS_LABELS[course.status];
-	const iconEl = top.createEl("span", { text: statusMeta?.emoji ?? "🎓" });
-	iconEl.style.fontSize = "16px";
+	top.createEl("span", {
+		cls: "atlas-study-course-icon",
+		text: statusMeta?.emoji ?? "🎓",
+	});
 
-	const titleWrap = top.createDiv();
-	titleWrap.style.flexGrow = "1";
-	const nameEl = titleWrap.createEl("div", { text: course.name });
-	nameEl.style.fontSize = "13px";
-	nameEl.style.fontWeight = "bold";
+	const titleWrap = top.createDiv({ cls: "atlas-study-course-title-wrap" });
+	titleWrap.createEl("div", {
+		cls: "atlas-study-course-name",
+		text: course.name,
+	});
 	if (course.provider) {
-		const provEl = titleWrap.createEl("div", { text: course.provider });
-		provEl.style.fontSize = "10px";
-		provEl.style.opacity = "0.65";
+		titleWrap.createEl("div", {
+			cls: "atlas-study-course-provider",
+			text: course.provider,
+		});
 	}
 
 	if (course.rating) {
-		const star = top.createEl("span", { text: "⭐".repeat(course.rating) });
-		star.style.fontSize = "10px";
+		top.createEl("span", {
+			cls: "atlas-study-course-stars",
+			text: "⭐".repeat(course.rating),
+		});
 	}
 
 	// Progresso
@@ -185,31 +164,17 @@ function renderCourseCard(
 	const done = course.modules.filter((m) => m.status === "done").length;
 	const pct = total > 0 ? (done / total) * 100 : 0;
 
-	const progLabel = card.createDiv();
-	progLabel.style.fontSize = "10px";
-	progLabel.style.opacity = "0.7";
-	progLabel.style.display = "flex";
-	progLabel.style.justifyContent = "space-between";
+	const progLabel = card.createDiv({ cls: "atlas-study-course-prog-label" });
 	progLabel.createEl("span", { text: `${done}/${total} módulos` });
 	progLabel.createEl("span", { text: `${pct.toFixed(0)}%` });
 
-	const progBar = card.createDiv();
-	progBar.style.height = "6px";
-	progBar.style.background = "var(--background-modifier-border)";
-	progBar.style.borderRadius = "3px";
-	progBar.style.overflow = "hidden";
-	const fill = progBar.createDiv();
-	fill.style.height = "100%";
+	const progBar = card.createDiv({ cls: "atlas-progress-bar" });
+	const fill = progBar.createDiv({ cls: "atlas-progress-bar-fill" });
 	fill.style.width = `${pct}%`;
-	fill.style.background = `linear-gradient(90deg, ${STATUS_LABELS[course.status]?.color ?? "#6b7280"}, var(--interactive-accent))`;
-	fill.style.transition = "width 300ms ease";
+	fill.style.background = `linear-gradient(90deg, ${accentColor}, var(--atlas-accent, #00e5e5))`;
 
 	// Meta row
-	const meta = card.createDiv();
-	meta.style.display = "flex";
-	meta.style.gap = "10px";
-	meta.style.fontSize = "10px";
-	meta.style.opacity = "0.7";
+	const meta = card.createDiv({ cls: "atlas-study-course-meta" });
 	if (course.hoursLogged > 0) meta.createEl("span", { text: `⏱️ ${course.hoursLogged}h` });
 	if (course.targetEndDate) meta.createEl("span", { text: `🎯 ${course.targetEndDate}` });
 	if (course.takeaways.length > 0) meta.createEl("span", { text: `💡 ${course.takeaways.length}` });
@@ -585,21 +550,9 @@ ${course.takeaways.map((t) => `- ${t}`).join("\n") || "- "}
 }
 
 function statBlock(parent: HTMLElement, label: string, value: string): void {
-	const cell = parent.createDiv();
-	cell.style.padding = "8px";
-	cell.style.background = "var(--background-secondary)";
-	cell.style.borderRadius = "6px";
-	cell.style.textAlign = "center";
-
-	const v = cell.createEl("div", { text: value });
-	v.style.fontSize = "16px";
-	v.style.fontWeight = "bold";
-	v.style.color = "var(--interactive-accent)";
-
-	const l = cell.createEl("div", { text: label });
-	l.style.fontSize = "10px";
-	l.style.opacity = "0.7";
-	l.style.marginTop = "2px";
+	const cell = parent.createDiv({ cls: "atlas-study-stat-card" });
+	cell.createEl("div", { cls: "atlas-study-stat-value", text: value });
+	cell.createEl("div", { cls: "atlas-study-stat-label", text: label });
 }
 
 // Re-export type pra uso futuro

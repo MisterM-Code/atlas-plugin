@@ -21,45 +21,35 @@ export async function renderLabEntityTree(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-lab-entity-tree", "atlas-section-stagger");
 
 	let currentKind: TreeKind = "people";
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "10px";
-	intro.setText(
-		"Visualização hierárquica do Knowledge Graph. Pessoas → sessões/commitments/temas. Projetos → milestones/risks. Temas por sentiment."
-	);
+	// Header
+	const header = container.createDiv({ cls: "atlas-tab-section-header" });
+	header.createEl("h3", {
+		cls: "atlas-tab-section-title",
+		text: "🌳 Entity Tree",
+	});
+	container.createEl("div", {
+		cls: "atlas-tab-section-subtitle",
+		text: "Visualização hierárquica do Knowledge Graph. Pessoas → sessões/commitments/temas. Projetos → milestones/risks. Temas por sentiment.",
+	});
 
-	// Switcher
-	const switcher = container.createDiv();
-	switcher.style.display = "flex";
-	switcher.style.gap = "6px";
-	switcher.style.marginBottom = "12px";
+	// Switcher (segmented buttons cyan)
+	const switcher = container.createDiv({ cls: "atlas-lab-entity-switcher" });
 
-	const treeContainer = container.createDiv();
-	treeContainer.style.maxHeight = "calc(100vh - 280px)";
-	treeContainer.style.overflowY = "auto";
-	treeContainer.style.padding = "8px";
-	treeContainer.style.border = "1px solid var(--background-modifier-border)";
-	treeContainer.style.borderRadius = "6px";
+	const treeContainer = container.createDiv({ cls: "atlas-lab-entity-treebox" });
 
 	const renderSwitcher = (): void => {
 		switcher.empty();
 		for (const kind of ["people", "projects", "themes"] as TreeKind[]) {
 			const meta = KIND_META[kind];
-			const btn = switcher.createEl("button", { text: `${meta.icon} ${meta.title}` });
-			btn.style.fontSize = "11px";
-			btn.style.padding = "5px 12px";
-			btn.style.cursor = "pointer";
-			btn.style.borderRadius = "4px";
-			if (kind === currentKind) {
-				btn.style.background = "var(--interactive-accent)";
-				btn.style.color = "var(--text-on-accent)";
-			} else {
-				btn.style.background = "var(--background-secondary)";
-			}
+			const isActive = kind === currentKind;
+			const btn = switcher.createEl("button", {
+				cls: `atlas-lab-entity-switch ${isActive ? "is-active" : ""}`.trim(),
+				text: `${meta.icon} ${meta.title}`,
+			});
 			btn.addEventListener("click", () => {
 				currentKind = kind;
 				renderSwitcher();

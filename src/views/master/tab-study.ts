@@ -7,13 +7,17 @@ type StudySubId = "flashcards" | "courses" | "papers";
 
 /**
  * 🃏 Study tab — flashcards + cursos + papers em sub-tabs.
+ *
+ * v0.27: polish premium com utility classes + cyan accents.
  */
 export async function renderStudyTab(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	container.empty();
 
-	const header = container.createDiv();
-	header.style.marginBottom = "10px";
-	header.createEl("h3", { text: "🃏 Study" }).style.margin = "0 0 4px 0";
+	const header = container.createDiv({ cls: "atlas-tab-section-header" });
+	header.createEl("h3", {
+		cls: "atlas-tab-section-title",
+		text: "🃏 Study",
+	});
 
 	const subs: SubTabDef<StudySubId>[] = [
 		{
@@ -55,43 +59,29 @@ export async function renderStudyTab(container: HTMLElement, plugin: AtlasPlugin
 
 async function renderStudyFlashcards(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	container.empty();
+	container.addClass("atlas-study-flashcards", "atlas-section-stagger");
 
 	const stats = plugin.flashcards?.stats() ?? { total: 0, due: 0, new: 0, learning: 0, review: 0 };
 
-	const headerStats = container.createDiv();
-	headerStats.style.fontSize = "11px";
-	headerStats.style.opacity = "0.6";
-	headerStats.style.marginBottom = "8px";
-	headerStats.setText(`${stats.total} cards · ${stats.due} a revisar · ${stats.new} novos`);
+	container.createEl("div", {
+		cls: "atlas-tab-section-subtitle",
+		text: `${stats.total} cards · ${stats.due} a revisar · ${stats.new} novos`,
+	});
 
-	const statsGrid = container.createDiv();
-	statsGrid.style.display = "grid";
-	statsGrid.style.gridTemplateColumns = "repeat(4, 1fr)";
-	statsGrid.style.gap = "6px";
-	statsGrid.style.marginBottom = "12px";
+	const statsGrid = container.createDiv({ cls: "atlas-study-stats-grid" });
 
 	statCard(statsGrid, "Total", String(stats.total));
-	statCard(
-		statsGrid,
-		"Due",
-		String(stats.due),
-		stats.due > 0 ? "var(--color-orange)" : undefined
-	);
+	statCard(statsGrid, "Due", String(stats.due), stats.due > 0 ? "is-orange" : undefined);
 	statCard(statsGrid, "Novos", String(stats.new));
 	statCard(statsGrid, "Review", String(stats.review));
 
-	const qaBar = container.createDiv();
-	qaBar.style.display = "grid";
-	qaBar.style.gridTemplateColumns = "1fr 1fr";
-	qaBar.style.gap = "6px";
-	qaBar.style.marginBottom = "12px";
+	const qaBar = container.createDiv({ cls: "atlas-study-qa-bar" });
 
-	const qa = (icon: string, label: string, cmd: string, primary = false) => {
-		const b = qaBar.createEl("button", { text: `${icon} ${label}` });
-		b.style.padding = "8px";
-		b.style.fontSize = "12px";
-		b.style.cursor = "pointer";
-		if (primary) b.addClass("mod-cta");
+	const qa = (icon: string, label: string, cmd: string, primary = false): void => {
+		const b = qaBar.createEl("button", {
+			cls: primary ? "mod-cta" : "",
+			text: `${icon} ${label}`,
+		});
 		b.addEventListener("click", () => {
 			const apiAny = plugin.app as unknown as {
 				commands?: { executeCommandById?: (id: string) => void };
@@ -100,10 +90,10 @@ async function renderStudyFlashcards(container: HTMLElement, plugin: AtlasPlugin
 		});
 	};
 
-	qa("▶️", `Revisar ${stats.due} agora`, "atlas-flashcards-review", stats.due > 0);
-	qa("🤖", "Gerar desta nota", "atlas-flashcards-from-note");
-	qa("🎓", "Feynman check", "atlas-socratic");
-	qa("📥", "Export Anki", "atlas-flashcards-export-anki");
+	qa("▶️", `Revisar ${stats.due} agora`, "flashcards-review", stats.due > 0);
+	qa("🤖", "Gerar desta nota", "flashcards-from-note");
+	qa("🎓", "Feynman check", "socratic");
+	qa("📥", "Export Anki", "flashcards-export-anki");
 
 	// Decks list (por source)
 	const allCards = plugin.flashcards?.allCards() ?? [];
@@ -114,42 +104,29 @@ async function renderStudyFlashcards(container: HTMLElement, plugin: AtlasPlugin
 	}
 
 	if (decks.size > 0) {
-		const decksHead = container.createEl("div", { text: `📚 Decks (${decks.size})` });
-		decksHead.style.fontSize = "11px";
-		decksHead.style.fontWeight = "bold";
-		decksHead.style.opacity = "0.7";
-		decksHead.style.marginTop = "12px";
-		decksHead.style.marginBottom = "6px";
+		container.createDiv({ cls: "atlas-tab-section-divider" });
 
-		const decksList = container.createDiv();
-		decksList.style.maxHeight = "calc(100vh - 380px)";
-		decksList.style.overflowY = "auto";
+		const decksHead = container.createEl("div", { cls: "atlas-study-decks-head" });
+		decksHead.setText(`📚 DECKS (${decks.size})`);
+
+		const decksList = container.createDiv({ cls: "atlas-study-decks-list" });
 
 		for (const [name, count] of [...decks.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20)) {
-			const row = decksList.createDiv();
-			row.style.display = "flex";
-			row.style.alignItems = "center";
-			row.style.padding = "6px 10px";
-			row.style.background = "var(--background-secondary)";
-			row.style.borderRadius = "4px";
-			row.style.marginBottom = "3px";
-			row.style.fontSize = "12px";
-			row.createEl("span", { text: name }).style.flexGrow = "1";
-			row.createEl("span", { text: `🃏 ${count}` }).style.opacity = "0.65";
+			const row = decksList.createDiv({ cls: "atlas-study-deck-row" });
+			row.createEl("span", { cls: "atlas-study-deck-name", text: name });
+			row.createEl("span", { cls: "atlas-study-deck-count", text: `🃏 ${count}` });
 		}
 	}
 }
 
 function renderStudyPapers(container: HTMLElement, plugin: AtlasPlugin): void {
 	container.empty();
+	container.addClass("atlas-study-papers", "atlas-section-stagger");
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
-	intro.setText(
-		"Papers acadêmicos. Drag PDF do Zotero → Atlas cria literature note + 5 flashcards auto."
-	);
+	container.createEl("div", {
+		cls: "atlas-tab-section-subtitle",
+		text: "Papers acadêmicos. Drag PDF do Zotero → Atlas cria literature note + 5 flashcards auto.",
+	});
 
 	const papersFolder = `${plugin.settings.folders.studies}/papers`;
 	const papers = plugin.app.vault
@@ -157,27 +134,26 @@ function renderStudyPapers(container: HTMLElement, plugin: AtlasPlugin): void {
 		.filter((f) => f.path.startsWith(papersFolder))
 		.sort((a, b) => b.stat.mtime - a.stat.mtime);
 
-	const stats = container.createDiv();
-	stats.style.fontSize = "11px";
-	stats.style.opacity = "0.6";
-	stats.style.marginBottom = "10px";
-	stats.setText(`${papers.length} papers no vault`);
-
 	if (papers.length === 0) {
-		const empty = container.createDiv();
-		empty.style.padding = "32px";
-		empty.style.textAlign = "center";
-		empty.style.opacity = "0.6";
-		empty.setText(
-			"📭 Nenhum paper. Use Zotero Integration plugin ou solte PDFs em " +
-				papersFolder
-		);
+		const empty = container.createDiv({ cls: "atlas-tab-empty-state" });
+		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "📭" });
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-title",
+			text: "Nenhum paper",
+		});
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-desc",
+			text: `Use Zotero Integration plugin ou solte PDFs em ${papersFolder}.`,
+		});
 		return;
 	}
 
-	const list = container.createDiv();
-	list.style.maxHeight = "calc(100vh - 320px)";
-	list.style.overflowY = "auto";
+	const stats = container.createDiv({ cls: "atlas-tab-section-subtitle" });
+	stats.setText(`${papers.length} papers no vault`);
+
+	container.createDiv({ cls: "atlas-tab-section-divider" });
+
+	const list = container.createDiv({ cls: "atlas-study-papers-list" });
 
 	for (const f of papers.slice(0, 50)) {
 		const cache = plugin.app.metadataCache.getFileCache(f);
@@ -187,33 +163,21 @@ function renderStudyPapers(container: HTMLElement, plugin: AtlasPlugin): void {
 		const authors = (fm.authors as string | undefined) ?? "";
 		const year = (fm.year as string | undefined) ?? "";
 
-		const row = list.createDiv();
-		row.style.display = "flex";
-		row.style.flexDirection = "column";
-		row.style.gap = "3px";
-		row.style.padding = "10px 12px";
-		row.style.background = "var(--background-secondary)";
-		row.style.borderRadius = "6px";
-		row.style.marginBottom = "5px";
-		row.style.cursor = "pointer";
-		row.addClass("atlas-card-interactive");
+		const row = list.createDiv({ cls: "atlas-tab-card-premium atlas-study-paper-row" });
 
-		const title = row.createEl("div", { text: f.basename });
-		title.style.fontSize = "12px";
-		title.style.fontWeight = "500";
+		row.createEl("div", {
+			cls: "atlas-study-paper-title",
+			text: f.basename,
+		});
 
 		if (authors || year) {
-			const meta1 = row.createEl("div");
-			meta1.style.fontSize = "10px";
-			meta1.style.opacity = "0.65";
-			meta1.setText([authors, year].filter(Boolean).join(" · "));
+			row.createEl("div", {
+				cls: "atlas-study-paper-meta-1",
+				text: [authors, year].filter(Boolean).join(" · "),
+			});
 		}
 
-		const meta2 = row.createEl("div");
-		meta2.style.fontSize = "10px";
-		meta2.style.opacity = "0.55";
-		meta2.style.display = "flex";
-		meta2.style.gap = "10px";
+		const meta2 = row.createDiv({ cls: "atlas-study-paper-meta-2" });
 		meta2.createEl("span", { text: `📖 ${status}` });
 		meta2.createEl("span", { text: `🃏 ${cardsForPaper} cards` });
 
@@ -223,17 +187,9 @@ function renderStudyPapers(container: HTMLElement, plugin: AtlasPlugin): void {
 	}
 }
 
-function statCard(parent: HTMLElement, label: string, value: string, color?: string): void {
-	const c = parent.createDiv();
-	c.style.padding = "8px";
-	c.style.background = "var(--background-secondary)";
-	c.style.borderRadius = "4px";
-	c.style.textAlign = "center";
-	const v = c.createEl("div", { text: value });
-	v.style.fontSize = "16px";
-	v.style.fontWeight = "bold";
-	if (color) v.style.color = color;
-	const l = c.createEl("div", { text: label });
-	l.style.fontSize = "10px";
-	l.style.opacity = "0.6";
+function statCard(parent: HTMLElement, label: string, value: string, modCls?: string): void {
+	const c = parent.createDiv({ cls: "atlas-study-stat-card" });
+	const v = c.createEl("div", { cls: `atlas-study-stat-value ${modCls ?? ""}`.trim(), text: value });
+	void v;
+	c.createEl("div", { cls: "atlas-study-stat-label", text: label });
 }

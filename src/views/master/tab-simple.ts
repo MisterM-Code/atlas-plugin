@@ -378,26 +378,17 @@ async function renderDiagnosticsSub(container: HTMLElement, plugin: AtlasPlugin)
 			}).style.fontSize = "11px";
 		}
 
-		// RAM
-		const ram = body.createDiv();
-		ram.style.padding = "10px";
-		ram.style.background = "var(--background-secondary)";
-		ram.style.borderRadius = "4px";
-		ram.style.marginBottom = "8px";
+		// v0.27: RAM com smooth bar via utility class
+		const ram = body.createDiv({ cls: "atlas-status-ram" });
 		const usedPct = Math.round((h.usedRamGB / h.totalRamGB) * 100);
 		ram.createEl("div", {
+			cls: "atlas-status-ram-label",
 			text: `💾 ${h.totalRamGB} GB total · ${h.usedRamGB} GB usada · ${h.freeRamGB} GB livre`,
-		}).style.fontSize = "12px";
-		const bar = ram.createDiv();
-		bar.style.height = "6px";
-		bar.style.background = "var(--background-modifier-border)";
-		bar.style.borderRadius = "3px";
-		bar.style.marginTop = "4px";
-		const fill = bar.createDiv();
-		fill.style.height = "100%";
+		});
+		const bar = ram.createDiv({ cls: "atlas-progress-bar" });
+		const fillCls = usedPct > 85 ? "is-danger" : usedPct > 65 ? "is-warn" : "";
+		const fill = bar.createDiv({ cls: `atlas-progress-bar-fill ${fillCls}`.trim() });
 		fill.style.width = `${usedPct}%`;
-		fill.style.background =
-			usedPct > 85 ? "var(--color-red)" : usedPct > 65 ? "var(--color-orange)" : "var(--color-green)";
 
 		// Models
 		const modelsSection = body.createDiv();

@@ -4,6 +4,46 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.27.0] — 2026-05-02 — "Polish sub-tabs: Status RAM + Lab + Reports Composer/Templates + Study"
+
+Continuação do polish v0.26: aplica utility classes (cyan/indigo gradient + premium cards + cubic transitions) nas sub-tabs restantes.
+
+### Sprint A — Status RAM bar
+- RAM block usa `atlas-status-ram` wrapper + utility `atlas-progress-bar` smooth com gradient cyan→indigo
+- Levels `is-warn` (yellow) + `is-danger` (red + pulse-soft) automáticos por % uso
+- Tabular-nums no label
+
+### Sprint B — Lab sub-tabs (Serendipity, Capsules, Entity Tree)
+- **Serendipity:** header gradient + premium cards com hover lift + empty state com emoji bouncing
+- **Capsules:** sections grouped (🎁 Prontas / 🔒 Seladas / 📬 Entregues) com border-left coloring por status. Premium cards.
+- **Entity Tree:** segmented switcher cyan→indigo gradient + treebox com gradient bg + hover lifts
+
+### Sprint C — Reports Composer + Templates
+- **Composer:** title gradient + saved views chip pills com hover translateY + filters box gradient
+- **Templates:** premium cards com hover accent line + category dividers cyan + actions row polidos
+
+### Sprint D — Study sub-tabs (Flashcards + Papers + Courses)
+- **Flashcards:** stat cards com gradient text + qa-bar grid + decks-list com smooth scroll cyan + hover translateX
+- **Papers:** premium cards row + meta tabular-nums
+- **Courses:** filter pills com border-radius 999px + premium cards com border-left status color + progress bar cyan→accent gradient
+
+### CSS utility additions
+- `.atlas-status-ram` + `.atlas-status-ram-label`
+- `.atlas-lab-serendipity-actions/list/card/icon/body/title/meta` + variants
+- `.atlas-lab-capsules-list/card/section-title/icon/body/title/meta` + `is-pending/unlocked/delivered`
+- `.atlas-lab-entity-switcher/switch/treebox` (segmented buttons)
+- `.atlas-reports-templates-grid/cat/card/top/icon/name-wrap/name/meta/desc/actions`
+- `.atlas-study-stats-grid/stat-card/value/label` (gradient text)
+- `.atlas-study-qa-bar`
+- `.atlas-study-decks-head/list/deck-row/name/count`
+- `.atlas-study-papers-list/paper-row/title/meta-1/meta-2`
+- `.atlas-study-courses-filters/grid/course-card/top/icon/title-wrap/name/provider/stars/prog-label/meta`
+
+### Compatibility
+- Todas mudanças são CSS + DOM markup. Zero alteração de lógica/dados.
+- Build TypeScript zero errors.
+- Existing slide-over panels (Course detail, Template editor) inalterados.
+
 ## [0.26.0] — 2026-05-02 — "Polish remaining tabs (Hub + Lab Tools IA + Reports + Health)"
 
 ### Added — Utility CSS classes (consistente entre tabs)

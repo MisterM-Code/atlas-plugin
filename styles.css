@@ -1769,6 +1769,21 @@
 .atlas-status-ram-fill.is-high { background: var(--color-red); }
 .atlas-status-ram-cpu { font-size: 10px; opacity: 0.6; margin-top: 4px; }
 
+/* v0.27 polish: RAM block with utility progress bar */
+.atlas-status-ram {
+	margin: 12px 0;
+	padding: 10px 12px;
+	background: linear-gradient(135deg, rgba(0, 229, 229, 0.04), rgba(99, 102, 241, 0.04));
+	border: 1px solid rgba(0, 229, 229, 0.18);
+	border-radius: 8px;
+}
+.atlas-status-ram-label {
+	font-size: 12px;
+	font-weight: 500;
+	margin-bottom: 8px;
+	font-variant-numeric: tabular-nums;
+}
+
 .atlas-status-empty-model { opacity: 0.6; }
 .atlas-status-model-row {
 	padding: 6px 8px;
@@ -2478,35 +2493,70 @@
 	font-size: 11px;
 }
 
-/* v0.10.0 — Reports Composer */
-.atlas-composer-header { margin-bottom: 12px; }
-.atlas-composer-title { margin: 0 0 4px 0; }
-.atlas-composer-subtitle { font-size: 11px; opacity: 0.6; }
+/* v0.10.0 — Reports Composer (v0.27 polish: cyan/indigo + premium) */
+.atlas-composer-header { margin-bottom: 14px; }
+.atlas-composer-title {
+	font-size: 19px;
+	font-weight: 700;
+	margin: 0 0 4px 0;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	letter-spacing: -0.3px;
+}
+.atlas-composer-subtitle {
+	font-size: 12px;
+	opacity: 0.7;
+	line-height: 1.55;
+}
 
-.atlas-composer-saved-views { margin-bottom: 12px; }
+.atlas-composer-saved-views {
+	margin-bottom: 14px;
+	padding: 12px 14px;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 92%, var(--atlas-accent, #6366f1)));
+	border: 1px solid rgba(0, 229, 229, 0.18);
+	border-radius: 10px;
+}
 .atlas-composer-saved-header {
 	font-size: 11px;
-	font-weight: bold;
-	opacity: 0.7;
-	margin-bottom: 6px;
+	font-weight: 700;
+	letter-spacing: 0.4px;
+	margin-bottom: 8px;
+	text-transform: uppercase;
+	color: var(--atlas-accent, #00e5e5);
 }
 .atlas-composer-saved-grid {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 6px;
+	gap: 8px;
 }
 .atlas-composer-saved-chip {
 	font-size: 11px;
-	padding: 4px 8px;
+	padding: 6px 12px;
 	cursor: pointer;
-	border-radius: 4px;
+	border-radius: 999px;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-composer-saved-chip:hover {
+	border-color: rgba(0, 229, 229, 0.45);
+	background: rgba(0, 229, 229, 0.08);
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(0, 229, 229, 0.15);
 }
 
 .atlas-composer-filters-box {
-	padding: 12px;
-	background: var(--background-secondary);
-	border-radius: 6px;
-	margin-bottom: 12px;
+	padding: 14px 16px;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 95%, var(--atlas-accent, #6366f1)));
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 12px;
+	margin-bottom: 14px;
 }
 
 .atlas-composer-field-label {
@@ -5343,4 +5393,480 @@ button.atlas-btn:active::after,
 }
 .atlas-hub-list::-webkit-scrollbar-thumb:hover {
 	background: rgba(0, 229, 229, 0.45);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   v0.27 Lab sub-tabs: Serendipity, Capsules, Entity Tree
+   ────────────────────────────────────────────────────────────────── */
+
+/* Action bars (shared) */
+.atlas-lab-serendipity-actions {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 12px;
+	flex-wrap: wrap;
+}
+.atlas-lab-serendipity-actions button {
+	font-size: 12px;
+	padding: 6px 14px;
+}
+
+/* Serendipity feed list */
+.atlas-lab-serendipity-list,
+.atlas-lab-capsules-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-height: calc(100vh - 320px);
+	overflow-y: auto;
+	padding-right: 4px;
+}
+.atlas-lab-serendipity-list::-webkit-scrollbar,
+.atlas-lab-capsules-list::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-lab-serendipity-list::-webkit-scrollbar-thumb,
+.atlas-lab-capsules-list::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+
+.atlas-lab-serendipity-card,
+.atlas-lab-capsules-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.atlas-lab-serendipity-card-top,
+.atlas-lab-capsules-card-top {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.atlas-lab-serendipity-icon,
+.atlas-lab-capsules-icon {
+	font-size: 20px;
+	flex-shrink: 0;
+}
+.atlas-lab-serendipity-body,
+.atlas-lab-capsules-body {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-lab-serendipity-title,
+.atlas-lab-capsules-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--text-normal);
+	margin-bottom: 2px;
+}
+.atlas-lab-serendipity-meta,
+.atlas-lab-capsules-meta {
+	font-size: 10px;
+	opacity: 0.65;
+	font-variant-numeric: tabular-nums;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.atlas-lab-capsules-meta.is-ready {
+	color: var(--color-orange);
+	font-weight: 600;
+	opacity: 1;
+}
+
+.atlas-lab-serendipity-actions-row {
+	display: flex;
+	gap: 6px;
+}
+.atlas-lab-serendipity-actions-row button {
+	font-size: 10px;
+	padding: 4px 10px;
+}
+
+/* Capsules section title */
+.atlas-lab-capsules-section-title {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin: 16px 0 8px 0;
+	padding-left: 8px;
+	border-left: 3px solid var(--atlas-accent, #00e5e5);
+	opacity: 0.85;
+	text-transform: uppercase;
+}
+
+.atlas-lab-capsules-card.is-pending {
+	border-left: 3px solid var(--color-blue, #3b82f6);
+}
+.atlas-lab-capsules-card.is-unlocked {
+	border-left: 3px solid var(--color-orange, #f59e0b);
+}
+.atlas-lab-capsules-card.is-delivered {
+	border-left: 3px solid var(--color-green, #22c55e);
+	opacity: 0.78;
+}
+
+/* Entity Tree */
+.atlas-lab-entity-switcher {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 12px;
+	flex-wrap: wrap;
+}
+.atlas-lab-entity-switch {
+	font-size: 11px;
+	padding: 6px 14px;
+	cursor: pointer;
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-muted);
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-lab-entity-switch:hover {
+	border-color: rgba(0, 229, 229, 0.45);
+	color: var(--text-normal);
+	transform: translateY(-1px);
+}
+.atlas-lab-entity-switch.is-active {
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	color: #fff;
+	border-color: transparent;
+	box-shadow: 0 4px 12px rgba(0, 229, 229, 0.25);
+}
+.atlas-lab-entity-treebox {
+	max-height: calc(100vh - 320px);
+	overflow-y: auto;
+	padding: 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 92%, var(--atlas-accent, #6366f1)));
+}
+.atlas-lab-entity-treebox::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-lab-entity-treebox::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   v0.27 Reports → Templates sub-tab
+   ────────────────────────────────────────────────────────────────── */
+.atlas-reports-templates-actions {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+.atlas-reports-templates-actions button {
+	font-size: 11px;
+	padding: 6px 12px;
+}
+
+.atlas-reports-templates-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 10px;
+	max-height: calc(100vh - 320px);
+	overflow-y: auto;
+	padding-right: 4px;
+}
+.atlas-reports-templates-grid::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-reports-templates-grid::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+
+.atlas-reports-templates-cat {
+	grid-column: 1 / -1;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin-top: 12px;
+	padding-left: 8px;
+	border-left: 3px solid var(--atlas-accent, #00e5e5);
+	opacity: 0.85;
+	text-transform: uppercase;
+}
+
+.atlas-reports-template-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px;
+}
+.atlas-reports-template-top {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.atlas-reports-template-icon {
+	font-size: 22px;
+	flex-shrink: 0;
+}
+.atlas-reports-template-name-wrap {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-reports-template-name {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--text-normal);
+}
+.atlas-reports-template-meta {
+	font-size: 10px;
+	opacity: 0.55;
+	font-variant-numeric: tabular-nums;
+}
+.atlas-reports-template-desc {
+	font-size: 11px;
+	opacity: 0.72;
+	line-height: 1.5;
+	min-height: 32px;
+}
+.atlas-reports-template-actions {
+	display: flex;
+	gap: 5px;
+	margin-top: auto;
+}
+.atlas-reports-template-actions button {
+	font-size: 10px;
+}
+.atlas-reports-template-actions .mod-cta {
+	flex-grow: 1;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   v0.27 Study sub-tabs (Flashcards + Papers + Courses)
+   ────────────────────────────────────────────────────────────────── */
+
+.atlas-study-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 8px;
+	margin-bottom: 14px;
+}
+.atlas-study-stat-card {
+	padding: 12px 10px;
+	background: linear-gradient(180deg,
+		var(--background-secondary),
+		color-mix(in srgb, var(--background-secondary) 90%, var(--atlas-accent, #6366f1)));
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 10px;
+	text-align: center;
+	transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+	            box-shadow 220ms ease;
+}
+.atlas-study-stat-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 14px rgba(0, 229, 229, 0.18);
+}
+.atlas-study-stat-value {
+	font-size: 20px;
+	font-weight: 700;
+	background: linear-gradient(135deg, #00e5e5, #6366f1);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	font-variant-numeric: tabular-nums;
+}
+.atlas-study-stat-value.is-orange {
+	background: linear-gradient(135deg, #f59e0b, #ea580c);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+.atlas-study-stat-label {
+	font-size: 10px;
+	opacity: 0.65;
+	margin-top: 4px;
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+
+.atlas-study-qa-bar {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+.atlas-study-qa-bar button {
+	padding: 10px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.atlas-study-decks-head {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	margin-top: 12px;
+	margin-bottom: 8px;
+	padding-left: 8px;
+	border-left: 3px solid var(--atlas-accent, #00e5e5);
+	opacity: 0.85;
+}
+.atlas-study-decks-list {
+	max-height: calc(100vh - 420px);
+	overflow-y: auto;
+	padding-right: 4px;
+}
+.atlas-study-decks-list::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-study-decks-list::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+.atlas-study-deck-row {
+	display: flex;
+	align-items: center;
+	padding: 8px 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	margin-bottom: 4px;
+	font-size: 12px;
+	border: 1px solid transparent;
+	transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atlas-study-deck-row:hover {
+	border-color: rgba(0, 229, 229, 0.35);
+	transform: translateX(3px);
+	box-shadow: 0 4px 8px rgba(0, 229, 229, 0.12);
+}
+.atlas-study-deck-name {
+	flex-grow: 1;
+	font-weight: 500;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.atlas-study-deck-count {
+	opacity: 0.65;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Papers list */
+.atlas-study-papers-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: calc(100vh - 320px);
+	overflow-y: auto;
+	padding-right: 4px;
+}
+.atlas-study-papers-list::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-study-papers-list::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+.atlas-study-paper-row {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	padding: 10px 12px;
+}
+.atlas-study-paper-title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+.atlas-study-paper-meta-1 {
+	font-size: 10px;
+	opacity: 0.65;
+}
+.atlas-study-paper-meta-2 {
+	display: flex;
+	gap: 12px;
+	font-size: 10px;
+	opacity: 0.55;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Courses sub-view */
+.atlas-study-courses-filters {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+	align-items: center;
+}
+.atlas-study-courses-filters button {
+	font-size: 11px;
+	padding: 6px 12px;
+}
+.atlas-study-filter-pill {
+	border-radius: 999px;
+}
+
+.atlas-study-courses-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 10px;
+	max-height: calc(100vh - 380px);
+	overflow-y: auto;
+	padding-right: 4px;
+}
+.atlas-study-courses-grid::-webkit-scrollbar {
+	width: 6px;
+}
+.atlas-study-courses-grid::-webkit-scrollbar-thumb {
+	background: rgba(0, 229, 229, 0.25);
+	border-radius: 3px;
+}
+
+.atlas-study-course-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 14px;
+}
+.atlas-study-course-top {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.atlas-study-course-icon {
+	font-size: 18px;
+	flex-shrink: 0;
+}
+.atlas-study-course-title-wrap {
+	flex-grow: 1;
+	min-width: 0;
+}
+.atlas-study-course-name {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--text-normal);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.atlas-study-course-provider {
+	font-size: 10px;
+	opacity: 0.65;
+}
+.atlas-study-course-stars {
+	font-size: 10px;
+}
+.atlas-study-course-prog-label {
+	font-size: 10px;
+	opacity: 0.75;
+	display: flex;
+	justify-content: space-between;
+	font-variant-numeric: tabular-nums;
+}
+.atlas-study-course-meta {
+	display: flex;
+	gap: 12px;
+	font-size: 10px;
+	opacity: 0.72;
+	flex-wrap: wrap;
 }

@@ -5,125 +5,93 @@ import type AtlasPlugin from "../../../../main";
  * Serendipity sub-view — feed dos insights gerados pela engine.
  *
  * Mostra histórico de notas que Atlas resgatou + botão "Forçar 1 agora".
+ * v0.27: polish premium com utility classes + cyan accents + hover lifts.
  */
 export async function renderLabSerendipity(
 	container: HTMLElement,
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-lab-serendipity", "atlas-section-stagger");
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
-	intro.setText(
-		"Atlas resgata 3×/dia (10h, 14h, 19h) uma nota antiga relevante. Aqui você vê o histórico e pode forçar um insight agora."
-	);
+	// Header com gradient title
+	const header = container.createDiv({ cls: "atlas-tab-section-header" });
+	header.createEl("h3", {
+		cls: "atlas-tab-section-title",
+		text: "💡 Serendipity Engine",
+	});
+	container.createEl("div", {
+		cls: "atlas-tab-section-subtitle",
+		text: "Atlas resgata 3×/dia (10h, 14h, 19h) uma nota antiga relevante. Você pode forçar agora ou ver o histórico.",
+	});
 
 	// Action bar
-	const actions = container.createDiv();
-	actions.style.display = "flex";
-	actions.style.gap = "8px";
-	actions.style.marginBottom = "12px";
-
-	const forceBtn = actions.createEl("button", { text: "💡 Forçar 1 insight agora" });
-	forceBtn.style.fontSize = "12px";
-	forceBtn.style.padding = "6px 14px";
-	forceBtn.addClass("mod-cta");
+	const actions = container.createDiv({ cls: "atlas-lab-serendipity-actions" });
+	const forceBtn = actions.createEl("button", {
+		cls: "mod-cta",
+		text: "💡 Forçar 1 insight agora",
+	});
 	forceBtn.addEventListener("click", async () => {
 		forceBtn.setText("Pensando...");
 		forceBtn.disabled = true;
 		try {
 			await plugin.serendipity.tick();
-			new Notice("Atlas: insight gerado (veja a notification + lista abaixo).");
+			new Notice("Atlas: insight gerado.");
 		} catch (e) {
 			new Notice(`Atlas: ${String(e)}`, 8000);
 		}
-		forceBtn.setText("💡 Forçar 1 insight agora");
-		forceBtn.disabled = false;
 		void renderLabSerendipity(container, plugin);
 	});
 
 	const refreshBtn = actions.createEl("button", { text: "↻ Atualizar" });
-	refreshBtn.style.fontSize = "11px";
-	refreshBtn.style.padding = "6px 12px";
 	refreshBtn.addEventListener("click", () => void renderLabSerendipity(container, plugin));
 
-	// Feed
-	const feedHeader = container.createEl("div", { text: "Histórico recente (últimos 15)" });
-	feedHeader.style.fontSize = "10px";
-	feedHeader.style.fontWeight = "bold";
-	feedHeader.style.opacity = "0.7";
-	feedHeader.style.marginBottom = "6px";
-	feedHeader.style.letterSpacing = "0.5px";
+	// Divider
+	container.createDiv({ cls: "atlas-tab-section-divider" });
 
-	const list = container.createDiv();
-	list.style.maxHeight = "calc(100vh - 280px)";
-	list.style.overflowY = "auto";
+	const list = container.createDiv({ cls: "atlas-lab-serendipity-list" });
 
 	const recent = plugin.serendipity?.recent(15) ?? [];
 	if (recent.length === 0) {
-		const empty = list.createDiv();
-		empty.style.padding = "32px 16px";
-		empty.style.textAlign = "center";
-		empty.style.opacity = "0.6";
-		empty.setText(
-			"📭 Nenhum insight ainda. Click 'Forçar 1 insight agora' acima ou aguarde o próximo tick (10h/14h/19h)."
-		);
+		const empty = list.createDiv({ cls: "atlas-tab-empty-state" });
+		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "📭" });
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-title",
+			text: "Nenhum insight ainda",
+		});
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-desc",
+			text: "Click 'Forçar 1 insight agora' acima ou aguarde o próximo tick (10h/14h/19h).",
+		});
 		return;
 	}
 
 	for (const item of recent) {
-		const card = list.createDiv();
-		card.style.padding = "10px 12px";
-		card.style.marginBottom = "6px";
-		card.style.background = "var(--background-secondary)";
-		card.style.borderRadius = "6px";
-		card.style.border = "1px solid var(--background-modifier-border)";
-		card.style.cursor = "pointer";
-		card.style.transition = "border-color 120ms";
+		const card = list.createDiv({ cls: "atlas-tab-card-premium atlas-lab-serendipity-card" });
 
-		card.addEventListener("mouseenter", () => {
-			card.style.borderColor = "var(--interactive-accent)";
-		});
-		card.addEventListener("mouseleave", () => {
-			card.style.borderColor = "var(--background-modifier-border)";
-		});
+		const top = card.createDiv({ cls: "atlas-lab-serendipity-card-top" });
+		top.createEl("span", { cls: "atlas-lab-serendipity-icon", text: "💡" });
 
-		const top = card.createDiv();
-		top.style.display = "flex";
-		top.style.alignItems = "center";
-		top.style.gap = "10px";
-
-		const iconEl = top.createEl("span", { text: "💡" });
-		iconEl.style.fontSize = "18px";
-
-		const wrap = top.createDiv();
-		wrap.style.flexGrow = "1";
+		const wrap = top.createDiv({ cls: "atlas-lab-serendipity-body" });
 		const file = plugin.app.vault.getAbstractFileByPath(item.path);
 		const titleText = file instanceof TFile ? file.basename : item.path;
-		const titleEl = wrap.createEl("div", { text: titleText });
-		titleEl.style.fontSize = "13px";
-		titleEl.style.fontWeight = "500";
+		wrap.createEl("div", {
+			cls: "atlas-lab-serendipity-title",
+			text: titleText,
+		});
 
-		const subEl = wrap.createEl("div");
-		subEl.style.fontSize = "10px";
-		subEl.style.opacity = "0.65";
 		const shownDate = new Date(item.shownAt);
 		const ago = relativeTime(shownDate);
-		subEl.setText(
-			`Mostrado ${ago} · ${item.dismissed > 0 ? `dispensado ${item.dismissed}× · ` : ""}${item.path}`
-		);
+		const dismissedSuffix = item.dismissed > 0 ? `dispensado ${item.dismissed}× · ` : "";
+		wrap.createEl("div", {
+			cls: "atlas-lab-serendipity-meta",
+			text: `Mostrado ${ago} · ${dismissedSuffix}${item.path}`,
+		});
 
-		// Open + dismiss buttons
-		const btns = card.createDiv();
-		btns.style.display = "flex";
-		btns.style.gap = "6px";
-		btns.style.marginTop = "6px";
+		// Action buttons
+		const btns = card.createDiv({ cls: "atlas-lab-serendipity-actions-row" });
 
 		const openBtn = btns.createEl("button", { text: "📖 Abrir" });
-		openBtn.style.fontSize = "10px";
-		openBtn.style.padding = "4px 10px";
 		openBtn.addEventListener("click", async (ev) => {
 			ev.stopPropagation();
 			if (file instanceof TFile) {
@@ -134,8 +102,6 @@ export async function renderLabSerendipity(
 		});
 
 		const dismissBtn = btns.createEl("button", { text: "🚫 Dispensar" });
-		dismissBtn.style.fontSize = "10px";
-		dismissBtn.style.padding = "4px 10px";
 		dismissBtn.title = "Marcar como 'não relevante' — Atlas evita recomendar de novo";
 		dismissBtn.addEventListener("click", (ev) => {
 			ev.stopPropagation();

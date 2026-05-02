@@ -17,36 +17,32 @@ export async function renderReportsTemplates(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-reports-templates", "atlas-section-stagger");
 
 	if (!plugin.templateStore) {
-		const err = container.createDiv();
-		err.style.padding = "16px";
-		err.style.color = "var(--color-red)";
-		err.setText("Atlas: TemplateStore não inicializado.");
+		const err = container.createDiv({ cls: "atlas-tab-empty-state" });
+		err.createEl("div", { cls: "atlas-tab-empty-emoji", text: "⚠️" });
+		err.createEl("div", { cls: "atlas-tab-empty-title", text: "TemplateStore não inicializado" });
 		return;
 	}
 
-	// Header com ações
-	const header = container.createDiv();
-	header.style.display = "flex";
-	header.style.justifyContent = "space-between";
-	header.style.alignItems = "center";
-	header.style.marginBottom = "10px";
+	// Header com ações (premium)
+	const header = container.createDiv({ cls: "atlas-tab-section-header" });
 
-	const subtitle = header.createDiv();
-	subtitle.style.fontSize = "11px";
-	subtitle.style.opacity = "0.7";
+	const titleWrap = header.createDiv();
+	titleWrap.createEl("h3", {
+		cls: "atlas-tab-section-title",
+		text: "📐 Templates",
+	});
 	const list = plugin.templateStore.list();
-	subtitle.setText(`${list.length} templates · drag-drop blocks no editor`);
+	titleWrap.createEl("div", {
+		cls: "atlas-tab-section-subtitle",
+		text: `${list.length} templates · drag-drop blocks no editor visual`,
+	});
 
-	const actions = header.createDiv();
-	actions.style.display = "flex";
-	actions.style.gap = "6px";
+	const actions = header.createDiv({ cls: "atlas-reports-templates-actions" });
 
-	const newBtn = actions.createEl("button", { text: "+ Novo" });
-	newBtn.style.fontSize = "11px";
-	newBtn.style.padding = "4px 10px";
-	newBtn.addClass("mod-cta");
+	const newBtn = actions.createEl("button", { cls: "mod-cta", text: "+ Novo" });
 	newBtn.addEventListener("click", () => {
 		const newT: AtlasTemplate = {
 			id: `custom-${Date.now().toString(36)}`,
@@ -65,16 +61,12 @@ export async function renderReportsTemplates(
 	});
 
 	const pickerBtn = actions.createEl("button", { text: "📐 Picker" });
-	pickerBtn.style.fontSize = "11px";
-	pickerBtn.style.padding = "4px 10px";
 	pickerBtn.title = "Abrir picker modal completo";
 	pickerBtn.addEventListener("click", () => {
 		new TemplatePickerModal(plugin.app, plugin).open();
 	});
 
 	const resetBtn = actions.createEl("button", { text: "↻ Reset" });
-	resetBtn.style.fontSize = "11px";
-	resetBtn.style.padding = "4px 10px";
 	resetBtn.title = "Resetar para os defaults";
 	resetBtn.addEventListener("click", async () => {
 		const { confirmAsync } = await import("../../../ui/confirm-modal");
@@ -90,21 +82,20 @@ export async function renderReportsTemplates(
 		void renderReportsTemplates(container, plugin);
 	});
 
+	container.createDiv({ cls: "atlas-tab-section-divider" });
+
 	// Grid
-	const grid = container.createDiv();
-	grid.style.display = "grid";
-	grid.style.gridTemplateColumns = "repeat(auto-fill, minmax(220px, 1fr))";
-	grid.style.gap = "8px";
-	grid.style.maxHeight = "calc(100vh - 280px)";
-	grid.style.overflowY = "auto";
+	const grid = container.createDiv({ cls: "atlas-reports-templates-grid" });
 
 	if (list.length === 0) {
-		const empty = grid.createDiv();
+		const empty = grid.createDiv({ cls: "atlas-tab-empty-state" });
 		empty.style.gridColumn = "1 / -1";
-		empty.style.padding = "32px 16px";
-		empty.style.textAlign = "center";
-		empty.style.opacity = "0.6";
-		empty.setText("Nenhum template — click '+ Novo' acima.");
+		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "📐" });
+		empty.createEl("div", { cls: "atlas-tab-empty-title", text: "Nenhum template" });
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-desc",
+			text: "Click '+ Novo' acima para criar seu primeiro template.",
+		});
 		return;
 	}
 
@@ -137,13 +128,7 @@ export async function renderReportsTemplates(
 		const items = byCategory.get(cat);
 		if (!items || items.length === 0) continue;
 
-		const catHeader = grid.createDiv();
-		catHeader.style.gridColumn = "1 / -1";
-		catHeader.style.fontSize = "10px";
-		catHeader.style.fontWeight = "bold";
-		catHeader.style.opacity = "0.7";
-		catHeader.style.marginTop = "8px";
-		catHeader.style.letterSpacing = "0.5px";
+		const catHeader = grid.createDiv({ cls: "atlas-reports-templates-cat" });
 		catHeader.setText(categoryLabel[cat]);
 
 		for (const t of items) {
@@ -158,60 +143,24 @@ function renderTemplateCard(
 	t: AtlasTemplate,
 	onChange: () => void
 ): void {
-	const card = parent.createDiv();
-	card.style.background = "var(--background-secondary)";
-	card.style.borderRadius = "6px";
-	card.style.padding = "10px";
-	card.style.display = "flex";
-	card.style.flexDirection = "column";
-	card.style.gap = "6px";
-	card.style.border = "1px solid var(--background-modifier-border)";
-	card.style.transition = "border-color 120ms";
+	const card = parent.createDiv({ cls: "atlas-tab-card-premium atlas-reports-template-card" });
 
-	card.addEventListener("mouseenter", () => {
-		card.style.borderColor = "var(--interactive-accent)";
-	});
-	card.addEventListener("mouseleave", () => {
-		card.style.borderColor = "var(--background-modifier-border)";
-	});
+	const top = card.createDiv({ cls: "atlas-reports-template-top" });
+	top.createEl("span", { cls: "atlas-reports-template-icon", text: t.icon });
 
-	const top = card.createDiv();
-	top.style.display = "flex";
-	top.style.alignItems = "center";
-	top.style.gap = "8px";
+	const nameWrap = top.createDiv({ cls: "atlas-reports-template-name-wrap" });
+	nameWrap.createEl("div", { cls: "atlas-reports-template-name", text: t.name });
+	nameWrap.createEl("div", { cls: "atlas-reports-template-meta", text: `${t.blocks.length} blocks` });
 
-	const iconEl = top.createEl("span", { text: t.icon });
-	iconEl.style.fontSize = "18px";
-
-	const nameWrap = top.createDiv();
-	nameWrap.style.flexGrow = "1";
-	const nameEl = nameWrap.createEl("div", { text: t.name });
-	nameEl.style.fontSize = "12px";
-	nameEl.style.fontWeight = "bold";
-	const metaEl = nameWrap.createEl("div", { text: `${t.blocks.length} blocks` });
-	metaEl.style.fontSize = "10px";
-	metaEl.style.opacity = "0.5";
-
-	const desc = card.createEl("div", { text: t.description });
-	desc.style.fontSize = "11px";
-	desc.style.opacity = "0.7";
-	desc.style.minHeight = "30px";
+	card.createEl("div", { cls: "atlas-reports-template-desc", text: t.description });
 
 	// Actions
-	const actionRow = card.createDiv();
-	actionRow.style.display = "flex";
-	actionRow.style.gap = "4px";
-	actionRow.style.marginTop = "auto";
+	const actionRow = card.createDiv({ cls: "atlas-reports-template-actions" });
 
-	const useBtn = actionRow.createEl("button", { text: "▶️ Usar" });
-	useBtn.style.fontSize = "10px";
-	useBtn.style.flexGrow = "1";
-	useBtn.addClass("mod-cta");
+	const useBtn = actionRow.createEl("button", { cls: "mod-cta", text: "▶️ Usar" });
 	useBtn.addEventListener("click", () => void useTemplate(plugin, t));
 
 	const editBtn = actionRow.createEl("button", { text: "✏️" });
-	editBtn.style.fontSize = "11px";
-	editBtn.style.padding = "0 8px";
 	editBtn.title = "Editar template";
 	editBtn.addEventListener("click", () => {
 		const modal = new TemplateEditorModal(plugin.app, plugin, t);
@@ -225,8 +174,6 @@ function renderTemplateCard(
 
 	if (t.id.startsWith("custom-")) {
 		const delBtn = actionRow.createEl("button", { text: "🗑️" });
-		delBtn.style.fontSize = "11px";
-		delBtn.style.padding = "0 6px";
 		delBtn.title = "Deletar template (só customs)";
 		delBtn.addEventListener("click", async () => {
 			const { confirmAsync } = await import("../../../ui/confirm-modal");

@@ -16,38 +16,38 @@ interface CapsuleEntry {
 /**
  * Time Capsules sub-view — listar cápsulas (pendentes / desbloqueadas / entregues)
  * + botão "+ Nova" abre TimeCapsuleModal.
+ *
+ * v0.27: polish premium com utility classes + cyan accents + grouped sections.
  */
 export async function renderLabCapsules(
 	container: HTMLElement,
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-lab-capsules", "atlas-section-stagger");
 
-	const intro = container.createDiv();
-	intro.style.fontSize = "11px";
-	intro.style.opacity = "0.7";
-	intro.style.marginBottom = "12px";
-	intro.setText(
-		`Notas que você sela hoje pra abrir no futuro. Atlas avisa na data marcada. Pasta: ${CAPSULE_FOLDER}`
-	);
+	// Header
+	const header = container.createDiv({ cls: "atlas-tab-section-header" });
+	header.createEl("h3", {
+		cls: "atlas-tab-section-title",
+		text: "🕰️ Time Capsules",
+	});
+	container.createEl("div", {
+		cls: "atlas-tab-section-subtitle",
+		text: `Notas que você sela hoje pra abrir no futuro. Atlas avisa na data marcada. Pasta: ${CAPSULE_FOLDER}`,
+	});
 
 	// Action bar
-	const actions = container.createDiv();
-	actions.style.display = "flex";
-	actions.style.gap = "8px";
-	actions.style.marginBottom = "12px";
-
-	const newBtn = actions.createEl("button", { text: "+ Nova cápsula" });
-	newBtn.style.fontSize = "12px";
-	newBtn.style.padding = "6px 14px";
-	newBtn.addClass("mod-cta");
+	const actions = container.createDiv({ cls: "atlas-lab-serendipity-actions" });
+	const newBtn = actions.createEl("button", {
+		cls: "mod-cta",
+		text: "+ Nova cápsula",
+	});
 	newBtn.addEventListener("click", () => {
 		new TimeCapsuleModal(plugin.app, plugin).open();
 	});
 
 	const checkBtn = actions.createEl("button", { text: "🔔 Verificar entregas hoje" });
-	checkBtn.style.fontSize = "11px";
-	checkBtn.style.padding = "6px 12px";
 	checkBtn.addEventListener("click", async () => {
 		const apiAny = plugin.app as unknown as {
 			commands?: { executeCommandById?: (id: string) => void };
@@ -58,19 +58,22 @@ export async function renderLabCapsules(
 	});
 
 	const refreshBtn = actions.createEl("button", { text: "↻" });
-	refreshBtn.style.fontSize = "11px";
-	refreshBtn.style.padding = "6px 10px";
 	refreshBtn.addEventListener("click", () => void renderLabCapsules(container, plugin));
+
+	container.createDiv({ cls: "atlas-tab-section-divider" });
 
 	const capsules = await collectCapsules(plugin);
 	if (capsules.length === 0) {
-		const empty = container.createDiv();
-		empty.style.padding = "32px 16px";
-		empty.style.textAlign = "center";
-		empty.style.opacity = "0.6";
-		empty.setText(
-			"🕰️ Você ainda não tem cápsulas. Click '+ Nova cápsula' para escrever uma carta pro seu eu futuro."
-		);
+		const empty = container.createDiv({ cls: "atlas-tab-empty-state" });
+		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🕰️" });
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-title",
+			text: "Nenhuma cápsula ainda",
+		});
+		empty.createEl("div", {
+			cls: "atlas-tab-empty-desc",
+			text: "Click '+ Nova cápsula' para escrever uma carta pro seu eu futuro.",
+		});
 		return;
 	}
 
@@ -85,9 +88,7 @@ export async function renderLabCapsules(
 		.filter((c) => c.delivered)
 		.sort((a, b) => b.unlockDate.localeCompare(a.unlockDate));
 
-	const list = container.createDiv();
-	list.style.maxHeight = "calc(100vh - 320px)";
-	list.style.overflowY = "auto";
+	const list = container.createDiv({ cls: "atlas-lab-capsules-list" });
 
 	if (unlocked.length > 0) {
 		section(list, "🎁 Prontas pra abrir", unlocked, plugin, "unlocked");
@@ -107,66 +108,36 @@ function section(
 	plugin: AtlasPlugin,
 	kind: "pending" | "unlocked" | "delivered"
 ): void {
-	const header = parent.createDiv();
-	header.style.fontSize = "11px";
-	header.style.fontWeight = "bold";
-	header.style.opacity = "0.7";
-	header.style.marginTop = "16px";
-	header.style.marginBottom = "6px";
-	header.style.letterSpacing = "0.5px";
+	const header = parent.createDiv({ cls: "atlas-lab-capsules-section-title" });
 	header.setText(`${title}  (${items.length})`);
 
 	for (const c of items) {
-		const card = parent.createDiv();
-		card.style.padding = "10px 12px";
-		card.style.marginBottom = "6px";
-		card.style.background = "var(--background-secondary)";
-		card.style.borderRadius = "6px";
-		card.style.cursor = "pointer";
-		card.style.borderLeft = `3px solid ${borderColor(kind)}`;
+		const card = parent.createDiv({ cls: `atlas-tab-card-premium atlas-lab-capsules-card is-${kind}` });
 
-		const top = card.createDiv();
-		top.style.display = "flex";
-		top.style.alignItems = "center";
-		top.style.gap = "10px";
+		const top = card.createDiv({ cls: "atlas-lab-capsules-card-top" });
+		const icon = kind === "delivered" ? "📬" : kind === "unlocked" ? "🎁" : "🔒";
+		top.createEl("span", { cls: "atlas-lab-capsules-icon", text: icon });
 
-		const iconEl = top.createEl("span", { text: kind === "delivered" ? "📬" : kind === "unlocked" ? "🎁" : "🔒" });
-		iconEl.style.fontSize = "16px";
+		const wrap = top.createDiv({ cls: "atlas-lab-capsules-body" });
+		wrap.createEl("div", {
+			cls: "atlas-lab-capsules-title",
+			text: c.title,
+		});
 
-		const wrap = top.createDiv();
-		wrap.style.flexGrow = "1";
-		const titleEl = wrap.createEl("div", { text: c.title });
-		titleEl.style.fontSize = "12px";
-		titleEl.style.fontWeight = "500";
-
-		const subEl = wrap.createEl("div");
-		subEl.style.fontSize = "10px";
-		subEl.style.opacity = "0.65";
-
+		const subEl = wrap.createEl("div", { cls: "atlas-lab-capsules-meta" });
+		const createdShort = c.createdAt.substring(0, 10);
 		if (kind === "pending") {
-			subEl.setText(`Abre em ${c.daysUntil} dias (${c.unlockDate}) · criada ${c.createdAt.substring(0, 10)}`);
+			subEl.setText(`Abre em ${c.daysUntil} dias (${c.unlockDate}) · criada ${createdShort}`);
 		} else if (kind === "unlocked") {
+			subEl.addClass("is-ready");
 			subEl.setText(`⚡ Liberada há ${-c.daysUntil} dias (${c.unlockDate}) · CLIQUE para abrir`);
-			subEl.style.color = "var(--color-orange)";
-			subEl.style.fontWeight = "bold";
 		} else {
-			subEl.setText(`Entregue em ${c.unlockDate} · criada ${c.createdAt.substring(0, 10)}`);
+			subEl.setText(`Entregue em ${c.unlockDate} · criada ${createdShort}`);
 		}
 
 		card.addEventListener("click", async () => {
 			await plugin.app.workspace.getLeaf().openFile(c.file);
 		});
-	}
-}
-
-function borderColor(kind: "pending" | "unlocked" | "delivered"): string {
-	switch (kind) {
-		case "unlocked":
-			return "var(--color-orange)";
-		case "pending":
-			return "var(--color-blue)";
-		case "delivered":
-			return "var(--color-green)";
 	}
 }
 
