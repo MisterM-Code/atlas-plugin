@@ -320,11 +320,16 @@ export default class AtlasPlugin extends Plugin {
 		// Coach scope init
 		await initializeCoachFolders(this);
 
-		// Status bar
+		// Status bar — v0.8.4: click toggle HUD; right-click toggle coach mode
 		this.statusBar = this.addStatusBarItem();
 		this.statusBar.addClass("atlas-status");
 		this.statusBar.style.cursor = "pointer";
-		this.statusBar.addEventListener("click", () => void toggleCoachMode(this));
+		this.statusBar.title = "Click: toggle HUD · Right-click: toggle coach mode";
+		this.statusBar.addEventListener("click", () => this.hud?.toggle());
+		this.statusBar.addEventListener("contextmenu", (e) => {
+			e.preventDefault();
+			void toggleCoachMode(this);
+		});
 		this.updateStatusBar();
 
 		// Register chat view

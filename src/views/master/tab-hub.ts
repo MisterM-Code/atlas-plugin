@@ -159,10 +159,18 @@ export async function renderHubTab(container: HTMLElement, plugin: AtlasPlugin):
 
 	const renderTaskRow = (parent: HTMLElement, t: VaultTask): void => {
 		const row = parent.createDiv();
+		// v0.8.4: card category por urgência
+		const todayStr2 = new Date().toISOString().split("T")[0];
+		const dueIso2 = t.dueDate?.toISOString().split("T")[0];
+		if (dueIso2) {
+			if (dueIso2 < todayStr2) row.addClass("atlas-card-action-overdue");
+			else if (dueIso2 === todayStr2) row.addClass("atlas-card-action-today");
+			else row.addClass("atlas-card-action-future");
+		}
 		row.style.display = "flex";
 		row.style.alignItems = "flex-start";
 		row.style.gap = "6px";
-		row.style.padding = "6px";
+		row.style.padding = "6px 8px";
 		row.style.borderRadius = "4px";
 		row.style.marginLeft = "8px";
 		row.style.background = "var(--background-secondary)";

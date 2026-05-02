@@ -4,6 +4,48 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.8.4] — 2026-05-02 — "Polish: Sound FX wired + Hub cards + Status bar HUD"
+
+### Added — Sound FX wired
+
+- Tab activate (Master Sidebar) toca `playDing()` se `settings.animations.soundEffects` ON
+- (achievement unlock + level up já tocavam confetti + visual; agora consistente)
+
+### Added — Action Items Hub card categories
+
+- Cada task no Hub recebe class por urgência:
+  - `.atlas-card-action-overdue` → border-left vermelho (atrasada)
+  - `.atlas-card-action-today` → border-left laranja (vence hoje)
+  - `.atlas-card-action-future` → border-left verde (futuro)
+- Visual scan rápido de prioridade
+
+### Changed — Status bar Atlas indicator agora abre HUD
+
+- Click → toggle HUD floating (Cmd+Shift+H equivalent)
+- Right-click → toggle Coach Mode (era click antes)
+- Title atualizado: "Click: toggle HUD · Right-click: toggle coach mode"
+
+### Fixed — innerHTML zero em LLM outputs
+
+- `reasoning-modal.ts` `renderAnswer()` refatorado: tokenizer regex + `createEl()` em vez de innerHTML
+- `appendInlineTokens()` cria `<strong>`, `<code>` via DOM API
+- Suporta headings (h3/h4), bullets, paragraphs, line breaks
+- chat-view.ts já tinha sido refatorado em v0.8.2
+
+### Status XSS
+
+| Lugar | innerHTML antes | innerHTML agora |
+|---|---|---|
+| chat-view.ts | LLM output | ✅ DOM API (v0.8.2) |
+| reasoning-modal.ts | LLM output | ✅ DOM API (v0.8.4) |
+| splash.ts | hardcoded SVG | OK (estático) |
+| tutorial-system.ts | renderInline interno | OK (controlado) |
+| weekly-report.ts | Mermaid output | OK (interno) |
+| auto-link-systems.ts | system names | OK (controlado) |
+| onboarding.ts | help text hardcoded | OK (estático) |
+
+LLM output → 0 innerHTML. Reviewer Obsidian feliz.
+
 ## [0.8.3] — 2026-05-02 — "Vision Multimodal"
 
 ### Added — Vision (multimodal via llama3.2-vision)

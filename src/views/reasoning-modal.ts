@@ -290,18 +290,67 @@ Comece com <thinking>:`;
 		}
 	}
 
+	// v0.8.4: refactor innerHTML → DOM API (XSS-safe, mesmo com LLM local)
 	private renderAnswer(text: string): void {
 		this.answerEl.empty();
-		const html = this.escapeHtml(text)
-			.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-			.replace(/`([^`]+)`/g, "<code>$1</code>")
-			.replace(/^### (.+)$/gm, "<h4>$1</h4>")
-			.replace(/^## (.+)$/gm, "<h3>$1</h3>")
-			.replace(/^# (.+)$/gm, "<h3>$1</h3>")
-			.replace(/^- (.+)$/gm, "• $1")
-			.replace(/\n\n+/g, "<br/><br/>")
-			.replace(/\n/g, "<br/>");
-		this.answerEl.innerHTML = html;
+		const lines = text.split("\n");
+		let buffer: HTMLElement | null = null;
+
+		const ensureParagraph = (): HTMLElement => {
+			if (!buffer || buffer.tagName !== "P") {
+				buffer = this.answerEl.createEl("p");
+				buffer.style.margin = "0 0 8px 0";
+			}
+			return buffer;
+		};
+
+		for (const rawLine of lines) {
+			const line = rawLine;
+			if (line.startsWith("### ")) {
+				buffer = this.answerEl.createEl("h4", { text: line.substring(4) });
+				continue;
+			}
+			if (line.startsWith("## ")) {
+				buffer = this.answerEl.createEl("h3", { text: line.substring(3) });
+				continue;
+			}
+			if (line.startsWith("# ")) {
+				buffer = this.answerEl.createEl("h3", { text: line.substring(2) });
+				continue;
+			}
+			if (line.trim().length === 0) {
+				if (buffer) {
+					this.answerEl.createEl("br");
+					buffer = null;
+				}
+				continue;
+			}
+			const para = ensureParagraph();
+			if (line.startsWith("- ")) {
+				para.appendText("• ");
+				this.appendInlineTokens(para, line.substring(2));
+			} else {
+				if (para.childNodes.length > 0) para.createEl("br");
+				this.appendInlineTokens(para, line);
+			}
+		}
+	}
+
+	private appendInlineTokens(container: HTMLElement, line: string): void {
+		const re = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+		let lastIdx = 0;
+		let m: RegExpExecArray | null;
+		while ((m = re.exec(line)) !== null) {
+			if (m.index > lastIdx) container.appendText(line.substring(lastIdx, m.index));
+			const tk = m[0];
+			if (tk.startsWith("**")) {
+				container.createEl("strong", { text: tk.slice(2, -2) });
+			} else if (tk.startsWith("`")) {
+				container.createEl("code", { text: tk.slice(1, -1) });
+			}
+			lastIdx = m.index + tk.length;
+		}
+		if (lastIdx < line.length) container.appendText(line.substring(lastIdx));
 	}
 
 	private escapeHtml(s: string): string {

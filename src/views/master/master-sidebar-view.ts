@@ -92,6 +92,13 @@ export class AtlasMasterSidebarView extends ItemView {
 		const prev = this.tabs.find((t) => t.id === this.currentTab);
 		if (prev?.onClose) prev.onClose(this.plugin);
 
+		// v0.8.4: sound FX no tab switch (se enabled)
+		if (this.plugin.settings.animations?.soundEffects) {
+			void import("../../ui/sound-fx").then((m) =>
+				m.playDing({ enabled: true })
+			);
+		}
+
 		this.currentTab = id;
 		this.renderActivityBar();
 		this.tabContentEl.empty();
