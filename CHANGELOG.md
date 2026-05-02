@@ -4,6 +4,35 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.8.2] — 2026-05-02 — "Spotlight Premium + innerHTML refactor"
+
+### Added — Atlas Spotlight visual upgrade (v0.8.1)
+
+Cmd+K spotlight com look Linear/Raycast:
+- Gradient cosmic no header (atlas-accent-soft fade)
+- Ícone ⚡ accent na barra de busca
+- Animação fadeIn + scaleIn (180ms) ao abrir
+- Active row com box-shadow inset accent + ↵ keystroke hint visível
+- Categories como badges UPPERCASE com letter-spacing
+- Smooth transitions em hover
+
+### Fixed — innerHTML XSS surface zero (v0.8.2)
+
+Chat-view.ts agora renderiza assistant content via DOM API pure (zero innerHTML):
+- `renderAssistantContentToDom()` substitui `renderAssistantContent()`
+- Tokenizer regex pra **bold**, `code`, [Nota: x] highlight
+- `appendInlineTokens()` cria `<strong>`, `<code>`, `<span>` via createEl
+- Mantém todas funcionalidades visuais sem riscos XSS
+
+Acelera review do PR oficial #12473 — reviewer Obsidian costuma flagger innerHTML em LLM output.
+
+### Métricas
+
+| | v0.8.0 | v0.8.2 |
+|---|---|---|
+| main.js | 1.81 MB | 1.82 MB |
+| innerHTML criticos (LLM output) | 1 (chat-view) | **0** |
+
 ## [0.8.0] — 2026-05-02 — "Voice in Chat"
 
 Inicia roadmap v0.8. Foco em consolidação de Jarvis no fluxo principal (chat).

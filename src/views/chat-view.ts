@@ -186,7 +186,7 @@ export class AtlasChatView extends ItemView {
 			lbl.style.opacity = "0.6";
 			lbl.style.marginBottom = "4px";
 			const body = wrap.createEl("div");
-			body.innerHTML = this.renderAssistantContent(content);
+			this.renderAssistantContentToDom(body, content);
 
 			if (citations.length > 0) {
 				const citWrap = wrap.createDiv();
@@ -234,26 +234,53 @@ export class AtlasChatView extends ItemView {
 		return el;
 	}
 
-	private renderAssistantContent(text: string): string {
-		// Minimal markdown-like rendering
-		let html = this.escapeHtml(text);
-		html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-		html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-		html = html.replace(/\[Nota:\s*([^\]]+)\]/g, '<span style="color:var(--interactive-accent);">📄 $1</span>');
-		html = html.replace(/\n\n+/g, "<br/><br/>");
-		html = html.replace(/\n/g, "<br/>");
-		return html;
+	/**
+	 * v0.8.2: Renderiza conteúdo do assistant via DOM API (sem innerHTML).
+	 * Suporta: **bold**, `code`, [Nota: x] highlight, quebras de linha.
+	 */
+	private renderAssistantContentToDom(container: HTMLElement, text: string): void {
+		container.empty();
+		const lines = text.split(/\n\n+/);
+		for (let i = 0; i < lines.length; i++) {
+			if (i > 0) {
+				container.createEl("br");
+				container.createEl("br");
+			}
+			const para = lines[i].split(/\n/);
+			for (let j = 0; j < para.length; j++) {
+				if (j > 0) container.createEl("br");
+				this.appendInlineTokens(container, para[j]);
+			}
+		}
 	}
 
-	private escapeHtml(s: string): string {
-		const map: Record<string, string> = {
-			"&": "&amp;",
-			"<": "&lt;",
-			">": "&gt;",
-			'"': "&quot;",
-			"'": "&#39;",
-		};
-		return s.replace(/[&<>"']/g, (c) => map[c]);
+	private appendInlineTokens(container: HTMLElement, line: string): void {
+		// Tokeniza: **bold**, `code`, [Nota: ...], texto plain
+		const re = /(\*\*[^*]+\*\*|`[^`]+`|\[Nota:\s*[^\]]+\])/g;
+		let lastIdx = 0;
+		let m: RegExpExecArray | null;
+		while ((m = re.exec(line)) !== null) {
+			if (m.index > lastIdx) {
+				container.appendText(line.substring(lastIdx, m.index));
+			}
+			const token = m[0];
+			if (token.startsWith("**") && token.endsWith("**")) {
+				const strong = container.createEl("strong");
+				strong.setText(token.slice(2, -2));
+			} else if (token.startsWith("`") && token.endsWith("`")) {
+				const code = container.createEl("code");
+				code.setText(token.slice(1, -1));
+			} else if (token.startsWith("[Nota:")) {
+				const span = container.createEl("span");
+				span.style.color = "var(--atlas-accent, var(--interactive-accent))";
+				const noteRef = token.replace(/^\[Nota:\s*|\]$/g, "");
+				span.setText(`📄 ${noteRef}`);
+			}
+			lastIdx = m.index + token.length;
+		}
+		if (lastIdx < line.length) {
+			container.appendText(line.substring(lastIdx));
+		}
 	}
 
 	private clearMessages(): void {

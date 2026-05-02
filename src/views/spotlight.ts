@@ -35,23 +35,44 @@ export class SpotlightModal extends Modal {
 		contentEl.empty();
 		applyResponsiveModal(contentEl, { preferredWidth: 720 });
 		(contentEl as HTMLElement).style.padding = "0";
+		// v0.8.1: gradient cosmic header (Linear/Raycast-style)
+		(contentEl as HTMLElement).style.borderRadius = "var(--atlas-radius-lg, 12px)";
+		(contentEl as HTMLElement).style.overflow = "hidden";
 
-		// Input
+		// Input com gradient header + accent glow
 		const inputWrap = contentEl.createDiv();
-		inputWrap.style.padding = "12px 16px";
-		inputWrap.style.borderBottom = "1px solid var(--background-modifier-border)";
+		inputWrap.style.padding = "14px 18px";
+		inputWrap.style.background =
+			"linear-gradient(135deg, var(--atlas-accent-soft, rgba(99,102,241,0.08)) 0%, transparent 100%)";
+		inputWrap.style.borderBottom = "1px solid var(--atlas-accent-soft, rgba(99,102,241,0.12))";
+		inputWrap.style.display = "flex";
+		inputWrap.style.alignItems = "center";
+		inputWrap.style.gap = "10px";
+
+		const searchIcon = inputWrap.createSpan({ text: "⚡" });
+		searchIcon.style.fontSize = "20px";
+		searchIcon.style.color = "var(--atlas-accent, var(--interactive-accent))";
 
 		this.inputEl = inputWrap.createEl("input", {
 			type: "search",
 			attr: { placeholder: "Atlas Spotlight — busque qualquer coisa ou ação…" },
 		}) as HTMLInputElement;
-		this.inputEl.style.width = "100%";
+		this.inputEl.style.flexGrow = "1";
 		this.inputEl.style.fontSize = "16px";
-		this.inputEl.style.padding = "8px";
+		this.inputEl.style.padding = "8px 4px";
 		this.inputEl.style.border = "none";
 		this.inputEl.style.outline = "none";
 		this.inputEl.style.background = "transparent";
 		this.inputEl.focus();
+
+		// v0.8.1: animação fadeIn + scaleIn no abrir
+		(contentEl as HTMLElement).animate(
+			[
+				{ opacity: 0, transform: "scale(0.96)" },
+				{ opacity: 1, transform: "scale(1)" },
+			],
+			{ duration: 180, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
+		);
 
 		// Results
 		this.listEl = contentEl.createDiv() as HTMLDivElement;
@@ -276,27 +297,46 @@ export class SpotlightModal extends Modal {
 			row.style.display = "flex";
 			row.style.alignItems = "center";
 			row.style.gap = "12px";
-			row.style.padding = "8px 16px";
+			row.style.padding = "10px 18px";
 			row.style.cursor = "pointer";
+			row.style.transition = "background var(--atlas-transition-fast, 120ms)";
 			if (i === this.selectedIdx) {
-				row.style.background = "var(--interactive-accent)";
-				row.style.color = "var(--text-on-accent)";
+				row.style.background = "var(--atlas-accent, var(--interactive-accent))";
+				row.style.color = "white";
+				row.style.boxShadow = "inset 3px 0 0 var(--atlas-accent-glow, rgba(99,102,241,0.5))";
 			}
 
 			const icon = row.createEl("span", { text: item.icon });
-			icon.style.fontSize = "16px";
-			icon.style.minWidth = "20px";
+			icon.style.fontSize = "18px";
+			icon.style.minWidth = "24px";
 
 			const wrap = row.createDiv();
 			wrap.style.flexGrow = "1";
+			wrap.style.minWidth = "0";
 			const title = wrap.createEl("div", { text: item.title });
 			title.style.fontSize = "13px";
 			title.style.fontWeight = "500";
+			title.style.whiteSpace = "nowrap";
+			title.style.overflow = "hidden";
+			title.style.textOverflow = "ellipsis";
 
 			if (item.subtitle) {
 				const sub = wrap.createEl("div", { text: item.subtitle });
 				sub.style.fontSize = "10px";
-				sub.style.opacity = i === this.selectedIdx ? "0.8" : "0.5";
+				sub.style.opacity = i === this.selectedIdx ? "0.85" : "0.55";
+				sub.style.whiteSpace = "nowrap";
+				sub.style.overflow = "hidden";
+				sub.style.textOverflow = "ellipsis";
+			}
+
+			// v0.8.1: Enter keystroke hint na linha selecionada
+			if (i === this.selectedIdx) {
+				const enterHint = row.createEl("span", { text: "↵" });
+				enterHint.style.fontSize = "12px";
+				enterHint.style.padding = "2px 8px";
+				enterHint.style.background = "rgba(255,255,255,0.2)";
+				enterHint.style.borderRadius = "4px";
+				enterHint.style.fontWeight = "bold";
 			}
 
 			const cat = row.createEl("span", { text: item.category });
@@ -308,6 +348,9 @@ export class SpotlightModal extends Modal {
 					? "rgba(255,255,255,0.2)"
 					: "var(--background-modifier-hover)";
 			cat.style.opacity = "0.7";
+			cat.style.fontWeight = "bold";
+			cat.style.letterSpacing = "0.3px";
+			cat.style.textTransform = "uppercase";
 
 			row.addEventListener("click", () => {
 				this.selectedIdx = i;
