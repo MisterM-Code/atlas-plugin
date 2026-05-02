@@ -11,40 +11,26 @@ type SystemFilter = "all" | "healthy" | "degraded" | "down" | "deprecated";
  */
 export async function renderSystemsTab(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	container.empty();
+	container.addClass("atlas-crud-tab");
 	let currentFilter: SystemFilter = "all";
 	let currentSearch = "";
 
 	// Header
-	const header = container.createDiv();
-	header.style.display = "flex";
-	header.style.justifyContent = "space-between";
-	header.style.alignItems = "center";
-	header.style.marginBottom = "10px";
-	header.createEl("h3", { text: "🖥️ Sistemas" }).style.margin = "0";
+	const header = container.createDiv({ cls: "atlas-crud-header" });
+	header.createEl("h3", { cls: "atlas-crud-title", text: "🖥️ Sistemas" });
 
-	const headerActions = header.createDiv();
-	headerActions.style.display = "flex";
-	headerActions.style.gap = "6px";
+	const headerActions = header.createDiv({ cls: "atlas-crud-header-actions" });
 
-	const addBtn = headerActions.createEl("button", { text: "+ Novo sistema" });
-	addBtn.addClass("mod-cta");
-	addBtn.style.fontSize = "12px";
-	addBtn.style.padding = "5px 10px";
+	const addBtn = headerActions.createEl("button", { cls: "atlas-crud-add-btn mod-cta", text: "+ Novo sistema" });
 	addBtn.addEventListener("click", () => {
 		renderSystemEditForm(plugin, null, () => void renderSystemsTab(container, plugin));
 	});
 
-	const refreshBtn = headerActions.createEl("button", { text: "↻" });
-	refreshBtn.style.fontSize = "12px";
-	refreshBtn.style.padding = "5px 10px";
+	const refreshBtn = headerActions.createEl("button", { cls: "atlas-crud-refresh-btn", text: "↻" });
 	refreshBtn.addEventListener("click", () => void renderSystemsTab(container, plugin));
 
 	// Filter chips
-	const filterBar = container.createDiv();
-	filterBar.style.display = "flex";
-	filterBar.style.gap = "4px";
-	filterBar.style.flexWrap = "wrap";
-	filterBar.style.marginBottom = "8px";
+	const filterBar = container.createDiv({ cls: "atlas-crud-filter-bar" });
 
 	const filters: { id: SystemFilter; label: string; icon: string }[] = [
 		{ id: "all", label: "Todos", icon: "📋" },
@@ -55,15 +41,11 @@ export async function renderSystemsTab(container: HTMLElement, plugin: AtlasPlug
 	];
 
 	for (const f of filters) {
-		const btn = filterBar.createEl("button", { text: `${f.icon} ${f.label}` });
-		btn.style.fontSize = "11px";
-		btn.style.padding = "4px 8px";
-		btn.style.cursor = "pointer";
-		btn.style.borderRadius = "4px";
-		btn.style.border = "1px solid var(--background-modifier-border)";
 		const isActive = currentFilter === f.id;
-		btn.style.background = isActive ? "var(--interactive-accent)" : "var(--background-secondary)";
-		btn.style.color = isActive ? "var(--text-on-accent)" : "var(--text-normal)";
+		const btn = filterBar.createEl("button", {
+			cls: isActive ? "atlas-crud-filter-chip is-active" : "atlas-crud-filter-chip",
+			text: `${f.icon} ${f.label}`,
+		});
 		btn.addEventListener("click", () => {
 			currentFilter = f.id;
 			void renderSystemsTab(container, plugin);
@@ -72,13 +54,10 @@ export async function renderSystemsTab(container: HTMLElement, plugin: AtlasPlug
 
 	// Search
 	const searchEl = container.createEl("input", {
+		cls: "atlas-crud-search",
 		type: "search",
 		attr: { placeholder: "Buscar por nome, alias ou vendor..." },
 	}) as HTMLInputElement;
-	searchEl.style.width = "100%";
-	searchEl.style.padding = "6px 8px";
-	searchEl.style.fontSize = "12px";
-	searchEl.style.marginBottom = "10px";
 	searchEl.value = currentSearch;
 	searchEl.addEventListener("input", () => {
 		currentSearch = searchEl.value;
@@ -86,9 +65,7 @@ export async function renderSystemsTab(container: HTMLElement, plugin: AtlasPlug
 	});
 
 	// List
-	const listEl = container.createDiv();
-	listEl.style.maxHeight = "calc(100vh - 280px)";
-	listEl.style.overflowY = "auto";
+	const listEl = container.createDiv({ cls: "atlas-crud-list" });
 
 	const renderList = () => {
 		listEl.empty();
@@ -107,16 +84,13 @@ export async function renderSystemsTab(container: HTMLElement, plugin: AtlasPlug
 		});
 
 		if (filtered.length === 0) {
-			const empty = listEl.createDiv();
-			empty.style.padding = "32px 16px";
-			empty.style.textAlign = "center";
-			empty.style.opacity = "0.6";
+			const empty = listEl.createDiv({ cls: "atlas-crud-empty" });
 			if (all.length === 0) {
 				empty.setText("🚀 Comece cadastrando seus sistemas: PIX, Stripe, app interno...");
-				const btn = empty.createEl("button", { text: "+ Cadastrar primeiro sistema" });
-				btn.addClass("mod-cta");
-				btn.style.marginTop = "12px";
-				btn.style.padding = "8px 16px";
+				const btn = empty.createEl("button", {
+					cls: "atlas-crud-empty-btn mod-cta",
+					text: "+ Cadastrar primeiro sistema",
+				});
 				btn.addEventListener("click", () => {
 					renderSystemEditForm(plugin, null, () => renderList());
 				});
@@ -140,50 +114,22 @@ function renderSystemCard(
 	plugin: AtlasPlugin,
 	onChange: () => void
 ): void {
-	const card = parent.createDiv();
-	card.addClass("atlas-card-interactive");
-	if (system.status === "down") card.addClass("atlas-card-system-down");
-	else if (system.status === "degraded") card.addClass("atlas-card-system-degraded");
-	card.style.padding = "10px 12px";
-	card.style.marginBottom = "6px";
-	card.style.background = "var(--background-secondary)";
-	card.style.borderRadius = "var(--atlas-radius-md, 6px)";
-	card.style.cursor = "pointer";
-	card.style.borderLeft = `3px solid ${statusColor(system.status)}`;
+	const statusCls = `atlas-card-system-${system.status}`;
+	const card = parent.createDiv({ cls: `atlas-system-card atlas-card-interactive ${statusCls}` });
 
-	const header = card.createDiv();
-	header.style.display = "flex";
-	header.style.alignItems = "center";
-	header.style.gap = "8px";
-	header.style.marginBottom = "4px";
-
-	const dot = header.createEl("span", { text: statusEmoji(system.status) });
-	dot.style.fontSize = "12px";
-
-	const name = header.createEl("div", { text: system.name });
-	name.style.fontWeight = "bold";
-	name.style.fontSize = "13px";
-	name.style.flexGrow = "1";
-
-	const typeBadge = header.createEl("span", { text: system.type });
-	typeBadge.style.fontSize = "10px";
-	typeBadge.style.padding = "2px 6px";
-	typeBadge.style.borderRadius = "3px";
-	typeBadge.style.background = "var(--background-modifier-hover)";
-	typeBadge.style.opacity = "0.7";
+	const header = card.createDiv({ cls: "atlas-system-card-header" });
+	header.createEl("span", { cls: "atlas-system-card-dot", text: statusEmoji(system.status) });
+	header.createEl("div", { cls: "atlas-system-card-name", text: system.name });
+	header.createEl("span", { cls: "atlas-system-card-type-badge", text: system.type });
 
 	if (system.aliases.length > 0) {
-		const aliases = card.createEl("div");
-		aliases.style.fontSize = "10px";
-		aliases.style.opacity = "0.6";
-		aliases.style.marginBottom = "2px";
-		aliases.setText(`aliases: ${system.aliases.join(", ")}`);
+		card.createEl("div", {
+			cls: "atlas-system-card-aliases",
+			text: `aliases: ${system.aliases.join(", ")}`,
+		});
 	}
 
 	if (system.vendor || system.sla) {
-		const meta = card.createEl("div");
-		meta.style.fontSize = "11px";
-		meta.style.opacity = "0.7";
 		const parts: string[] = [];
 		if (system.vendor) parts.push(`🏢 ${system.vendor}`);
 		if (system.sla) parts.push(`⚡ SLA ${system.sla}`);
@@ -191,20 +137,17 @@ function renderSystemCard(
 			const owner = plugin.kg.data.people.find((p) => p.id === system.ownerPersonId);
 			if (owner) parts.push(`👤 ${owner.name}`);
 		}
-		meta.setText(parts.join(" · "));
+		card.createEl("div", { cls: "atlas-system-card-meta", text: parts.join(" · ") });
 	}
 
 	if (system.description) {
-		const desc = card.createEl("div");
-		desc.style.fontSize = "11px";
-		desc.style.opacity = "0.65";
-		desc.style.marginTop = "4px";
-		desc.style.fontStyle = "italic";
-		desc.setText(
-			system.description.length > 100
-				? system.description.substring(0, 100) + "…"
-				: system.description
-		);
+		card.createEl("div", {
+			cls: "atlas-system-card-desc",
+			text:
+				system.description.length > 100
+					? system.description.substring(0, 100) + "…"
+					: system.description,
+		});
 	}
 
 	card.addEventListener("click", () => {
@@ -236,8 +179,14 @@ function renderSystemDetailPanel(
 			{
 				icon: "🗑️",
 				title: "Deletar",
-				onClick: () => {
-					if (confirm(`Atlas: deletar sistema "${system.name}"? Não desfaz.`)) {
+				onClick: async () => {
+					const { confirmAsync } = await import("../../ui/confirm-modal");
+					const ok = await confirmAsync(
+						plugin.app,
+						`Deletar sistema "${system.name}"? Não desfaz.`,
+						{ title: "Confirmar exclusão", danger: true, yesLabel: "Deletar" }
+					);
+					if (ok) {
 						plugin.kg.deleteSystem(system.id);
 						void plugin.kg.save();
 						panel.close();
@@ -273,15 +222,13 @@ function renderSystemDetailContent(
 	system: SystemT
 ): void {
 	// Status row
-	const statusRow = body.createDiv();
-	statusRow.style.padding = "10px";
-	statusRow.style.background = `var(--background-secondary)`;
-	statusRow.style.borderLeft = `3px solid ${statusColor(system.status)}`;
-	statusRow.style.borderRadius = "4px";
-	statusRow.style.marginBottom = "12px";
-	statusRow.createEl("div", { text: `${statusEmoji(system.status)} Status: ${system.status}` }).style.fontSize = "13px";
+	const statusRow = body.createDiv({ cls: `atlas-system-detail-status atlas-status-${system.status}` });
+	statusRow.createEl("div", {
+		cls: "atlas-system-detail-status-text",
+		text: `${statusEmoji(system.status)} Status: ${system.status}`,
+	});
 	if (system.sla) {
-		statusRow.createEl("div", { text: `SLA: ${system.sla}` }).style.fontSize = "11px";
+		statusRow.createEl("div", { cls: "atlas-system-detail-status-sla", text: `SLA: ${system.sla}` });
 	}
 
 	// Vendor
@@ -338,25 +285,15 @@ function renderSystemDetailContent(
 	}
 
 	if (mentionedIn.length > 0) {
-		const sec = body.createDiv();
-		sec.style.marginBottom = "12px";
-		const h = sec.createEl("div", { text: `🔗 Mencionado em ${mentionedIn.length} notas` });
-		h.style.fontSize = "11px";
-		h.style.fontWeight = "bold";
-		h.style.opacity = "0.7";
-		h.style.marginBottom = "6px";
+		const sec = body.createDiv({ cls: "atlas-system-detail-mentions" });
+		sec.createEl("div", {
+			cls: "atlas-system-detail-mentions-title",
+			text: `🔗 Mencionado em ${mentionedIn.length} notas`,
+		});
 		for (const f of mentionedIn.slice(0, 10)) {
-			const row = sec.createEl("div");
-			row.style.fontSize = "12px";
-			row.style.padding = "3px 6px";
-			row.style.cursor = "pointer";
-			row.style.borderRadius = "3px";
-			row.setText(f.path.split("/").pop()?.replace(/\.md$/, "") ?? f.path);
-			row.addEventListener("mouseenter", () => {
-				row.style.background = "var(--background-modifier-hover)";
-			});
-			row.addEventListener("mouseleave", () => {
-				row.style.background = "transparent";
+			const row = sec.createEl("div", {
+				cls: "atlas-system-detail-mention-row",
+				text: f.path.split("/").pop()?.replace(/\.md$/, "") ?? f.path,
 			});
 			row.addEventListener("click", () => void plugin.app.workspace.getLeaf().openFile(f));
 		}
@@ -364,16 +301,9 @@ function renderSystemDetailContent(
 }
 
 function section(parent: HTMLElement, label: string, value: string): void {
-	const sec = parent.createDiv();
-	sec.style.marginBottom = "10px";
-	const h = sec.createEl("div", { text: label });
-	h.style.fontSize = "10px";
-	h.style.fontWeight = "bold";
-	h.style.opacity = "0.6";
-	h.style.marginBottom = "2px";
-	const v = sec.createEl("div", { text: value });
-	v.style.fontSize = "12px";
-	v.style.lineHeight = "1.4";
+	const sec = parent.createDiv({ cls: "atlas-system-detail-section" });
+	sec.createEl("div", { cls: "atlas-system-detail-section-label", text: label });
+	sec.createEl("div", { cls: "atlas-system-detail-section-value", text: value });
 }
 
 /**
@@ -486,12 +416,7 @@ export function renderSystemEditForm(
 			});
 
 			// Buttons
-			const btns = body.createDiv();
-			btns.style.display = "flex";
-			btns.style.justifyContent = "flex-end";
-			btns.style.gap = "8px";
-			btns.style.marginTop = "20px";
-
+			const btns = body.createDiv({ cls: "atlas-crud-form-actions" });
 			const cancel = btns.createEl("button", { text: "Cancelar" });
 			cancel.addEventListener("click", () => panel.close());
 
@@ -589,21 +514,12 @@ function input(
 	onChange: (v: string) => void,
 	opts?: { placeholder?: string; required?: boolean }
 ): void {
-	const wrap = parent.createDiv();
-	wrap.style.marginBottom = "12px";
-	const lbl = wrap.createEl("label", { text: label });
-	lbl.style.fontSize = "11px";
-	lbl.style.fontWeight = "bold";
-	lbl.style.opacity = "0.7";
-	lbl.style.display = "block";
-	lbl.style.marginBottom = "4px";
+	const wrap = parent.createDiv({ cls: "atlas-form-field" });
+	wrap.createEl("label", { cls: "atlas-form-label", text: label });
 
-	const inp = wrap.createEl("input", { type: "text" }) as HTMLInputElement;
+	const inp = wrap.createEl("input", { cls: "atlas-form-input", type: "text" }) as HTMLInputElement;
 	inp.value = value;
 	if (opts?.placeholder) inp.placeholder = opts.placeholder;
-	inp.style.width = "100%";
-	inp.style.padding = "6px 8px";
-	inp.style.fontSize = "12px";
 	inp.addEventListener("input", () => onChange(inp.value));
 }
 
@@ -614,22 +530,12 @@ function textArea(
 	onChange: (v: string) => void,
 	opts?: { placeholder?: string }
 ): void {
-	const wrap = parent.createDiv();
-	wrap.style.marginBottom = "12px";
-	const lbl = wrap.createEl("label", { text: label });
-	lbl.style.fontSize = "11px";
-	lbl.style.fontWeight = "bold";
-	lbl.style.opacity = "0.7";
-	lbl.style.display = "block";
-	lbl.style.marginBottom = "4px";
+	const wrap = parent.createDiv({ cls: "atlas-form-field" });
+	wrap.createEl("label", { cls: "atlas-form-label", text: label });
 
-	const ta = wrap.createEl("textarea") as HTMLTextAreaElement;
+	const ta = wrap.createEl("textarea", { cls: "atlas-form-textarea" }) as HTMLTextAreaElement;
 	ta.value = value;
 	if (opts?.placeholder) ta.placeholder = opts.placeholder;
-	ta.style.width = "100%";
-	ta.style.minHeight = "60px";
-	ta.style.padding = "6px 8px";
-	ta.style.fontSize = "12px";
 	ta.addEventListener("input", () => onChange(ta.value));
 }
 
@@ -641,19 +547,10 @@ function selectInput(
 	onChange: (v: string) => void,
 	displayLabels?: string[]
 ): void {
-	const wrap = parent.createDiv();
-	wrap.style.marginBottom = "12px";
-	const lbl = wrap.createEl("label", { text: label });
-	lbl.style.fontSize = "11px";
-	lbl.style.fontWeight = "bold";
-	lbl.style.opacity = "0.7";
-	lbl.style.display = "block";
-	lbl.style.marginBottom = "4px";
+	const wrap = parent.createDiv({ cls: "atlas-form-field" });
+	wrap.createEl("label", { cls: "atlas-form-label", text: label });
 
-	const sel = wrap.createEl("select") as HTMLSelectElement;
-	sel.style.width = "100%";
-	sel.style.padding = "6px 8px";
-	sel.style.fontSize = "12px";
+	const sel = wrap.createEl("select", { cls: "atlas-form-select" }) as HTMLSelectElement;
 	options.forEach((opt, i) => {
 		const optEl = sel.createEl("option", {
 			text: opt === "" ? "—" : (displayLabels?.[i] ?? opt),

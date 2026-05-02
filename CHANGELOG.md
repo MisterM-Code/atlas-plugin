@@ -4,6 +4,23 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.9.8] — 2026-05-02 — "All 3 CRUD tabs (Systems, Products, Roles) to CSS classes"
+
+### Changed
+- `tab-systems.ts`: 118 → 0 inline styles
+- `tab-products.ts`: 75 → 0 inline styles
+- `tab-roles.ts`: 62 → 0 inline styles
+
+Also replaced `window.confirm()` with `confirmAsync()` modal in delete actions for systems/products/roles (Obsidian guideline).
+
+styles.css: 30 KB → 39 KB (added ~340 lines of CRUD-shared + entity-specific classes).
+
+Shared CSS classes introduced (reusable for any future CRUD tab):
+- `.atlas-crud-tab/.atlas-crud-{header,title,header-actions,add-btn,refresh-btn,filter-bar,filter-chip,search,list,empty,empty-btn}`
+- `.atlas-form-{field,label,input,select,textarea}` + `.atlas-crud-form-actions`
+
+Entity-specific classes per CRUD type — Systems: `.atlas-system-card-*` + `.atlas-system-detail-*`. Products: `.atlas-product-card-*` + `.atlas-product-detail-*`. Roles: `.atlas-role-card-*` + `.atlas-role-detail-*`.
+
 ## [0.9.7] — 2026-05-02 — "Master Sidebar + Status panel + Settings to CSS classes"
 
 ### Changed — 3 most-visible UI shells migrated

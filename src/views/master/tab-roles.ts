@@ -7,49 +7,34 @@ import { fieldInput, fieldTextArea, fieldSelect, formButtons } from "../../ui/fo
 
 export async function renderRolesTab(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	container.empty();
+	container.addClass("atlas-crud-tab");
 	let currentSearch = "";
 
-	const header = container.createDiv();
-	header.style.display = "flex";
-	header.style.justifyContent = "space-between";
-	header.style.alignItems = "center";
-	header.style.marginBottom = "10px";
-	header.createEl("h3", { text: "🎓 Cargos" }).style.margin = "0";
+	const header = container.createDiv({ cls: "atlas-crud-header" });
+	header.createEl("h3", { cls: "atlas-crud-title", text: "🎓 Cargos" });
 
-	const headerActions = header.createDiv();
-	headerActions.style.display = "flex";
-	headerActions.style.gap = "6px";
+	const headerActions = header.createDiv({ cls: "atlas-crud-header-actions" });
 
-	const addBtn = headerActions.createEl("button", { text: "+ Novo cargo" });
-	addBtn.addClass("mod-cta");
-	addBtn.style.fontSize = "12px";
-	addBtn.style.padding = "5px 10px";
+	const addBtn = headerActions.createEl("button", { cls: "atlas-crud-add-btn mod-cta", text: "+ Novo cargo" });
 	addBtn.addEventListener("click", () => {
 		renderRoleEditForm(plugin, null, () => void renderRolesTab(container, plugin));
 	});
 
-	const refreshBtn = headerActions.createEl("button", { text: "↻" });
-	refreshBtn.style.fontSize = "12px";
-	refreshBtn.style.padding = "5px 10px";
+	const refreshBtn = headerActions.createEl("button", { cls: "atlas-crud-refresh-btn", text: "↻" });
 	refreshBtn.addEventListener("click", () => void renderRolesTab(container, plugin));
 
 	const searchEl = container.createEl("input", {
+		cls: "atlas-crud-search",
 		type: "search",
 		attr: { placeholder: "Buscar cargo..." },
 	}) as HTMLInputElement;
-	searchEl.style.width = "100%";
-	searchEl.style.padding = "6px 8px";
-	searchEl.style.fontSize = "12px";
-	searchEl.style.marginBottom = "10px";
 	searchEl.value = currentSearch;
 	searchEl.addEventListener("input", () => {
 		currentSearch = searchEl.value;
 		renderList();
 	});
 
-	const listEl = container.createDiv();
-	listEl.style.maxHeight = "calc(100vh - 240px)";
-	listEl.style.overflowY = "auto";
+	const listEl = container.createDiv({ cls: "atlas-crud-list" });
 
 	const renderList = () => {
 		listEl.empty();
@@ -64,16 +49,13 @@ export async function renderRolesTab(container: HTMLElement, plugin: AtlasPlugin
 		});
 
 		if (filtered.length === 0) {
-			const empty = listEl.createDiv();
-			empty.style.padding = "32px 16px";
-			empty.style.textAlign = "center";
-			empty.style.opacity = "0.6";
+			const empty = listEl.createDiv({ cls: "atlas-crud-empty" });
 			if (all.length === 0) {
 				empty.setText("🎓 Cadastre cargos do seu time (Tech Lead, Senior Eng, etc).");
-				const btn = empty.createEl("button", { text: "+ Cadastrar primeiro cargo" });
-				btn.addClass("mod-cta");
-				btn.style.marginTop = "12px";
-				btn.style.padding = "8px 16px";
+				const btn = empty.createEl("button", {
+					cls: "atlas-crud-empty-btn mod-cta",
+					text: "+ Cadastrar primeiro cargo",
+				});
 				btn.addEventListener("click", () => {
 					renderRoleEditForm(plugin, null, () => renderList());
 				});
@@ -97,66 +79,38 @@ function renderRoleCard(
 	plugin: AtlasPlugin,
 	onChange: () => void
 ): void {
-	const card = parent.createDiv();
-	card.style.padding = "10px 12px";
-	card.style.marginBottom = "6px";
-	card.style.background = "var(--background-secondary)";
-	card.style.borderRadius = "6px";
-	card.style.cursor = "pointer";
+	const card = parent.createDiv({ cls: "atlas-role-card" });
 
-	const header = card.createDiv();
-	header.style.display = "flex";
-	header.style.alignItems = "center";
-	header.style.gap = "8px";
-	header.style.marginBottom = "4px";
-
-	header.createEl("span", { text: "🎓" }).style.fontSize = "14px";
-	const title = header.createEl("div", { text: role.title });
-	title.style.fontWeight = "bold";
-	title.style.fontSize = "13px";
-	title.style.flexGrow = "1";
+	const header = card.createDiv({ cls: "atlas-role-card-header" });
+	header.createEl("span", { cls: "atlas-role-card-emoji", text: "🎓" });
+	header.createEl("div", { cls: "atlas-role-card-title", text: role.title });
 
 	if (role.level) {
-		const lvl = header.createEl("span", { text: role.level });
-		lvl.style.fontSize = "10px";
-		lvl.style.padding = "2px 6px";
-		lvl.style.borderRadius = "3px";
-		lvl.style.background = "var(--interactive-accent)";
-		lvl.style.color = "var(--text-on-accent)";
-		lvl.style.fontWeight = "bold";
+		header.createEl("span", { cls: "atlas-role-card-level-badge", text: role.level });
 	}
 
 	if (role.responsibilities.length > 0) {
-		const meta = card.createEl("div");
-		meta.style.fontSize = "11px";
-		meta.style.opacity = "0.7";
 		const summary =
 			role.responsibilities.slice(0, 2).join(" · ") +
 			(role.responsibilities.length > 2 ? ` (+${role.responsibilities.length - 2})` : "");
-		meta.setText(summary);
+		card.createEl("div", { cls: "atlas-role-card-meta", text: summary });
 	}
 
 	if (role.reportsToRoleId) {
 		const parent2 = plugin.kg.data.roles.find((r) => r.id === role.reportsToRoleId);
 		if (parent2) {
-			const rep = card.createEl("div");
-			rep.style.fontSize = "10px";
-			rep.style.opacity = "0.6";
-			rep.style.marginTop = "2px";
-			rep.setText(`↑ reporta para ${parent2.title}`);
+			card.createEl("div", { cls: "atlas-role-card-reports", text: `↑ reporta para ${parent2.title}` });
 		}
 	}
 
-	// Pessoas com esse cargo
 	const peopleWithRole = plugin.kg.data.people.filter(
 		(p) => p.role === role.title || (p as unknown as { roleId?: string }).roleId === role.id
 	);
 	if (peopleWithRole.length > 0) {
-		const pp = card.createEl("div");
-		pp.style.fontSize = "10px";
-		pp.style.opacity = "0.6";
-		pp.style.marginTop = "2px";
-		pp.setText(`👥 ${peopleWithRole.length} pessoa(s) com esse cargo`);
+		card.createEl("div", {
+			cls: "atlas-role-card-people",
+			text: `👥 ${peopleWithRole.length} pessoa(s) com esse cargo`,
+		});
 	}
 
 	card.addEventListener("click", () => {
@@ -185,8 +139,14 @@ function renderRoleDetailPanel(
 			{
 				icon: "🗑️",
 				title: "Deletar",
-				onClick: () => {
-					if (confirm(`Atlas: deletar cargo "${role.title}"?`)) {
+				onClick: async () => {
+					const { confirmAsync } = await import("../../ui/confirm-modal");
+					const ok = await confirmAsync(
+						plugin.app,
+						`Deletar cargo "${role.title}"?`,
+						{ title: "Confirmar exclusão", danger: true, yesLabel: "Deletar" }
+					);
+					if (ok) {
 						plugin.kg.deleteRole(role.id);
 						void plugin.kg.save();
 						panel.close();
@@ -199,12 +159,9 @@ function renderRoleDetailPanel(
 		render: (body) => {
 			body.empty();
 			if (role.responsibilities.length > 0) {
-				const sec = body.createDiv();
-				sec.style.marginBottom = "12px";
-				sec.createEl("div", { text: "📋 Responsabilidades" }).style.opacity = "0.6";
-				const ul = sec.createEl("ul");
-				ul.style.paddingLeft = "20px";
-				ul.style.fontSize = "12px";
+				const sec = body.createDiv({ cls: "atlas-role-detail-section" });
+				sec.createEl("div", { cls: "atlas-role-detail-section-label", text: "📋 Responsabilidades" });
+				const ul = sec.createEl("ul", { cls: "atlas-role-detail-list" });
 				for (const r of role.responsibilities) {
 					ul.createEl("li", { text: r });
 				}
@@ -213,10 +170,9 @@ function renderRoleDetailPanel(
 			if (role.reportsToRoleId) {
 				const parent2 = plugin.kg.data.roles.find((r) => r.id === role.reportsToRoleId);
 				if (parent2) {
-					const sec = body.createDiv();
-					sec.style.marginBottom = "12px";
-					sec.createEl("div", { text: "↑ Reporta para" }).style.opacity = "0.6";
-					sec.createEl("div", { text: parent2.title }).style.fontSize = "12px";
+					const sec = body.createDiv({ cls: "atlas-role-detail-section" });
+					sec.createEl("div", { cls: "atlas-role-detail-section-label", text: "↑ Reporta para" });
+					sec.createEl("div", { cls: "atlas-role-detail-section-value", text: parent2.title });
 				}
 			}
 
@@ -224,16 +180,13 @@ function renderRoleDetailPanel(
 				(p) => p.role === role.title || (p as unknown as { roleId?: string }).roleId === role.id
 			);
 			if (peopleWithRole.length > 0) {
-				const sec = body.createDiv();
-				sec.createEl("div", { text: `👥 Pessoas (${peopleWithRole.length})` }).style.opacity = "0.6";
+				const sec = body.createDiv({ cls: "atlas-role-detail-section" });
+				sec.createEl("div", {
+					cls: "atlas-role-detail-section-label",
+					text: `👥 Pessoas (${peopleWithRole.length})`,
+				});
 				for (const p of peopleWithRole) {
-					const row = sec.createEl("div");
-					row.style.padding = "4px 8px";
-					row.style.background = "var(--background-secondary)";
-					row.style.borderRadius = "4px";
-					row.style.marginBottom = "3px";
-					row.style.fontSize = "12px";
-					row.setText(p.name);
+					sec.createEl("div", { cls: "atlas-role-detail-person-row", text: p.name });
 				}
 			}
 		},

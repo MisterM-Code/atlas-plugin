@@ -18,40 +18,23 @@ export async function renderProductsTab(
 	plugin: AtlasPlugin
 ): Promise<void> {
 	container.empty();
+	container.addClass("atlas-crud-tab");
 	let currentFilter: ProductFilter = "all";
 	let currentSearch = "";
 
-	const header = container.createDiv();
-	header.style.display = "flex";
-	header.style.justifyContent = "space-between";
-	header.style.alignItems = "center";
-	header.style.marginBottom = "10px";
-	header.createEl("h3", { text: "📦 Produtos" }).style.margin = "0";
+	const header = container.createDiv({ cls: "atlas-crud-header" });
+	header.createEl("h3", { cls: "atlas-crud-title", text: "📦 Produtos" });
 
-	const headerActions = header.createDiv();
-	headerActions.style.display = "flex";
-	headerActions.style.gap = "6px";
-
-	const addBtn = headerActions.createEl("button", { text: "+ Novo produto" });
-	addBtn.addClass("mod-cta");
-	addBtn.style.fontSize = "12px";
-	addBtn.style.padding = "5px 10px";
+	const headerActions = header.createDiv({ cls: "atlas-crud-header-actions" });
+	const addBtn = headerActions.createEl("button", { cls: "atlas-crud-add-btn mod-cta", text: "+ Novo produto" });
 	addBtn.addEventListener("click", () => {
 		renderProductEditForm(plugin, null, () => void renderProductsTab(container, plugin));
 	});
 
-	const refreshBtn = headerActions.createEl("button", { text: "↻" });
-	refreshBtn.style.fontSize = "12px";
-	refreshBtn.style.padding = "5px 10px";
+	const refreshBtn = headerActions.createEl("button", { cls: "atlas-crud-refresh-btn", text: "↻" });
 	refreshBtn.addEventListener("click", () => void renderProductsTab(container, plugin));
 
-	// Filter chips
-	const filterBar = container.createDiv();
-	filterBar.style.display = "flex";
-	filterBar.style.gap = "4px";
-	filterBar.style.flexWrap = "wrap";
-	filterBar.style.marginBottom = "8px";
-
+	const filterBar = container.createDiv({ cls: "atlas-crud-filter-bar" });
 	const filters: { id: ProductFilter; label: string; icon: string }[] = [
 		{ id: "all", label: "Todos", icon: "📋" },
 		{ id: "discovery", label: "Discovery", icon: "🔍" },
@@ -61,17 +44,11 @@ export async function renderProductsTab(
 	];
 
 	for (const f of filters) {
-		const btn = filterBar.createEl("button", { text: `${f.icon} ${f.label}` });
-		btn.style.fontSize = "11px";
-		btn.style.padding = "4px 8px";
-		btn.style.cursor = "pointer";
-		btn.style.borderRadius = "4px";
-		btn.style.border = "1px solid var(--background-modifier-border)";
 		const isActive = currentFilter === f.id;
-		btn.style.background = isActive
-			? "var(--interactive-accent)"
-			: "var(--background-secondary)";
-		btn.style.color = isActive ? "var(--text-on-accent)" : "var(--text-normal)";
+		const btn = filterBar.createEl("button", {
+			cls: isActive ? "atlas-crud-filter-chip is-active" : "atlas-crud-filter-chip",
+			text: `${f.icon} ${f.label}`,
+		});
 		btn.addEventListener("click", () => {
 			currentFilter = f.id;
 			void renderProductsTab(container, plugin);
@@ -79,22 +56,17 @@ export async function renderProductsTab(
 	}
 
 	const searchEl = container.createEl("input", {
+		cls: "atlas-crud-search",
 		type: "search",
 		attr: { placeholder: "Buscar produto..." },
 	}) as HTMLInputElement;
-	searchEl.style.width = "100%";
-	searchEl.style.padding = "6px 8px";
-	searchEl.style.fontSize = "12px";
-	searchEl.style.marginBottom = "10px";
 	searchEl.value = currentSearch;
 	searchEl.addEventListener("input", () => {
 		currentSearch = searchEl.value;
 		renderList();
 	});
 
-	const listEl = container.createDiv();
-	listEl.style.maxHeight = "calc(100vh - 280px)";
-	listEl.style.overflowY = "auto";
+	const listEl = container.createDiv({ cls: "atlas-crud-list" });
 
 	const renderList = () => {
 		listEl.empty();
@@ -114,18 +86,15 @@ export async function renderProductsTab(
 		});
 
 		if (filtered.length === 0) {
-			const empty = listEl.createDiv();
-			empty.style.padding = "32px 16px";
-			empty.style.textAlign = "center";
-			empty.style.opacity = "0.6";
+			const empty = listEl.createDiv({ cls: "atlas-crud-empty" });
 			if (all.length === 0) {
 				empty.setText(
 					"📦 Nenhum produto. Cadastre os produtos do seu portfolio (ex: Pagamentos B2B, Antifraude)."
 				);
-				const btn = empty.createEl("button", { text: "+ Cadastrar primeiro produto" });
-				btn.addClass("mod-cta");
-				btn.style.marginTop = "12px";
-				btn.style.padding = "8px 16px";
+				const btn = empty.createEl("button", {
+					cls: "atlas-crud-empty-btn mod-cta",
+					text: "+ Cadastrar primeiro produto",
+				});
 				btn.addEventListener("click", () => {
 					renderProductEditForm(plugin, null, () => renderList());
 				});
@@ -149,40 +118,16 @@ function renderProductCard(
 	plugin: AtlasPlugin,
 	onChange: () => void
 ): void {
-	const card = parent.createDiv();
-	card.style.padding = "10px 12px";
-	card.style.marginBottom = "6px";
-	card.style.background = "var(--background-secondary)";
-	card.style.borderRadius = "6px";
-	card.style.cursor = "pointer";
-	card.style.borderLeft = `3px solid ${productStatusColor(product.status)}`;
+	const card = parent.createDiv({ cls: `atlas-product-card atlas-status-${product.status}` });
 
-	const header = card.createDiv();
-	header.style.display = "flex";
-	header.style.alignItems = "center";
-	header.style.gap = "8px";
-	header.style.marginBottom = "4px";
-
-	const icon = header.createEl("span", { text: productStatusEmoji(product.status) });
-	icon.style.fontSize = "12px";
-
-	const name = header.createEl("div", { text: product.name });
-	name.style.fontWeight = "bold";
-	name.style.fontSize = "13px";
-	name.style.flexGrow = "1";
+	const header = card.createDiv({ cls: "atlas-product-card-header" });
+	header.createEl("span", { cls: "atlas-product-card-icon", text: productStatusEmoji(product.status) });
+	header.createEl("div", { cls: "atlas-product-card-name", text: product.name });
 
 	if (product.category) {
-		const cat = header.createEl("span", { text: product.category });
-		cat.style.fontSize = "10px";
-		cat.style.padding = "2px 6px";
-		cat.style.borderRadius = "3px";
-		cat.style.background = "var(--background-modifier-hover)";
-		cat.style.opacity = "0.7";
+		header.createEl("span", { cls: "atlas-product-card-category", text: product.category });
 	}
 
-	const meta = card.createEl("div");
-	meta.style.fontSize = "11px";
-	meta.style.opacity = "0.7";
 	const parts: string[] = [];
 	parts.push(`status: ${product.status}`);
 	if (product.systemIds.length > 0) {
@@ -195,19 +140,16 @@ function renderProductCard(
 		const owner = plugin.kg.data.people.find((p) => p.id === product.ownerPersonId);
 		if (owner) parts.push(`👤 ${owner.name}`);
 	}
-	meta.setText(parts.join(" · "));
+	card.createEl("div", { cls: "atlas-product-card-meta", text: parts.join(" · ") });
 
 	if (product.description) {
-		const desc = card.createEl("div");
-		desc.style.fontSize = "11px";
-		desc.style.opacity = "0.65";
-		desc.style.marginTop = "4px";
-		desc.style.fontStyle = "italic";
-		desc.setText(
-			product.description.length > 100
-				? product.description.substring(0, 100) + "…"
-				: product.description
-		);
+		card.createEl("div", {
+			cls: "atlas-product-card-desc",
+			text:
+				product.description.length > 100
+					? product.description.substring(0, 100) + "…"
+					: product.description,
+		});
 	}
 
 	card.addEventListener("click", () => {
@@ -236,8 +178,14 @@ function renderProductDetailPanel(
 			{
 				icon: "🗑️",
 				title: "Deletar",
-				onClick: () => {
-					if (confirm(`Atlas: deletar produto "${product.name}"?`)) {
+				onClick: async () => {
+					const { confirmAsync } = await import("../../ui/confirm-modal");
+					const ok = await confirmAsync(
+						plugin.app,
+						`Deletar produto "${product.name}"?`,
+						{ title: "Confirmar exclusão", danger: true, yesLabel: "Deletar" }
+					);
+					if (ok) {
 						plugin.kg.deleteProduct(product.id);
 						void plugin.kg.save();
 						panel.close();
@@ -266,43 +214,34 @@ function renderProductDetailPanel(
 			body.empty();
 
 			if (product.description) {
-				const sec = body.createDiv();
-				sec.style.marginBottom = "12px";
-				sec.createEl("div", { text: "📝 Descrição" }).style.opacity = "0.6";
-				const v = sec.createEl("div", { text: product.description });
-				v.style.fontSize = "12px";
-				v.style.lineHeight = "1.4";
+				const sec = body.createDiv({ cls: "atlas-product-detail-section" });
+				sec.createEl("div", { cls: "atlas-product-detail-section-label", text: "📝 Descrição" });
+				sec.createEl("div", { cls: "atlas-product-detail-section-value", text: product.description });
 			}
 
 			if (product.systemIds.length > 0) {
-				const sec = body.createDiv();
-				sec.style.marginBottom = "12px";
-				const h = sec.createEl("div", { text: "🖥️ Sistemas relacionados" });
-				h.style.fontSize = "11px";
-				h.style.fontWeight = "bold";
-				h.style.opacity = "0.6";
-				h.style.marginBottom = "4px";
+				const sec = body.createDiv({ cls: "atlas-product-detail-section" });
+				sec.createEl("div", {
+					cls: "atlas-product-detail-section-title",
+					text: "🖥️ Sistemas relacionados",
+				});
 
 				for (const sysId of product.systemIds) {
 					const sys = plugin.kg.data.systems.find((s) => s.id === sysId);
 					if (!sys) continue;
-					const row = sec.createEl("div");
-					row.style.padding = "4px 8px";
-					row.style.background = "var(--background-secondary)";
-					row.style.borderRadius = "4px";
-					row.style.marginBottom = "3px";
-					row.style.fontSize = "12px";
-					row.setText(`🖥️ ${sys.name} · ${sys.status}`);
+					sec.createEl("div", {
+						cls: "atlas-product-detail-system-row",
+						text: `🖥️ ${sys.name} · ${sys.status}`,
+					});
 				}
 			}
 
 			if (product.ownerPersonId) {
 				const owner = plugin.kg.data.people.find((p) => p.id === product.ownerPersonId);
 				if (owner) {
-					const sec = body.createDiv();
-					sec.style.marginBottom = "12px";
-					sec.createEl("div", { text: "👤 Owner" }).style.opacity = "0.6";
-					sec.createEl("div", { text: owner.name }).style.fontSize = "12px";
+					const sec = body.createDiv({ cls: "atlas-product-detail-section" });
+					sec.createEl("div", { cls: "atlas-product-detail-section-label", text: "👤 Owner" });
+					sec.createEl("div", { cls: "atlas-product-detail-section-value", text: owner.name });
 				}
 			}
 		},

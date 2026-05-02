@@ -1341,3 +1341,326 @@
 .atlas-settings-profile-card-emoji { font-size: 16px; }
 .atlas-settings-profile-card-name { font-size: 12px; }
 .atlas-settings-profile-card-tag { font-size: 10px; opacity: 0.7; margin-top: 2px; }
+
+/* v0.9.8 — Shared CRUD tab classes (Systems / Products / Roles / etc.) */
+.atlas-crud-tab { padding: 16px; overflow: auto; height: 100%; }
+
+.atlas-crud-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
+}
+.atlas-crud-title { font-size: 18px; font-weight: 600; margin: 0; }
+.atlas-crud-subtitle { font-size: 12px; opacity: 0.6; margin-bottom: 16px; line-height: 1.5; }
+
+.atlas-crud-search {
+	width: 100%;
+	padding: 6px 10px;
+	margin-bottom: 12px;
+	border-radius: 6px;
+	border: 1px solid var(--background-modifier-border);
+	font-size: 13px;
+}
+
+.atlas-crud-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 8px;
+}
+
+.atlas-crud-card {
+	padding: 10px 12px;
+	background: var(--background-secondary);
+	border-radius: 8px;
+	cursor: pointer;
+	border: 1px solid var(--background-modifier-border);
+	transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+.atlas-crud-card:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	border-color: var(--atlas-accent, var(--interactive-accent));
+}
+
+.atlas-crud-card-top {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+.atlas-crud-card-emoji { font-size: 18px; }
+.atlas-crud-card-name { font-size: 13px; font-weight: 600; flex-grow: 1; }
+.atlas-crud-card-meta { font-size: 11px; opacity: 0.7; }
+.atlas-crud-card-tag {
+	font-size: 10px;
+	padding: 2px 6px;
+	border-radius: 3px;
+	background: var(--background-modifier-hover);
+	margin-left: 4px;
+}
+
+.atlas-crud-card-status-healthy   { color: var(--color-green); }
+.atlas-crud-card-status-degraded  { color: var(--color-orange); }
+.atlas-crud-card-status-down      { color: var(--color-red); }
+.atlas-crud-card-status-deprecated { color: var(--text-muted); opacity: 0.6; }
+
+.atlas-crud-form-modal { min-width: min(560px, 90vw); }
+.atlas-crud-form-row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 8px;
+	align-items: center;
+}
+.atlas-crud-form-label {
+	width: 110px;
+	font-size: 12px;
+	opacity: 0.8;
+}
+.atlas-crud-form-input {
+	flex-grow: 1;
+	padding: 6px 8px;
+	font-size: 13px;
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+}
+.atlas-crud-form-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 16px;
+}
+
+/* v0.9.8 — CRUD card details + form fields */
+.atlas-crud-header-actions {
+	display: flex;
+	gap: 6px;
+}
+.atlas-crud-add-btn { font-size: 12px; padding: 5px 10px; }
+.atlas-crud-refresh-btn { font-size: 12px; padding: 5px 10px; }
+
+.atlas-crud-filter-bar {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+	margin-bottom: 8px;
+}
+
+.atlas-crud-filter-chip {
+	font-size: 11px;
+	padding: 4px 8px;
+	cursor: pointer;
+	border-radius: 4px;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-normal);
+}
+.atlas-crud-filter-chip.is-active {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.atlas-crud-list {
+	max-height: calc(100vh - 280px);
+	overflow-y: auto;
+}
+
+.atlas-crud-empty {
+	padding: 32px 16px;
+	text-align: center;
+	opacity: 0.6;
+}
+.atlas-crud-empty-btn {
+	margin-top: 12px;
+	padding: 8px 16px;
+}
+
+/* System card */
+.atlas-system-card {
+	padding: 10px 12px;
+	margin-bottom: 6px;
+	background: var(--background-secondary);
+	border-radius: var(--atlas-radius-md, 6px);
+	cursor: pointer;
+}
+.atlas-system-card.atlas-card-system-down { border-left: 3px solid var(--color-red); }
+.atlas-system-card.atlas-card-system-degraded { border-left: 3px solid var(--color-orange); }
+.atlas-system-card-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+.atlas-system-card-dot { font-size: 12px; }
+.atlas-system-card-name { font-weight: bold; font-size: 13px; flex-grow: 1; }
+.atlas-system-card-type-badge {
+	font-size: 10px;
+	padding: 2px 6px;
+	border-radius: 3px;
+	background: var(--background-modifier-hover);
+	opacity: 0.7;
+}
+.atlas-system-card-aliases { font-size: 10px; opacity: 0.6; margin-bottom: 2px; }
+.atlas-system-card-meta { font-size: 11px; opacity: 0.7; }
+.atlas-system-card-desc { font-size: 11px; opacity: 0.65; margin-top: 4px; font-style: italic; }
+
+/* Detail panel */
+.atlas-system-detail-status {
+	padding: 10px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	margin-bottom: 12px;
+}
+.atlas-system-detail-status.atlas-status-down { border-left: 3px solid var(--color-red); }
+.atlas-system-detail-status.atlas-status-degraded { border-left: 3px solid var(--color-orange); }
+.atlas-system-detail-status.atlas-status-healthy { border-left: 3px solid var(--color-green); }
+.atlas-system-detail-status.atlas-status-deprecated { border-left: 3px solid var(--text-muted); }
+.atlas-system-detail-status-text { font-size: 13px; }
+.atlas-system-detail-status-sla { font-size: 11px; }
+
+.atlas-system-detail-section { margin-bottom: 10px; }
+.atlas-system-detail-section-label {
+	font-size: 10px;
+	font-weight: bold;
+	opacity: 0.6;
+	margin-bottom: 2px;
+}
+.atlas-system-detail-section-value { font-size: 12px; line-height: 1.4; }
+
+.atlas-system-detail-mentions { margin-bottom: 12px; }
+.atlas-system-detail-mentions-title {
+	font-size: 11px;
+	font-weight: bold;
+	opacity: 0.7;
+	margin-bottom: 6px;
+}
+.atlas-system-detail-mention-row {
+	font-size: 12px;
+	padding: 3px 6px;
+	cursor: pointer;
+	border-radius: 3px;
+}
+.atlas-system-detail-mention-row:hover {
+	background: var(--background-modifier-hover);
+}
+
+/* Form fields (shared by all CRUD forms) */
+.atlas-form-field { margin-bottom: 12px; }
+.atlas-form-label {
+	font-size: 11px;
+	font-weight: bold;
+	opacity: 0.7;
+	display: block;
+	margin-bottom: 4px;
+}
+.atlas-form-input,
+.atlas-form-select,
+.atlas-form-textarea {
+	width: 100%;
+	padding: 6px 8px;
+	font-size: 12px;
+}
+.atlas-form-textarea { min-height: 60px; }
+
+/* v0.9.8 — Product card + detail */
+.atlas-product-card {
+	padding: 10px 12px;
+	margin-bottom: 6px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	cursor: pointer;
+}
+.atlas-product-card.atlas-status-active   { border-left: 3px solid var(--color-green); }
+.atlas-product-card.atlas-status-discovery { border-left: 3px solid var(--color-blue, #3b82f6); }
+.atlas-product-card.atlas-status-sunset    { border-left: 3px solid var(--color-orange); }
+.atlas-product-card.atlas-status-killed    { border-left: 3px solid var(--text-muted); }
+.atlas-product-card-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+.atlas-product-card-icon { font-size: 12px; }
+.atlas-product-card-name { font-weight: bold; font-size: 13px; flex-grow: 1; }
+.atlas-product-card-category {
+	font-size: 10px;
+	padding: 2px 6px;
+	border-radius: 3px;
+	background: var(--background-modifier-hover);
+	opacity: 0.7;
+}
+.atlas-product-card-meta { font-size: 11px; opacity: 0.7; }
+.atlas-product-card-desc {
+	font-size: 11px;
+	opacity: 0.65;
+	margin-top: 4px;
+	font-style: italic;
+}
+
+.atlas-product-detail-section { margin-bottom: 12px; }
+.atlas-product-detail-section-label {
+	font-size: 11px;
+	opacity: 0.6;
+	margin-bottom: 4px;
+}
+.atlas-product-detail-section-title {
+	font-size: 11px;
+	font-weight: bold;
+	opacity: 0.6;
+	margin-bottom: 4px;
+}
+.atlas-product-detail-section-value { font-size: 12px; line-height: 1.4; }
+.atlas-product-detail-system-row {
+	padding: 4px 8px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	margin-bottom: 3px;
+	font-size: 12px;
+}
+
+/* Role card + detail */
+.atlas-role-card {
+	padding: 10px 12px;
+	margin-bottom: 6px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	cursor: pointer;
+}
+.atlas-role-card-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+.atlas-role-card-emoji { font-size: 14px; }
+.atlas-role-card-title { font-weight: bold; font-size: 13px; flex-grow: 1; }
+.atlas-role-card-level-badge {
+	font-size: 10px;
+	padding: 2px 6px;
+	border-radius: 3px;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-weight: bold;
+}
+.atlas-role-card-meta { font-size: 11px; opacity: 0.7; }
+.atlas-role-card-reports { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+.atlas-role-card-people { font-size: 10px; opacity: 0.6; margin-top: 2px; }
+
+.atlas-role-detail-section { margin-bottom: 12px; }
+.atlas-role-detail-section-label {
+	font-size: 11px;
+	opacity: 0.6;
+	margin-bottom: 4px;
+}
+.atlas-role-detail-section-value { font-size: 12px; }
+.atlas-role-detail-list {
+	padding-left: 20px;
+	font-size: 12px;
+}
+.atlas-role-detail-person-row {
+	padding: 4px 8px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	margin-bottom: 3px;
+	font-size: 12px;
+}
