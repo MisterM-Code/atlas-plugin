@@ -1897,3 +1897,320 @@
 	overflow: auto;
 	font-size: 11px;
 }
+
+/* v0.10.0 — Reports Composer */
+.atlas-composer-header { margin-bottom: 12px; }
+.atlas-composer-title { margin: 0 0 4px 0; }
+.atlas-composer-subtitle { font-size: 11px; opacity: 0.6; }
+
+.atlas-composer-saved-views { margin-bottom: 12px; }
+.atlas-composer-saved-header {
+	font-size: 11px;
+	font-weight: bold;
+	opacity: 0.7;
+	margin-bottom: 6px;
+}
+.atlas-composer-saved-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+.atlas-composer-saved-chip {
+	font-size: 11px;
+	padding: 4px 8px;
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+.atlas-composer-filters-box {
+	padding: 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	margin-bottom: 12px;
+}
+
+.atlas-composer-field-label {
+	font-size: 11px;
+	font-weight: bold;
+	opacity: 0.7;
+	display: block;
+	margin-bottom: 4px;
+}
+
+.atlas-composer-period-wrap { margin-bottom: 10px; }
+.atlas-composer-period-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+.atlas-composer-period-input {
+	flex-grow: 1;
+	padding: 5px;
+	font-size: 12px;
+}
+.atlas-composer-period-sep { opacity: 0.5; }
+.atlas-composer-preset-row {
+	display: flex;
+	gap: 4px;
+	margin-top: 4px;
+}
+.atlas-composer-preset-btn {
+	font-size: 10px;
+	padding: 2px 6px;
+}
+
+.atlas-composer-multi-wrap { margin-bottom: 10px; }
+.atlas-composer-multi-empty { font-size: 11px; opacity: 0.5; }
+.atlas-composer-chips-box {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	max-height: 100px;
+	overflow-y: auto;
+	padding: 4px;
+	background: var(--background-primary);
+	border-radius: 4px;
+}
+.atlas-composer-multi-chip {
+	padding: 3px 8px;
+	border-radius: 12px;
+	font-size: 11px;
+	cursor: pointer;
+	user-select: none;
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+.atlas-composer-multi-chip.is-selected {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
+
+.atlas-composer-tag-wrap { margin-bottom: 10px; }
+.atlas-composer-tag-input {
+	width: 100%;
+	padding: 5px 8px;
+	font-size: 12px;
+}
+
+.atlas-composer-llm-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+}
+.atlas-composer-llm-label { font-size: 12px; }
+
+.atlas-composer-actions {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+.atlas-composer-action-btn {
+	padding: 8px 14px;
+}
+
+/* Save view modal */
+.atlas-composer-save-label {
+	font-size: 12px;
+	display: block;
+	margin-bottom: 4px;
+}
+.atlas-composer-save-input {
+	width: 100%;
+	padding: 6px 8px;
+}
+
+/* Cron modal */
+.atlas-composer-cron-desc { font-size: 12px; }
+.atlas-composer-cron-examples {
+	font-size: 10px;
+	background: var(--background-secondary);
+	padding: 8px;
+	border-radius: 4px;
+}
+.atlas-composer-cron-input {
+	width: 100%;
+	padding: 6px 8px;
+	font-family: monospace;
+}
+
+/* Inline context menu */
+.atlas-inline-menu {
+	position: fixed;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+	padding: 4px;
+	z-index: 10000;
+	min-width: 180px;
+}
+.atlas-inline-menu-row {
+	padding: 6px 10px;
+	font-size: 12px;
+	cursor: pointer;
+	border-radius: 4px;
+}
+.atlas-inline-menu-row:hover {
+	background: var(--background-modifier-hover);
+}
+
+/* v0.10.0 — Template editor modal */
+.atlas-tplmod-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
+}
+.atlas-tplmod-title { margin: 0; }
+.atlas-tplmod-subtitle { font-size: 11px; opacity: 0.6; }
+.atlas-tplmod-header-btns { display: flex; gap: 6px; }
+.atlas-tplmod-reset-btn { font-size: 11px; }
+.atlas-tplmod-save-btn { font-size: 12px; padding: 6px 14px; }
+
+.atlas-tplmod-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+	max-height: 70vh;
+}
+.atlas-tplmod-left-pane,
+.atlas-tplmod-right-pane {
+	overflow-y: auto;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	padding: 8px;
+}
+.atlas-tplmod-right-pane { background: var(--background-secondary); }
+.atlas-tplmod-pane-header {
+	font-size: 10px;
+	opacity: 0.7;
+	font-weight: bold;
+	margin-bottom: 6px;
+}
+.atlas-tplmod-preview {
+	white-space: pre-wrap;
+	font-size: 11px;
+	line-height: 1.5;
+	font-family: var(--font-monospace);
+}
+
+.atlas-tplmod-empty {
+	padding: 16px;
+	text-align: center;
+	opacity: 0.5;
+	font-size: 12px;
+}
+
+.atlas-tplmod-block-row {
+	padding: 8px;
+	margin-bottom: 4px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+	border-left: 3px solid var(--text-muted);
+}
+.atlas-tplmod-block-row.is-dragging { opacity: 0.4; }
+.atlas-tplmod-block-row.is-drop-target { border-top: 2px solid var(--interactive-accent); }
+.atlas-tplmod-block-top {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+.atlas-tplmod-block-drag {
+	cursor: grab;
+	opacity: 0.4;
+	font-size: 12px;
+}
+.atlas-tplmod-block-kind-badge {
+	font-size: 10px;
+	padding: 2px 6px;
+	border-radius: 3px;
+	color: white;
+	font-weight: bold;
+}
+.atlas-tplmod-block-summary {
+	flex-grow: 1;
+	font-size: 12px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	opacity: 0.7;
+}
+.atlas-tplmod-block-remove { font-size: 11px; padding: 1px 6px; }
+
+.atlas-tplmod-field-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	margin-top: 3px;
+}
+.atlas-tplmod-field-label {
+	min-width: 100px;
+	opacity: 0.6;
+}
+.atlas-tplmod-field-input,
+.atlas-tplmod-select {
+	padding: 3px 6px;
+	font-size: 11px;
+}
+.atlas-tplmod-field-input.is-flex { flex-grow: 1; }
+
+.atlas-tplmod-textarea-wrap { font-size: 11px; margin-top: 3px; }
+.atlas-tplmod-textarea-label { opacity: 0.6; display: block; }
+.atlas-tplmod-textarea {
+	width: 100%;
+	min-height: 50px;
+	padding: 4px 6px;
+	font-size: 11px;
+	font-family: var(--font-monospace);
+}
+
+.atlas-tplmod-add-bar {
+	margin-top: 8px;
+	padding: 6px;
+	background: var(--background-secondary);
+	border-radius: 4px;
+}
+.atlas-tplmod-add-title {
+	font-size: 10px;
+	opacity: 0.7;
+	font-weight: bold;
+	margin-bottom: 4px;
+}
+.atlas-tplmod-add-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 4px;
+}
+.atlas-tplmod-add-btn {
+	font-size: 10px;
+	padding: 4px 6px;
+	cursor: pointer;
+}
+
+.atlas-tplmod-prompt-input {
+	width: 100%;
+	padding: 6px;
+}
+
+/* Template picker modal */
+.atlas-tplpicker-subtitle { font-size: 12px; }
+.atlas-tplpicker-list { max-height: 60vh; overflow-y: auto; }
+.atlas-tplpicker-card {
+	padding: 12px;
+	margin-bottom: 6px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.atlas-tplpicker-card-icon { font-size: 20px; }
+.atlas-tplpicker-card-text { flex-grow: 1; }
+.atlas-tplpicker-card-name { font-weight: bold; }
+.atlas-tplpicker-card-desc { font-size: 11px; opacity: 0.7; }
+.atlas-tplpicker-card-meta { font-size: 10px; opacity: 0.5; margin-top: 2px; }
+.atlas-tplpicker-new-btn { margin-top: 12px; }

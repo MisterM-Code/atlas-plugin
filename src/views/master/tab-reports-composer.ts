@@ -37,36 +37,26 @@ export async function renderReportsComposerTab(
 	};
 
 	// Header
-	const header = container.createDiv();
-	header.style.marginBottom = "12px";
-	header.createEl("h3", { text: "📊 Reports Composer" }).style.margin = "0 0 4px 0";
-	const sub = header.createEl("div");
-	sub.style.fontSize = "11px";
-	sub.style.opacity = "0.6";
-	sub.setText("Filtre por período × pessoas × sistemas × temas × produtos. Atlas compila.");
+	const header = container.createDiv({ cls: "atlas-composer-header" });
+	header.createEl("h3", { cls: "atlas-composer-title", text: "📊 Reports Composer" });
+	header.createEl("div", {
+		cls: "atlas-composer-subtitle",
+		text: "Filtre por período × pessoas × sistemas × temas × produtos. Atlas compila.",
+	});
 
 	// Saved views section (top)
 	const savedViews = store.list();
 	if (savedViews.length > 0) {
-		const sv = container.createDiv();
-		sv.style.marginBottom = "12px";
-		const svHeader = sv.createEl("div", { text: "💾 Saved Views" });
-		svHeader.style.fontSize = "11px";
-		svHeader.style.fontWeight = "bold";
-		svHeader.style.opacity = "0.7";
-		svHeader.style.marginBottom = "6px";
+		const sv = container.createDiv({ cls: "atlas-composer-saved-views" });
+		sv.createEl("div", { cls: "atlas-composer-saved-header", text: "💾 Saved Views" });
 
-		const grid = sv.createDiv();
-		grid.style.display = "flex";
-		grid.style.flexWrap = "wrap";
-		grid.style.gap = "6px";
+		const grid = sv.createDiv({ cls: "atlas-composer-saved-grid" });
 
 		for (const v of savedViews) {
-			const chip = grid.createEl("button", { text: `📌 ${v.name}` });
-			chip.style.fontSize = "11px";
-			chip.style.padding = "4px 8px";
-			chip.style.cursor = "pointer";
-			chip.style.borderRadius = "4px";
+			const chip = grid.createEl("button", {
+				cls: "atlas-composer-saved-chip",
+				text: `📌 ${v.name}`,
+			});
 			chip.title = v.cron ? `Cron: ${v.cron}` : "Click para executar";
 			chip.addEventListener("click", () => void runSavedView(plugin, composer, v));
 
@@ -91,8 +81,14 @@ export async function renderReportsComposerTab(
 					},
 					{
 						label: "🗑️ Deletar",
-						onClick: () => {
-							if (confirm(`Deletar saved view "${v.name}"?`)) {
+						onClick: async () => {
+							const { confirmAsync } = await import("../../ui/confirm-modal");
+							const ok = await confirmAsync(plugin.app, `Deletar saved view "${v.name}"?`, {
+								title: "Confirmar exclusão",
+								danger: true,
+								yesLabel: "Deletar",
+							});
+							if (ok) {
 								store.delete(v.id);
 								void renderReportsComposerTab(container, plugin);
 							}
@@ -104,11 +100,7 @@ export async function renderReportsComposerTab(
 	}
 
 	// Filter sections
-	const filtersBox = container.createDiv();
-	filtersBox.style.padding = "12px";
-	filtersBox.style.background = "var(--background-secondary)";
-	filtersBox.style.borderRadius = "6px";
-	filtersBox.style.marginBottom = "12px";
+	const filtersBox = container.createDiv({ cls: "atlas-composer-filters-box" });
 
 	// Period
 	periodInputs(filtersBox, draft);
@@ -153,19 +145,16 @@ export async function renderReportsComposerTab(
 	}
 
 	// Tags livres
-	const tagWrap = filtersBox.createDiv();
-	tagWrap.style.marginBottom = "10px";
-	const tagLbl = tagWrap.createEl("label", { text: "🔖 Tags livres (separar por vírgula)" });
-	tagLbl.style.fontSize = "11px";
-	tagLbl.style.fontWeight = "bold";
-	tagLbl.style.opacity = "0.7";
-	tagLbl.style.display = "block";
-	tagLbl.style.marginBottom = "4px";
-	const tagInput = tagWrap.createEl("input", { type: "text" }) as HTMLInputElement;
+	const tagWrap = filtersBox.createDiv({ cls: "atlas-composer-tag-wrap" });
+	tagWrap.createEl("label", {
+		cls: "atlas-composer-field-label",
+		text: "🔖 Tags livres (separar por vírgula)",
+	});
+	const tagInput = tagWrap.createEl("input", {
+		cls: "atlas-composer-tag-input",
+		type: "text",
+	}) as HTMLInputElement;
 	tagInput.placeholder = "urgent, bloqueio, win";
-	tagInput.style.width = "100%";
-	tagInput.style.padding = "5px 8px";
-	tagInput.style.fontSize = "12px";
 	tagInput.value = draft.tags.join(", ");
 	tagInput.addEventListener("input", () => {
 		draft.tags = tagInput.value
@@ -175,35 +164,39 @@ export async function renderReportsComposerTab(
 	});
 
 	// LLM toggle
-	const llmRow = filtersBox.createDiv();
-	llmRow.style.display = "flex";
-	llmRow.style.alignItems = "center";
-	llmRow.style.gap = "8px";
-	llmRow.style.marginTop = "8px";
-	const llmCb = llmRow.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+	const llmRow = filtersBox.createDiv({ cls: "atlas-composer-llm-row" });
+	const llmCb = llmRow.createEl("input", {
+		cls: "atlas-composer-llm-cb",
+		type: "checkbox",
+	}) as HTMLInputElement;
 	llmCb.checked = draft.useLlm;
 	llmCb.addEventListener("change", () => (draft.useLlm = llmCb.checked));
-	llmRow.createEl("label", { text: "Usar IA (Map-Reduce) — adiciona síntese automática" }).style.fontSize = "12px";
+	llmRow.createEl("label", {
+		cls: "atlas-composer-llm-label",
+		text: "Usar IA (Map-Reduce) — adiciona síntese automática",
+	});
 
 	// Action buttons
-	const actions = container.createDiv();
-	actions.style.display = "flex";
-	actions.style.gap = "6px";
-	actions.style.flexWrap = "wrap";
+	const actions = container.createDiv({ cls: "atlas-composer-actions" });
 
-	const generateBtn = actions.createEl("button", { text: "▶️ Gerar relatório" });
-	generateBtn.addClass("mod-cta");
-	generateBtn.style.padding = "8px 14px";
+	const generateBtn = actions.createEl("button", {
+		cls: "atlas-composer-action-btn mod-cta",
+		text: "▶️ Gerar relatório",
+	});
 	generateBtn.addEventListener("click", () => void generateReport(plugin, composer, draft));
 
-	const saveBtn = actions.createEl("button", { text: "💾 Salvar como view" });
-	saveBtn.style.padding = "8px 14px";
+	const saveBtn = actions.createEl("button", {
+		cls: "atlas-composer-action-btn",
+		text: "💾 Salvar como view",
+	});
 	saveBtn.addEventListener("click", () =>
 		saveAsView(plugin, store, draft, () => void renderReportsComposerTab(container, plugin))
 	);
 
-	const resetBtn = actions.createEl("button", { text: "↺ Limpar filtros" });
-	resetBtn.style.padding = "8px 14px";
+	const resetBtn = actions.createEl("button", {
+		cls: "atlas-composer-action-btn",
+		text: "↺ Limpar filtros",
+	});
 	resetBtn.addEventListener("click", () => {
 		draft.personIds = [];
 		draft.systemIds = [];
@@ -218,47 +211,32 @@ export async function renderReportsComposerTab(
 // Helpers UI
 
 function periodInputs(parent: HTMLElement, draft: ReportSpec): void {
-	const wrap = parent.createDiv();
-	wrap.style.marginBottom = "10px";
-	const lbl = wrap.createEl("label", { text: "📅 Período" });
-	lbl.style.fontSize = "11px";
-	lbl.style.fontWeight = "bold";
-	lbl.style.opacity = "0.7";
-	lbl.style.display = "block";
-	lbl.style.marginBottom = "4px";
+	const wrap = parent.createDiv({ cls: "atlas-composer-period-wrap" });
+	wrap.createEl("label", { cls: "atlas-composer-field-label", text: "📅 Período" });
 
-	const row = wrap.createDiv();
-	row.style.display = "flex";
-	row.style.gap = "8px";
-	row.style.alignItems = "center";
+	const row = wrap.createDiv({ cls: "atlas-composer-period-row" });
 
-	const start = row.createEl("input", { type: "date" }) as HTMLInputElement;
+	const start = row.createEl("input", {
+		cls: "atlas-composer-period-input",
+		type: "date",
+	}) as HTMLInputElement;
 	start.value = draft.period.start;
-	start.style.flexGrow = "1";
-	start.style.padding = "5px";
-	start.style.fontSize = "12px";
 	start.addEventListener("input", () => (draft.period.start = start.value));
 
-	const sep = row.createEl("span", { text: "→" });
-	sep.style.opacity = "0.5";
+	row.createEl("span", { cls: "atlas-composer-period-sep", text: "→" });
 
-	const end = row.createEl("input", { type: "date" }) as HTMLInputElement;
+	const end = row.createEl("input", {
+		cls: "atlas-composer-period-input",
+		type: "date",
+	}) as HTMLInputElement;
 	end.value = draft.period.end;
-	end.style.flexGrow = "1";
-	end.style.padding = "5px";
-	end.style.fontSize = "12px";
 	end.addEventListener("input", () => (draft.period.end = end.value));
 
 	// Quick presets
-	const presetRow = wrap.createDiv();
-	presetRow.style.display = "flex";
-	presetRow.style.gap = "4px";
-	presetRow.style.marginTop = "4px";
+	const presetRow = wrap.createDiv({ cls: "atlas-composer-preset-row" });
 
 	const preset = (label: string, days: number) => {
-		const btn = presetRow.createEl("button", { text: label });
-		btn.style.fontSize = "10px";
-		btn.style.padding = "2px 6px";
+		const btn = presetRow.createEl("button", { cls: "atlas-composer-preset-btn", text: label });
 		btn.addEventListener("click", () => {
 			const today = new Date();
 			const start = new Date(today.getTime() - days * 86_400_000);
@@ -288,50 +266,23 @@ function multiSelectChips(
 	values: string[],
 	onChange: (v: string[]) => void
 ): void {
-	const wrap = parent.createDiv();
-	wrap.style.marginBottom = "10px";
-	const lbl = wrap.createEl("label", { text: label });
-	lbl.style.fontSize = "11px";
-	lbl.style.fontWeight = "bold";
-	lbl.style.opacity = "0.7";
-	lbl.style.display = "block";
-	lbl.style.marginBottom = "4px";
+	const wrap = parent.createDiv({ cls: "atlas-composer-multi-wrap" });
+	wrap.createEl("label", { cls: "atlas-composer-field-label", text: label });
 
 	if (options.length === 0) {
-		const empty = wrap.createEl("div", { text: "(nenhum cadastrado)" });
-		empty.style.fontSize = "11px";
-		empty.style.opacity = "0.5";
+		wrap.createEl("div", { cls: "atlas-composer-multi-empty", text: "(nenhum cadastrado)" });
 		return;
 	}
 
-	const chipsBox = wrap.createDiv();
-	chipsBox.style.display = "flex";
-	chipsBox.style.flexWrap = "wrap";
-	chipsBox.style.gap = "4px";
-	chipsBox.style.maxHeight = "100px";
-	chipsBox.style.overflowY = "auto";
-	chipsBox.style.padding = "4px";
-	chipsBox.style.background = "var(--background-primary)";
-	chipsBox.style.borderRadius = "4px";
+	const chipsBox = wrap.createDiv({ cls: "atlas-composer-chips-box" });
 
 	const selected = new Set(values);
 
 	for (const opt of options) {
-		const chip = chipsBox.createEl("span", { text: opt.label });
-		chip.style.padding = "3px 8px";
-		chip.style.borderRadius = "12px";
-		chip.style.fontSize = "11px";
-		chip.style.cursor = "pointer";
-		chip.style.userSelect = "none";
+		const chip = chipsBox.createEl("span", { cls: "atlas-composer-multi-chip", text: opt.label });
 		const refresh = () => {
-			if (selected.has(opt.id)) {
-				chip.style.background = "var(--interactive-accent)";
-				chip.style.color = "var(--text-on-accent)";
-			} else {
-				chip.style.background = "var(--background-modifier-hover)";
-				chip.style.color = "var(--text-normal)";
-				chip.style.opacity = "0.7";
-			}
+			if (selected.has(opt.id)) chip.addClass("is-selected");
+			else chip.removeClass("is-selected");
 		};
 		refresh();
 		chip.addEventListener("click", () => {
@@ -382,14 +333,12 @@ function saveAsView(
 			const { contentEl } = this;
 			contentEl.empty();
 			contentEl.createEl("h3", { text: "💾 Salvar como Saved View" });
-			const lbl = contentEl.createEl("label", { text: "Nome da view" });
-			lbl.style.fontSize = "12px";
-			lbl.style.display = "block";
-			lbl.style.marginBottom = "4px";
-			const inp = contentEl.createEl("input", { type: "text" }) as HTMLInputElement;
+			contentEl.createEl("label", { cls: "atlas-composer-save-label", text: "Nome da view" });
+			const inp = contentEl.createEl("input", {
+				cls: "atlas-composer-save-input",
+				type: "text",
+			}) as HTMLInputElement;
 			inp.placeholder = "Weekly Q2";
-			inp.style.width = "100%";
-			inp.style.padding = "6px 8px";
 			inp.focus();
 			inp.addEventListener("input", () => (this.name = inp.value));
 
@@ -431,26 +380,23 @@ function editSchedule(
 			contentEl.empty();
 			contentEl.createEl("h3", { text: `📅 Schedule: ${view.name}` });
 			contentEl.createEl("p", {
+				cls: "atlas-composer-cron-desc",
 				text: "Cron expression. Atlas vai gerar automaticamente nesta cadência.",
-			}).style.fontSize = "12px";
+			});
 
-			const examples = contentEl.createEl("pre");
-			examples.style.fontSize = "10px";
-			examples.style.background = "var(--background-secondary)";
-			examples.style.padding = "8px";
-			examples.style.borderRadius = "4px";
+			const examples = contentEl.createEl("pre", { cls: "atlas-composer-cron-examples" });
 			examples.textContent = `Exemplos:
 0 16 * * 5    sexta às 16h
 0 9 * * 1     segunda às 9h
 0 7 * * *     todos os dias 7h
 0 18 28-31 * * último dia do mês 18h`;
 
-			const inp = contentEl.createEl("input", { type: "text" }) as HTMLInputElement;
+			const inp = contentEl.createEl("input", {
+				cls: "atlas-composer-cron-input",
+				type: "text",
+			}) as HTMLInputElement;
 			inp.value = this.cron;
 			inp.placeholder = "0 16 * * 5";
-			inp.style.width = "100%";
-			inp.style.padding = "6px 8px";
-			inp.style.fontFamily = "monospace";
 			inp.addEventListener("input", () => (this.cron = inp.value));
 
 			new Setting(contentEl)
@@ -535,32 +481,14 @@ function createInlineMenu(
 
 	const menu = document.createElement("div");
 	menu.addClass("atlas-inline-menu");
-	menu.style.position = "fixed";
-	menu.style.background = "var(--background-primary)";
-	menu.style.border = "1px solid var(--background-modifier-border)";
-	menu.style.borderRadius = "6px";
-	menu.style.boxShadow = "0 4px 16px rgba(0,0,0,0.18)";
-	menu.style.padding = "4px";
-	menu.style.zIndex = "10000";
-	menu.style.minWidth = "180px";
 
 	const rect = anchor.getBoundingClientRect();
-	menu.style.top = `${rect.bottom + 4}px`;
-	menu.style.left = `${rect.left}px`;
+	// Position is dynamic per anchor — must be inline
+	menu.style.setProperty("top", `${rect.bottom + 4}px`);
+	menu.style.setProperty("left", `${rect.left}px`);
 
 	for (const it of items) {
-		const row = menu.createDiv();
-		row.style.padding = "6px 10px";
-		row.style.fontSize = "12px";
-		row.style.cursor = "pointer";
-		row.style.borderRadius = "4px";
-		row.setText(it.label);
-		row.addEventListener("mouseenter", () => {
-			row.style.background = "var(--background-modifier-hover)";
-		});
-		row.addEventListener("mouseleave", () => {
-			row.style.background = "transparent";
-		});
+		const row = menu.createDiv({ cls: "atlas-inline-menu-row", text: it.label });
 		row.addEventListener("click", () => {
 			it.onClick();
 			menu.remove();

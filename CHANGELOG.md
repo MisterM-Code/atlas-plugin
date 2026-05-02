@@ -4,6 +4,52 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.10.0] — 2026-05-02 — "Final migration: Reports Composer + Visual Template Editor → CSS"
+
+### Changed — Last 2 heavy files migrated to CSS classes
+
+| File | Before | After |
+|---|---|---|
+| `tab-reports-composer.ts` | 116 | 2 (drag positions in inline-menu) |
+| `editor-ui.ts` template editor | 137 | 3 (dynamic per-block-kind colors via `setProperty`) |
+
+styles.css: 46 KB → **51 KB** (added ~280 lines for composer filters/chips/cron + template editor blocks/preview/picker).
+
+### v0.10.0 — Compliance milestone reached
+
+After 11 versions of incremental migration (v0.9.0 → v0.10.0), all 18 most-visible Atlas component files have been migrated from inline `element.style.X` patterns to CSS classes. The Atlas plugin is now fully compliant with Obsidian's "Use CSS classes for better theming and maintainability" guideline for the entire user-facing surface.
+
+**Total inline styles eliminated across all components: ~1,080**
+
+Files fully migrated:
+- Jarvis suite (7 files): jarvis-core, jarvis-tutorial, jarvis-overlay, etc.
+- HUD + Header + FAB
+- Master Sidebar + Status + Settings
+- Reminders + Jarvis tabs
+- 3 CRUD tabs (Systems / Products / Roles)
+- Onboarding wizard (11 screens)
+- **Reports Composer** (filters, chips, saved views, cron modal)
+- **Template Editor** (drag-drop block editor, preview, picker)
+
+Remaining inline styles in source: only legitimate dynamic per-element values:
+- Drag positions (HUD, inline-menu coordinates per anchor)
+- Dynamic % widths (RAM bar fill)
+- Per-block-kind border-left colors (template editor)
+- Color swatch backgrounds (onboarding color picker)
+
+These are appropriate uses of `style.setProperty()` — runtime-computed values where CSS classes don't apply.
+
+### Stack milestones at v0.10.0
+- main.js: 1.8 MB minified (TypeScript strict, 0 errors)
+- styles.css: 51 KB (well-structured, BEM-like naming)
+- 0 `innerHTML =`
+- 0 `<style>` element creation at runtime
+- 0 `eval()` / `new Function()`
+- 0 `prompt()` / `confirm()` globals (replaced with Modal subclasses)
+- 0 default hotkeys (user-configurable)
+- 0 plugin-id prefix in command IDs (Obsidian auto-prefixes)
+- 0 plugin-name prefix in command names
+
 ## [0.9.9] — 2026-05-02 — "Onboarding wizard migrated to CSS classes (first-run UX)"
 
 ### Changed

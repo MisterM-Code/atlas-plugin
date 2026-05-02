@@ -24,28 +24,21 @@ export class TemplateEditorModal extends Modal {
 		applyResponsiveModal(contentEl, { preferredWidth: 1100, preferredHeight: 800 });
 
 		// Header
-		const header = contentEl.createDiv();
-		header.style.display = "flex";
-		header.style.justifyContent = "space-between";
-		header.style.alignItems = "center";
-		header.style.marginBottom = "12px";
+		const header = contentEl.createDiv({ cls: "atlas-tplmod-header" });
 
 		const titleWrap = header.createDiv();
 		titleWrap.createEl("h3", {
+			cls: "atlas-tplmod-title",
 			text: `${this.template.icon} Template: ${this.template.name}`,
-		}).style.margin = "0";
-		const subEl = titleWrap.createEl("div", {
+		});
+		titleWrap.createEl("div", {
+			cls: "atlas-tplmod-subtitle",
 			text: this.template.description,
 		});
-		subEl.style.fontSize = "11px";
-		subEl.style.opacity = "0.6";
 
-		const headerBtns = header.createDiv();
-		headerBtns.style.display = "flex";
-		headerBtns.style.gap = "6px";
+		const headerBtns = header.createDiv({ cls: "atlas-tplmod-header-btns" });
 
-		const resetBtn = headerBtns.createEl("button", { text: "↻ Resetar" });
-		resetBtn.style.fontSize = "11px";
+		const resetBtn = headerBtns.createEl("button", { cls: "atlas-tplmod-reset-btn", text: "↻ Resetar" });
 		resetBtn.title = "Restaurar template original";
 		resetBtn.addEventListener("click", async () => {
 			const { confirmAsync } = await import("../../ui/confirm-modal");
@@ -65,10 +58,7 @@ export class TemplateEditorModal extends Modal {
 			}
 		});
 
-		const saveBtn = headerBtns.createEl("button", { text: "💾 Salvar" });
-		saveBtn.addClass("mod-cta");
-		saveBtn.style.fontSize = "12px";
-		saveBtn.style.padding = "6px 14px";
+		const saveBtn = headerBtns.createEl("button", { cls: "atlas-tplmod-save-btn mod-cta", text: "💾 Salvar" });
 		saveBtn.addEventListener("click", () => {
 			this.plugin.templateStore.upsert(this.template);
 			void this.plugin.templateStore.save();
@@ -77,24 +67,14 @@ export class TemplateEditorModal extends Modal {
 		});
 
 		// Two columns: blocks | preview
-		const grid = contentEl.createDiv();
-		grid.style.display = "grid";
-		grid.style.gridTemplateColumns = "1fr 1fr";
-		grid.style.gap = "12px";
-		grid.style.maxHeight = "70vh";
+		const grid = contentEl.createDiv({ cls: "atlas-tplmod-grid" });
 
 		// Left: blocks
-		const left = grid.createDiv();
-		left.style.overflowY = "auto";
-		left.style.border = "1px solid var(--background-modifier-border)";
-		left.style.borderRadius = "6px";
-		left.style.padding = "8px";
-
-		const blocksHeader = left.createEl("div", { text: "BLOCKS (drag pra reordenar)" });
-		blocksHeader.style.fontSize = "10px";
-		blocksHeader.style.opacity = "0.7";
-		blocksHeader.style.fontWeight = "bold";
-		blocksHeader.style.marginBottom = "6px";
+		const left = grid.createDiv({ cls: "atlas-tplmod-left-pane" });
+		left.createEl("div", {
+			cls: "atlas-tplmod-pane-header",
+			text: "BLOCKS (drag pra reordenar)",
+		});
 
 		this.blocksContainer = left.createDiv() as HTMLDivElement;
 
@@ -102,24 +82,13 @@ export class TemplateEditorModal extends Modal {
 		this.renderAddBlockBar(left);
 
 		// Right: preview
-		const right = grid.createDiv();
-		right.style.overflowY = "auto";
-		right.style.border = "1px solid var(--background-modifier-border)";
-		right.style.borderRadius = "6px";
-		right.style.padding = "8px";
-		right.style.background = "var(--background-secondary)";
+		const right = grid.createDiv({ cls: "atlas-tplmod-right-pane" });
+		right.createEl("div", {
+			cls: "atlas-tplmod-pane-header",
+			text: "PREVIEW (markdown renderizado)",
+		});
 
-		const previewHeader = right.createEl("div", { text: "PREVIEW (markdown renderizado)" });
-		previewHeader.style.fontSize = "10px";
-		previewHeader.style.opacity = "0.7";
-		previewHeader.style.fontWeight = "bold";
-		previewHeader.style.marginBottom = "6px";
-
-		this.previewEl = right.createEl("pre");
-		this.previewEl.style.whiteSpace = "pre-wrap";
-		this.previewEl.style.fontSize = "11px";
-		this.previewEl.style.lineHeight = "1.5";
-		this.previewEl.style.fontFamily = "var(--font-monospace)";
+		this.previewEl = right.createEl("pre", { cls: "atlas-tplmod-preview" });
 
 		this.refresh();
 	}
@@ -141,43 +110,37 @@ export class TemplateEditorModal extends Modal {
 		});
 
 		if (this.template.blocks.length === 0) {
-			const empty = this.blocksContainer.createEl("div", {
+			this.blocksContainer.createEl("div", {
+				cls: "atlas-tplmod-empty",
 				text: "Nenhum bloco. Adicione abaixo ↓",
 			});
-			empty.style.padding = "16px";
-			empty.style.textAlign = "center";
-			empty.style.opacity = "0.5";
-			empty.style.fontSize = "12px";
 		}
 	}
 
 	private renderBlockRow(block: Block, idx: number): void {
-		const row = this.blocksContainer.createDiv();
-		row.style.padding = "8px";
-		row.style.marginBottom = "4px";
-		row.style.background = "var(--background-secondary)";
-		row.style.borderRadius = "4px";
-		row.style.borderLeft = `3px solid ${this.colorForKind(block.kind)}`;
+		const row = this.blocksContainer.createDiv({ cls: `atlas-tplmod-block-row block-kind-${block.kind}` });
+		// Border-left color is dynamic per block kind
+		row.style.setProperty("border-left-color", this.colorForKind(block.kind));
 		row.draggable = true;
 		row.dataset["idx"] = String(idx);
 
 		row.addEventListener("dragstart", (ev) => {
 			ev.dataTransfer?.setData("text/plain", String(idx));
-			row.style.opacity = "0.4";
+			row.addClass("is-dragging");
 		});
 		row.addEventListener("dragend", () => {
-			row.style.opacity = "1";
+			row.removeClass("is-dragging");
 		});
 		row.addEventListener("dragover", (ev) => {
 			ev.preventDefault();
-			row.style.borderTop = "2px solid var(--interactive-accent)";
+			row.addClass("is-drop-target");
 		});
 		row.addEventListener("dragleave", () => {
-			row.style.borderTop = "";
+			row.removeClass("is-drop-target");
 		});
 		row.addEventListener("drop", (ev) => {
 			ev.preventDefault();
-			row.style.borderTop = "";
+			row.removeClass("is-drop-target");
 			const fromIdx = parseInt(ev.dataTransfer?.getData("text/plain") ?? "-1", 10);
 			if (fromIdx >= 0 && fromIdx !== idx) {
 				const moved = this.template.blocks.splice(fromIdx, 1)[0];
@@ -187,37 +150,19 @@ export class TemplateEditorModal extends Modal {
 		});
 
 		// Top row: drag handle + kind badge + actions
-		const topRow = row.createDiv();
-		topRow.style.display = "flex";
-		topRow.style.alignItems = "center";
-		topRow.style.gap = "8px";
-		topRow.style.marginBottom = "4px";
+		const topRow = row.createDiv({ cls: "atlas-tplmod-block-top" });
 
-		const drag = topRow.createEl("span", { text: "⋮⋮" });
-		drag.style.cursor = "grab";
-		drag.style.opacity = "0.4";
-		drag.style.fontSize = "12px";
+		topRow.createEl("span", { cls: "atlas-tplmod-block-drag", text: "⋮⋮" });
 
-		const kindBadge = topRow.createEl("span", { text: block.kind });
-		kindBadge.style.fontSize = "10px";
-		kindBadge.style.padding = "2px 6px";
-		kindBadge.style.borderRadius = "3px";
-		kindBadge.style.background = this.colorForKind(block.kind);
-		kindBadge.style.color = "white";
-		kindBadge.style.fontWeight = "bold";
+		const kindBadge = topRow.createEl("span", { cls: "atlas-tplmod-block-kind-badge", text: block.kind });
+		kindBadge.style.setProperty("background", this.colorForKind(block.kind));
 
-		const summary = topRow.createDiv();
-		summary.style.flexGrow = "1";
-		summary.style.fontSize = "12px";
-		summary.style.overflow = "hidden";
-		summary.style.textOverflow = "ellipsis";
-		summary.style.whiteSpace = "nowrap";
-		summary.style.opacity = "0.7";
-		summary.setText(this.summarizeBlock(block));
+		topRow.createDiv({
+			cls: "atlas-tplmod-block-summary",
+			text: this.summarizeBlock(block),
+		});
 
-		const removeBtn = topRow.createEl("button", { text: "✕" });
-		removeBtn.style.fontSize = "11px";
-		removeBtn.style.padding = "1px 6px";
+		const removeBtn = topRow.createEl("button", { cls: "atlas-tplmod-block-remove", text: "✕" });
 		removeBtn.addEventListener("click", () => {
 			this.template.blocks = this.template.blocks.filter((_, i) => i !== idx);
 			this.refresh();
@@ -385,21 +330,14 @@ export class TemplateEditorModal extends Modal {
 		onChange: (v: string) => void,
 		opts?: { width?: string }
 	): void {
-		const wrap = parent.createDiv();
-		wrap.style.display = "flex";
-		wrap.style.alignItems = "center";
-		wrap.style.gap = "6px";
-		wrap.style.fontSize = "11px";
-		wrap.style.marginTop = "3px";
-		const lbl = wrap.createEl("label", { text: label });
-		lbl.style.minWidth = "100px";
-		lbl.style.opacity = "0.6";
-		const inp = wrap.createEl("input", { type: "text" }) as HTMLInputElement;
+		const wrap = parent.createDiv({ cls: "atlas-tplmod-field-row" });
+		wrap.createEl("label", { cls: "atlas-tplmod-field-label", text: label });
+		const inp = wrap.createEl("input", {
+			cls: opts?.width ? "atlas-tplmod-field-input is-fixed-width" : "atlas-tplmod-field-input is-flex",
+			type: "text",
+		}) as HTMLInputElement;
 		inp.value = value;
-		inp.style.padding = "3px 6px";
-		inp.style.fontSize = "11px";
-		if (opts?.width) inp.style.width = opts.width;
-		else inp.style.flexGrow = "1";
+		if (opts?.width) inp.style.setProperty("width", opts.width);
 		inp.addEventListener("input", () => onChange(inp.value));
 	}
 
@@ -409,19 +347,10 @@ export class TemplateEditorModal extends Modal {
 		value: string,
 		onChange: (v: string) => void
 	): void {
-		const wrap = parent.createDiv();
-		wrap.style.fontSize = "11px";
-		wrap.style.marginTop = "3px";
-		const lbl = wrap.createEl("label", { text: label });
-		lbl.style.opacity = "0.6";
-		lbl.style.display = "block";
-		const ta = wrap.createEl("textarea") as HTMLTextAreaElement;
+		const wrap = parent.createDiv({ cls: "atlas-tplmod-textarea-wrap" });
+		wrap.createEl("label", { cls: "atlas-tplmod-textarea-label", text: label });
+		const ta = wrap.createEl("textarea", { cls: "atlas-tplmod-textarea" }) as HTMLTextAreaElement;
 		ta.value = value;
-		ta.style.width = "100%";
-		ta.style.minHeight = "50px";
-		ta.style.padding = "4px 6px";
-		ta.style.fontSize = "11px";
-		ta.style.fontFamily = "var(--font-monospace)";
 		ta.addEventListener("input", () => onChange(ta.value));
 	}
 
@@ -432,18 +361,9 @@ export class TemplateEditorModal extends Modal {
 		options: string[],
 		onChange: (v: string) => void
 	): void {
-		const wrap = parent.createDiv();
-		wrap.style.display = "flex";
-		wrap.style.alignItems = "center";
-		wrap.style.gap = "6px";
-		wrap.style.fontSize = "11px";
-		wrap.style.marginTop = "3px";
-		const lbl = wrap.createEl("label", { text: label });
-		lbl.style.minWidth = "100px";
-		lbl.style.opacity = "0.6";
-		const sel = wrap.createEl("select") as HTMLSelectElement;
-		sel.style.padding = "3px 6px";
-		sel.style.fontSize = "11px";
+		const wrap = parent.createDiv({ cls: "atlas-tplmod-field-row" });
+		wrap.createEl("label", { cls: "atlas-tplmod-field-label", text: label });
+		const sel = wrap.createEl("select", { cls: "atlas-tplmod-select" }) as HTMLSelectElement;
 		for (const opt of options) {
 			const o = sel.createEl("option", { text: opt, value: opt });
 			if (opt === value) o.selected = true;
@@ -452,22 +372,9 @@ export class TemplateEditorModal extends Modal {
 	}
 
 	private renderAddBlockBar(parent: HTMLElement): void {
-		const bar = parent.createDiv();
-		bar.style.marginTop = "8px";
-		bar.style.padding = "6px";
-		bar.style.background = "var(--background-secondary)";
-		bar.style.borderRadius = "4px";
-
-		const title = bar.createEl("div", { text: "+ ADICIONAR BLOCO" });
-		title.style.fontSize = "10px";
-		title.style.opacity = "0.7";
-		title.style.fontWeight = "bold";
-		title.style.marginBottom = "4px";
-
-		const grid = bar.createDiv();
-		grid.style.display = "grid";
-		grid.style.gridTemplateColumns = "1fr 1fr 1fr";
-		grid.style.gap = "4px";
+		const bar = parent.createDiv({ cls: "atlas-tplmod-add-bar" });
+		bar.createEl("div", { cls: "atlas-tplmod-add-title", text: "+ ADICIONAR BLOCO" });
+		const grid = bar.createDiv({ cls: "atlas-tplmod-add-grid" });
 
 		const types: { kind: BlockKind; label: string; icon: string }[] = [
 			{ kind: "heading", label: "Heading", icon: "#" },
@@ -483,10 +390,10 @@ export class TemplateEditorModal extends Modal {
 		];
 
 		for (const t of types) {
-			const btn = grid.createEl("button", { text: `${t.icon} ${t.label}` });
-			btn.style.fontSize = "10px";
-			btn.style.padding = "4px 6px";
-			btn.style.cursor = "pointer";
+			const btn = grid.createEl("button", {
+				cls: "atlas-tplmod-add-btn",
+				text: `${t.icon} ${t.label}`,
+			});
 			btn.addEventListener("click", () => this.addBlock(t.kind));
 		}
 	}
@@ -575,54 +482,37 @@ export class TemplatePickerModal extends Modal {
 
 		contentEl.createEl("h3", { text: "📐 Templates Atlas" });
 		contentEl.createEl("p", {
+			cls: "atlas-tplpicker-subtitle",
 			text: "Escolha um template para editar visualmente.",
-		}).style.fontSize = "12px";
+		});
 
-		const list = contentEl.createDiv();
-		list.style.maxHeight = "60vh";
-		list.style.overflowY = "auto";
+		const list = contentEl.createDiv({ cls: "atlas-tplpicker-list" });
 
 		const templates = this.plugin.templateStore.list();
 		for (const t of templates) {
-			const card = list.createDiv();
-			card.style.padding = "12px";
-			card.style.marginBottom = "6px";
-			card.style.background = "var(--background-secondary)";
-			card.style.borderRadius = "6px";
-			card.style.cursor = "pointer";
-			card.style.display = "flex";
-			card.style.alignItems = "center";
-			card.style.gap = "12px";
+			const card = list.createDiv({ cls: "atlas-tplpicker-card" });
 
-			const icon = card.createEl("span", { text: t.icon });
-			icon.style.fontSize = "20px";
+			card.createEl("span", { cls: "atlas-tplpicker-card-icon", text: t.icon });
 
-			const wrap = card.createDiv();
-			wrap.style.flexGrow = "1";
-			wrap.createEl("div", { text: t.name }).style.fontWeight = "bold";
-			const desc = wrap.createEl("div", { text: t.description });
-			desc.style.fontSize = "11px";
-			desc.style.opacity = "0.7";
-			const meta = wrap.createEl("div", {
+			const wrap = card.createDiv({ cls: "atlas-tplpicker-card-text" });
+			wrap.createEl("div", { cls: "atlas-tplpicker-card-name", text: t.name });
+			wrap.createEl("div", { cls: "atlas-tplpicker-card-desc", text: t.description });
+			wrap.createEl("div", {
+				cls: "atlas-tplpicker-card-meta",
 				text: `${t.blocks.length} blocks · ${t.category}`,
 			});
-			meta.style.fontSize = "10px";
-			meta.style.opacity = "0.5";
-			meta.style.marginTop = "2px";
 
-			const editBtn = card.createEl("button", { text: "✏️ Editar" });
-			editBtn.addClass("mod-cta");
+			const editBtn = card.createEl("button", { cls: "atlas-tplpicker-edit-btn mod-cta", text: "✏️ Editar" });
 			editBtn.addEventListener("click", () => {
 				this.close();
 				new TemplateEditorModal(this.app, this.plugin, t).open();
 			});
 
-			const useBtn = card.createEl("button", { text: "▶️ Usar" });
+			const useBtn = card.createEl("button", { cls: "atlas-tplpicker-use-btn", text: "▶️ Usar" });
 			useBtn.addEventListener("click", () => void this.useTemplate(t));
 		}
 
-		const newBtn = contentEl.createEl("button", { text: "+ Novo template" });
-		newBtn.style.marginTop = "12px";
+		const newBtn = contentEl.createEl("button", { cls: "atlas-tplpicker-new-btn", text: "+ Novo template" });
 		newBtn.addEventListener("click", () => {
 			const newT: AtlasTemplate = {
 				id: `custom-${Date.now().toString(36)}`,
@@ -732,9 +622,10 @@ async function promptValue(app: App, label: string): Promise<string | null> {
 			onOpen(): void {
 				const { contentEl } = this;
 				contentEl.createEl("h4", { text: label });
-				const inp = contentEl.createEl("input", { type: "text" }) as HTMLInputElement;
-				inp.style.width = "100%";
-				inp.style.padding = "6px";
+				const inp = contentEl.createEl("input", {
+					cls: "atlas-tplmod-prompt-input",
+					type: "text",
+				}) as HTMLInputElement;
 				inp.focus();
 				inp.addEventListener("keydown", (e) => {
 					if (e.key === "Enter") {
