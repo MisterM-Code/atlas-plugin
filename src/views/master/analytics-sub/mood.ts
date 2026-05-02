@@ -139,6 +139,18 @@ export async function renderAnalyticsMood(
 		radarEl.style.padding = "8px";
 
 		const monthly = aggregateByMonth(data);
+		// v0.24: guard contra ECharts crash quando monthly vazio (post-v0.22 filter)
+		// ou quando há <2 meses (radar precisa pelo menos 3 indicators pra fazer sentido)
+		if (monthly.length < 3) {
+			radarEl.empty();
+			const empty = radarEl.createDiv({ cls: "atlas-mood-empty-radar" });
+			empty.setText(
+				monthly.length === 0
+					? "📭 Sem mood/energy data ainda. Adicione frontmatter `mood: 4` e `energy: 3` aos daily logs."
+					: `📊 Apenas ${monthly.length} mês${monthly.length === 1 ? "" : "es"} com dados. Radar requer ≥3 meses pra plotar.`
+			);
+			return;
+		}
 		const radarChart = echarts.init(radarEl, undefined, { renderer: "canvas" });
 		radarChart.setOption({
 			title: { text: "📊 Mood por mês (radar)", textStyle: { fontSize: 12 }, left: 8, top: 4 },

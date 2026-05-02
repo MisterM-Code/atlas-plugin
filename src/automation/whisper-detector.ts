@@ -25,16 +25,23 @@ export interface WhisperDetection {
 	platform: "darwin" | "win32" | "linux" | "other";
 }
 
+// v0.24: Homebrew whisper-cpp formula instala binário como `whisper-cli` (não `whisper-cpp`)
+// Antes da formula renomear era `main`. Agora oficialmente é `whisper-cli`.
+// Source: https://formulae.brew.sh/formula/whisper-cpp
 const COMMON_BINARY_PATHS_UNIX = [
+	"/opt/homebrew/bin/whisper-cli",
 	"/opt/homebrew/bin/whisper-cpp",
 	"/opt/homebrew/bin/whisper",
+	"/usr/local/bin/whisper-cli",
 	"/usr/local/bin/whisper-cpp",
 	"/usr/local/bin/whisper",
+	"/usr/bin/whisper-cli",
 	"/usr/bin/whisper-cpp",
 	"/snap/bin/whisper-cpp",
 ];
 
 const COMMON_BINARY_PATHS_WIN = [
+	"C:/Program Files/whisper.cpp/whisper-cli.exe",
 	"C:/Program Files/whisper.cpp/whisper-cpp.exe",
 	"C:/Program Files/whisper.cpp/main.exe",
 ];
@@ -48,16 +55,22 @@ export async function autoDetectWhisper(): Promise<WhisperDetection> {
 	let binaryPath: string | undefined;
 	let version: string | undefined;
 
-	// 1. Try `which` / `where` first (most reliable)
-	try {
-		const cmd = platform === "win32" ? "where whisper-cpp" : "which whisper-cpp";
-		const { stdout } = await execAsync(cmd, { timeout: 3000 });
-		const path = stdout.trim().split("\n")[0];
-		if (path && !path.includes("not found")) {
-			binaryPath = path;
+	// 1. Try `which whisper-cli` first (Homebrew binary), depois fallback `whisper-cpp` legacy
+	const candidatesToTry = platform === "win32"
+		? ["where whisper-cli", "where whisper-cpp"]
+		: ["which whisper-cli", "which whisper-cpp", "which whisper"];
+
+	for (const cmd of candidatesToTry) {
+		try {
+			const { stdout } = await execAsync(cmd, { timeout: 3000 });
+			const path = stdout.trim().split("\n")[0];
+			if (path && !path.includes("not found") && existsSync(path)) {
+				binaryPath = path;
+				break;
+			}
+		} catch {
+			// continue trying next candidate
 		}
-	} catch {
-		// not found via PATH — try common install locations
 	}
 
 	// 2. Fallback to common paths

@@ -4,6 +4,66 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.24.0] — 2026-05-02 — "Bug fixes + Visual polish: Mood crash + Whisper detect + Jarvis particles + Heatmap redesign + Today refinement"
+
+### Fixed (P0 critical bugs)
+
+**Mood radar crash**: "Cannot read undefined properties 'push'"
+- Root cause: post-v0.22 filter de empty months → se vault não tem mood/energy data, monthly = [] → ECharts radar tenta criar com indicator=[] e crasha
+- Fix: empty guard antes de criar radar. Se monthly < 3 meses, mostra mensagem "Apenas N meses com dados — radar requer ≥3" em vez de crashar.
+
+**Whisper auto-detect falhando mesmo com Homebrew**:
+- Root cause: Homebrew `whisper-cpp` formula instala binário como `whisper-cli` (não `whisper-cpp`). Antes era `main`. Atlas só procurava `whisper-cpp`.
+- Fix: detector agora tenta `which whisper-cli` PRIMEIRO, fallback `whisper-cpp` (legacy), depois `whisper`. Path priority list expandida pra incluir `whisper-cli` em todas as locations.
+- Reusa pattern de [src/automation/ollama-installer.ts](src/automation/ollama-installer.ts) que tenta múltiplos comandos.
+
+### Improved (P1 visual)
+
+**Jarvis particles — pareciam glow, não dots distintos**:
+- Trail opacity `0.18` → `0.45` (4 frames fade → 2 frames) — particles têm cabeça clara + tail curtinho em vez de borrão difuso
+- LAYER_GLOW reduzido: layer1 5px→2px shadowBlur, layer2 10px→4px — menos "neuvem de luz"
+- SIZE_MUL `[0.7,1.2,1.9]` → `[1.0,1.6,2.4]` — particles maiores e visíveis
+- ALPHA_BASE `[0.28,0.62,0.95]` → `[0.45,0.78,1.0]` — back layer mais opaca
+
+**Heatmap redesign**:
+- Paleta cyan/indigo (consistente com JARVIS) substitui verde GitHub (`#0c1428` → `#1e3a5f` → `#2563eb` → `#38bdf8` → `#00e5e5`)
+- Cells 14px → 16px (mais clicáveis), `borderRadius: 3` (cantos arredondados)
+- Day labels "Dom/Seg/Ter..." → "D/S/T" (1 letra, economiza espaço)
+- Tooltip premium: dark navy bg + accent border + weekday em PT-BR
+- Hover effect: shadowBlur 8px cyan + border ring
+
+### Polish (P2 — Today/Home refinement)
+
+**Widget polish completo**:
+- Gradient background subtil (180deg secondary → secondary+accent mix)
+- Border-radius 10px → 12px
+- Animated accent line top edge: width 0 → 80% on hover (line traveling effect)
+- Hover: `translateY(-4px) scale(1.005)` + cyan glow shadow + accent border
+- Active state: spring back transition 80ms
+- Entrance animation: 320ms → 380ms cubic-bezier(0.22,1,0.36,1) com scale(0.98)→(1)
+
+**Responsividade fina**:
+- 900px breakpoint: grids 2-col + hero clock 22px
+- 720px breakpoint: RAG 1-col + hero stats gap reduzido
+- 580px breakpoint: tudo 1-col + hero column-stack + clock 20px + Eisenhower 1-col + Quick Actions 4-col compact + Health 4-col compact
+- Reduzido padding mobile (10px 8px vs 16px 14px)
+
+### Files modified
+- `src/views/master/analytics-sub/mood.ts` — empty guard radar
+- `src/automation/whisper-detector.ts` — `whisper-cli` priority
+- `src/ui/jarvis-core.ts` — trail opacity + glow + size + alpha
+- `src/views/master/analytics-sub/heatmap.ts` — cyan paleta + cells redesign
+- `styles.css` — Today widget polish + responsive breakpoints (~80 LOC novas)
+- CHANGELOG, manifest, package, versions → 0.24.0
+
+### Verification
+- [ ] Cmd+Shift+J → particles agora são DOTS distintos com tail curtinho (não glow turvo)
+- [ ] Settings → Voice → 🔍 Auto-detect → encontra `/opt/homebrew/bin/whisper-cli` se brew install whisper-cpp foi rodado
+- [ ] Analytics → Mood com vault sem mood data: empty state graceful (não crash)
+- [ ] Analytics → Heatmap: cores cyan/indigo, cells arredondadas, hover com glow ring
+- [ ] Today: widgets têm gradient subtil + accent line top hover animation + transitions suaves
+- [ ] Today em mobile (<580px): tudo 1-col, hero stack vertical, clock 20px
+
 ## [0.23.0] — 2026-05-02 — "Cloud routing 100%: 13/13 LLM sites wired via LLMService"
 
 ### Sprint H2 — Wire 9 remaining LLM sites

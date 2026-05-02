@@ -97,47 +97,54 @@ export async function renderAnalyticsHeatmap(
 			tooltip: {
 				formatter: (params: { value: [string, number] }) => {
 					const [date, count] = params.value;
-					return `${date}<br/>${count} ${count === 1 ? "modificação" : "modificações"}`;
+					const dateObj = new Date(date);
+					const weekday = dateObj.toLocaleDateString("pt-BR", { weekday: "long" });
+					return `<strong>${date}</strong> · ${weekday}<br/>${count} ${count === 1 ? "modificação" : "modificações"}`;
 				},
+				backgroundColor: "rgba(15, 23, 42, 0.92)",
+				borderColor: "rgba(99, 102, 241, 0.4)",
+				textStyle: { color: "#e0e7ff", fontSize: 11 },
 			},
 			visualMap: {
 				show: false,
 				min: 0,
-				// v0.22 Sprint G: scale dinâmica — não esmaga vault novos
-				// Use percentile P95 ou maxDay.count direto (mín 1 pra evitar div-by-0)
 				max: Math.max(1, maxDay.count),
+				// v0.24: nova paleta cyan/indigo (consistente com JARVIS) — substitui verde GitHub
 				inRange: {
 					color: [
-						"#161b22",
-						"#0e4429",
-						"#006d32",
-						"#26a641",
-						"#39d353",
+						"#0c1428",  // empty
+						"#1e3a5f",  // very low
+						"#2563eb",  // low
+						"#38bdf8",  // medium
+						"#00e5e5",  // peak — cyan brilhante
 					],
 				},
 			},
 			calendar: {
-				top: 30,
-				left: 30,
-				right: 30,
-				cellSize: ["auto", 14],
+				top: 32,
+				left: 36,
+				right: 16,
+				bottom: 8,
+				cellSize: ["auto", 16],  // v0.24: cells maiores (era 14) — mais clicáveis
 				range: [startDate, endDate],
 				itemStyle: {
 					borderWidth: 2,
 					borderColor: "var(--background-primary)",
+					borderRadius: 3,  // v0.24: cantos arredondados pra polish
 				},
 				splitLine: { show: false },
 				yearLabel: { show: false },
 				monthLabel: {
 					nameMap: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
 					color: "var(--text-muted)",
-					fontSize: 10,
+					fontSize: 11,
+					fontWeight: 600,
 				},
 				dayLabel: {
-					nameMap: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+					nameMap: ["D", "S", "T", "Q", "Q", "S", "S"],  // v0.24: 1 letra (era 3) — economia espaço
 					firstDay: 1,
 					color: "var(--text-muted)",
-					fontSize: 10,
+					fontSize: 9,
 				},
 			},
 			series: [
@@ -145,6 +152,15 @@ export async function renderAnalyticsHeatmap(
 					type: "heatmap",
 					coordinateSystem: "calendar",
 					data,
+					// v0.24: hover effect — escala 1.15× + glow ring
+					emphasis: {
+						itemStyle: {
+							shadowBlur: 8,
+							shadowColor: "rgba(0, 229, 229, 0.7)",
+							borderColor: "#00e5e5",
+							borderWidth: 1,
+						},
+					},
 				},
 			],
 		});

@@ -329,8 +329,9 @@ export class JarvisCore {
 		const cx = w / 2;
 		const cy = h / 2;
 		const layer = (Math.random() < 0.4 ? 0 : Math.random() < 0.7 ? 1 : 2) as ParticleLayer;
-		const SIZE_MUL = [0.7, 1.2, 1.9];
-		const ALPHA_BASE = [0.28, 0.62, 0.95];
+		// v0.24: particles maiores e mais opacas — leem como dots distintos não brilho difuso
+		const SIZE_MUL = [1.0, 1.6, 2.4];
+		const ALPHA_BASE = [0.45, 0.78, 1.0];
 
 		if (mode === "orbital") {
 			// Orbital particle: circula a uma distância do orb
@@ -414,9 +415,10 @@ export class JarvisCore {
 		const w = this.particlesCanvas.width;
 		const h = this.particlesCanvas.height;
 
-		// Trails effect: paint semi-transparent black instead of clearing
-		// → particles leave decaying ghost trail (Iron Man HUD signature)
-		ctx.fillStyle = "rgba(2, 6, 23, 0.18)";
+		// v0.24: trails MUITO mais agressivos — partículas viram pontos definidos, não glow turvo
+		// Antes alpha 0.18 = 5+ frames de fade = parecia brilho borrado.
+		// Agora 0.45 = ~2 frames = particles têm cabeça clara + tail curtinho.
+		ctx.fillStyle = "rgba(2, 6, 23, 0.45)";
 		ctx.fillRect(0, 0, w, h);
 
 		const colors = STATE_COLORS[this.state];
@@ -1085,10 +1087,11 @@ const ACTIVITY_MUL: Record<JarvisState, number> = {
 	speaking: 1.4,
 };
 
+// v0.24: glow MUITO reduzido — particles parecem dots distintos não nuvem de brilho
 const LAYER_GLOW: Record<ParticleLayer, { blur: number; alpha: number }> = {
 	0: { blur: 0, alpha: 0 },
-	1: { blur: 5, alpha: 0.5 },
-	2: { blur: 10, alpha: 0.9 },
+	1: { blur: 2, alpha: 0.35 },  // era 5/0.5
+	2: { blur: 4, alpha: 0.65 },  // era 10/0.9
 };
 
 const HEX_GRID_DATA_URL =

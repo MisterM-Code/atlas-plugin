@@ -4098,10 +4098,12 @@ button.atlas-btn:active::after,
  * ════════════════════════════════════════════════════════════════ */
 
 .atlas-today-cmdcenter {
-	padding: 12px;
+	/* v0.24: padding mais generoso + scroll smooth */
+	padding: 16px 14px 24px;
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: 18px;
+	scroll-behavior: smooth;
 }
 .atlas-today-coach-badge {
 	align-self: flex-start;
@@ -4115,8 +4117,14 @@ button.atlas-btn:active::after,
 }
 
 @keyframes atlas-today-slidein {
-	from { opacity: 0; transform: translateY(12px); }
-	to { opacity: 1; transform: translateY(0); }
+	0% { opacity: 0; transform: translateY(16px) scale(0.98); }
+	60% { opacity: 1; }
+	100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* v0.24: subtle entrance variation — alguns widgets entram da esquerda, outros da direita */
+@keyframes atlas-today-slidein-x {
+	0% { opacity: 0; transform: translateX(-12px); }
+	100% { opacity: 1; transform: translateX(0); }
 }
 
 .atlas-today-zone-title {
@@ -4254,19 +4262,46 @@ button.atlas-btn:active::after,
 }
 
 .atlas-today-widget {
-	padding: 14px 16px;
-	background: var(--background-secondary);
+	/* v0.24: polish refinado — gradient border subtle, melhor contrast, transitions premium */
+	position: relative;
+	padding: 16px 18px;
+	background: linear-gradient(180deg,
+		var(--background-secondary) 0%,
+		color-mix(in srgb, var(--background-secondary) 95%, var(--atlas-accent, #6366f1)) 100%);
 	border: 1px solid var(--background-modifier-border);
-	border-radius: 10px;
-	transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
-	            box-shadow 220ms ease,
-	            border-color 220ms ease;
-	animation: atlas-today-slidein 320ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+	border-radius: 12px;
+	overflow: hidden;
+	transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+	            box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1),
+	            border-color 280ms ease,
+	            background 280ms ease;
+	animation: atlas-today-slidein 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+/* Subtle accent line on top edge that grows on hover */
+.atlas-today-widget::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, var(--atlas-accent, #6366f1), transparent);
+	transition: width 360ms cubic-bezier(0.22, 1, 0.36, 1), left 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .atlas-today-widget:hover {
-	transform: translateY(-3px);
-	box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08),
-	            0 0 0 1px rgba(139, 211, 251, 0.18);
+	transform: translateY(-4px) scale(1.005);
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12),
+	            0 0 0 1px rgba(0, 229, 229, 0.25),
+	            0 0 24px rgba(0, 229, 229, 0.08);
+	border-color: var(--atlas-accent, #6366f1);
+}
+.atlas-today-widget:hover::before {
+	width: 80%;
+	left: 10%;
+}
+.atlas-today-widget:active {
+	transform: translateY(-2px) scale(1);
+	transition-duration: 80ms;
 }
 .atlas-today-widget-title {
 	font-size: 11px;
@@ -4436,15 +4471,54 @@ button.atlas-btn:active::after,
 	.atlas-today-action-grid,
 	.atlas-today-aware-grid {
 		grid-template-columns: 1fr 1fr;
+		gap: 10px;
+	}
+	.atlas-today-hero { gap: 12px; }
+	.atlas-today-hero-clock { font-size: 22px; }
+}
+@media (max-width: 720px) {
+	.atlas-today-rag-cols {
+		grid-template-columns: 1fr;
+	}
+	.atlas-today-hero-stats {
+		gap: 8px;
 	}
 }
 @media (max-width: 580px) {
+	.atlas-today-cmdcenter {
+		padding: 10px 8px 16px;
+		gap: 14px;
+	}
 	.atlas-today-action-grid,
 	.atlas-today-aware-grid {
 		grid-template-columns: 1fr;
+		gap: 10px;
 	}
 	.atlas-today-vencendo-cols {
 		grid-template-columns: 1fr;
+	}
+	.atlas-today-hero {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.atlas-today-hero-right {
+		align-items: flex-start;
+		width: 100%;
+	}
+	.atlas-today-hero-clock { font-size: 20px; letter-spacing: 1px; }
+	.atlas-today-widget {
+		padding: 14px 14px;
+	}
+	.atlas-today-eisenhower-grid {
+		grid-template-columns: 1fr;
+	}
+	.atlas-today-quickact-grid {
+		grid-template-columns: repeat(4, 1fr);
+		gap: 6px;
+	}
+	.atlas-today-health-grid {
+		grid-template-columns: repeat(4, 1fr);
+		gap: 6px;
 	}
 }
 
