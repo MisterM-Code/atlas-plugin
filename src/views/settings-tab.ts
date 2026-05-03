@@ -46,6 +46,9 @@ export class AtlasSettingTab extends PluginSettingTab {
 			text: "Atlas funciona 100% local com Ollama. Adicione API keys aqui para usar GPT-4o, Claude Opus 4.7, Gemini 2.0, etc — Atlas controla o gasto e mostra dashboard de spend.",
 		});
 
+		// v0.52.8: Active Provider banner — mostra QUAL provider está sendo usado AGORA pra chat
+		this.renderActiveProviderBanner(containerEl);
+
 		// v0.52.3: Primary AI Provider — quick way to set ALL routing (chat/extraction/reasoning/etc) at once
 		this.renderPrimaryProviderPicker(containerEl);
 
@@ -102,11 +105,34 @@ export class AtlasSettingTab extends PluginSettingTab {
 					updateCount(keys[p.field] ?? "");
 					t.onChange(async (v) => {
 						updateCount(v);
+						const trimmed = v.trim();
+
+						// v0.52.8: detectar prefix mismatch — user colou key de provider X em campo de provider Y
+						if (trimmed.length >= 8) {
+							const detectProviderByPrefix = (key: string): string | null => {
+								if (key.startsWith("sk-ant-")) return "anthropic";
+								if (key.startsWith("sk-or-v1-")) return "openrouter";
+								if (key.startsWith("gsk_")) return "groq";
+								if (key.startsWith("xai-")) return "xai";
+								// `sk-` genérico → openai/deepseek (ambíguo)
+								if (key.startsWith("sk-")) return "openai-or-deepseek";
+								return null;
+							};
+							const detected = detectProviderByPrefix(trimmed);
+							const ambiguousMatch = detected === "openai-or-deepseek" && (p.id === "openai" || p.id === "deepseek");
+							if (detected && detected !== p.id && !ambiguousMatch) {
+								new Notice(
+									`⚠️ Esta key parece ser de ${detected}, não ${p.name}. Verifique se colou no campo certo.`,
+									10000
+								);
+								// Não bloqueia salvar, mas avisa
+							}
+						}
+
 						const keysNow = ensureProvidersConfig().apiKeys as Record<string, string | undefined>;
 						const previouslyEmpty = !keysNow[p.field] || wasEmpty;
-						if (v) {
-							// v0.52.7: trim mas preserva conteúdo. Aviso se < 20 chars
-							keysNow[p.field] = v.trim();
+						if (trimmed) {
+							keysNow[p.field] = trimmed;
 						} else {
 							delete keysNow[p.field];
 						}
@@ -339,6 +365,45 @@ export class AtlasSettingTab extends PluginSettingTab {
 	}
 
 	/** v0.22 Sprint I: render 4 Quick Presets buttons no topo de Cloud Providers section */
+	/**
+	 * v0.52.8: Banner que mostra QUAL provider está ativo AGORA.
+	 * Resolve confusão "coloquei OpenAI mas vejo Anthropic" — torna explícito.
+	 */
+	private renderActiveProviderBanner(parent: HTMLElement): void {
+		const route = this.plugin.providerRouter?.resolveTask("chat");
+		if (!route) return;
+		const wrap = parent.createDiv({ cls: "atlas-active-provider-banner" });
+		const icon = wrap.createSpan({ cls: "atlas-active-provider-icon" });
+		const providerEmoji: Record<string, string> = {
+			ollama: "🤖",
+			openai: "🟢",
+			anthropic: "⭐",
+			google: "🔵",
+			mistral: "🇪🇺",
+			xai: "🐦",
+			openrouter: "🛣️",
+			groq: "⚡",
+			deepseek: "🐳",
+			cohere: "🪶",
+		};
+		icon.setText(providerEmoji[route.provider] ?? "🤖");
+		const text = wrap.createSpan({ cls: "atlas-active-provider-text" });
+		text.createSpan({ cls: "atlas-active-provider-label", text: "Atlas usa AGORA pra chat: " });
+		text.createSpan({
+			cls: "atlas-active-provider-name",
+			text: `${route.provider}:${route.model}`,
+		});
+		// Configurados (se mais de 1, indica que pode trocar)
+		const configured = this.plugin.providerRouter?.listConfiguredProviders() ?? [];
+		if (configured.length > 1) {
+			const others = configured.filter((p) => p !== route.provider);
+			const hint = wrap.createDiv({ cls: "atlas-active-provider-hint" });
+			hint.setText(
+				`Você também tem keys: ${others.join(", ")}. Pra trocar, use "Provider principal" abaixo OU dropdown na Spend dashboard.`
+			);
+		}
+	}
+
 	/**
 	 * v0.52.3: Primary AI Provider — define o provider PRINCIPAL.
 	 * Quando trocado, atualiza routing.chat + reasoning + summarization automaticamente

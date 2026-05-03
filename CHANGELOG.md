@@ -4,6 +4,23 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.8] — 2026-05-03 — "Active Provider banner + prefix mismatch warning"
+
+### Fix UX confusion: "coloquei OpenAI mas vejo Anthropic"
+- **Active Provider banner** no topo de Cloud Providers (Settings):
+  - Mostra `routing.chat` atual com emoji + nome+modelo: "⭐ Atlas usa AGORA pra chat: anthropic:claude-haiku-4-5"
+  - Lista outros providers configurados: "Você também tem keys: openai. Pra trocar use Provider principal abaixo OU dropdown na Spend"
+  - Resolve "tem fixed em Anthropic" — torna explícito qual é o ativo
+- **Prefix mismatch warning** no paste de key:
+  - Detecta padrões: `sk-ant-` (Anthropic), `sk-or-v1-` (OpenRouter), `gsk_` (Groq), `xai-` (xAI), `sk-` (OpenAI/DeepSeek)
+  - Se user cola key com prefix de provider DIFERENTE do field → Notice 10s "⚠️ Esta key parece ser de X, não Y. Verifique se colou no campo certo."
+  - Não bloqueia salvar (deixa user decidir), mas avisa
+  - Resolve confusão de campos próximos visualmente
+
+### Files
+- `src/views/settings-tab.ts` — `renderActiveProviderBanner` + prefix mismatch detect em onChange
+- `styles.css` — `.atlas-active-provider-*` (~30 LOC)
+
 ## [0.52.7] — 2026-05-03 — "child_process eval-require + KG idempotent + Key UX visível + Chat avatar"
 
 ### P0 — child_process resolve fix

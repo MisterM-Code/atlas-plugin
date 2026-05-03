@@ -11985,3 +11985,41 @@ button.atlas-btn:active::after,
   border-radius: 10px;
   border-top-left-radius: 4px;
 }
+
+/* ═══ v0.52.8: Active Provider banner em Cloud Providers Settings ═══ */
+.atlas-active-provider-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(0,229,229,0.10), rgba(99,102,241,0.06));
+  border: 1px solid rgba(0,229,229,0.30);
+  box-shadow: 0 0 14px rgba(0,229,229,0.10);
+}
+.atlas-active-provider-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 0 4px rgba(0,229,229,0.50));
+  flex-shrink: 0;
+}
+.atlas-active-provider-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.atlas-active-provider-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.atlas-active-provider-name {
+  font-family: var(--font-monospace, ui-monospace, monospace);
+  font-weight: 700;
+  color: var(--text-normal);
+  font-size: 13px;
+}
+.atlas-active-provider-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-style: italic;
+}
