@@ -12306,6 +12306,26 @@ button.atlas-btn:active::after,
   opacity: 1;
 }
 
+/* v0.68.0: Source format banner (Notion/Roam/Obsidian) no Vault Importer wizard */
+.atlas-import-source-banner {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 14px;
+	margin-bottom: 14px;
+	background: rgba(99, 102, 241, 0.08);
+	border: 1px solid rgba(99, 102, 241, 0.3);
+	border-radius: 10px;
+	font-size: 13px;
+}
+.atlas-import-source-icon {
+	font-size: 18px;
+}
+.atlas-import-source-label {
+	font-weight: 500;
+	color: var(--atlas-accent, #00e5e5);
+}
+
 /* v0.64.0: Vault Importer hint banner em Today tab */
 .atlas-today-import-hint {
 	display: flex;

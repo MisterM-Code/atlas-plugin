@@ -203,6 +203,24 @@ export class ImportWizardModal extends Modal {
 	// ─── Tela 2-3: Análise + Categorias review ───
 	private renderCategories(body: HTMLElement): void {
 		const total = this.classified.length;
+
+		// v0.68: source format banner (Notion/Roam/Obsidian)
+		const fmt = this.pipeline.getSourceFormat();
+		if (fmt !== "unknown") {
+			const fmtIcon: Record<string, string> = {
+				notion: "🟦", roam: "🟧", obsidian: "🟪", logseq: "🟩",
+			};
+			const fmtLabel: Record<string, string> = {
+				notion: "Notion (UUID suffix será removido automaticamente)",
+				roam: "Roam Research",
+				obsidian: "Obsidian-compatible",
+				logseq: "Logseq",
+			};
+			const banner = body.createDiv({ cls: "atlas-import-source-banner" });
+			banner.createSpan({ cls: "atlas-import-source-icon", text: fmtIcon[fmt] ?? "📦" });
+			banner.createSpan({ cls: "atlas-import-source-label", text: `Formato detectado: ${fmtLabel[fmt] ?? fmt}` });
+		}
+
 		const stats = body.createDiv({ cls: "atlas-import-stats" });
 		const lowConf = this.classified.filter((n) => n.confidence < 0.7).length;
 		const dateRange = this.computeDateRange();

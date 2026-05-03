@@ -15,6 +15,7 @@ import { App, normalizePath, TFile } from "obsidian";
 import type AtlasPlugin from "../../main";
 import { classify, ClassifyResult, NoteType, targetFolderFor } from "./heuristic-classifier";
 import { resolveDuplicate, detectBrokenLinks, markBrokenLink } from "./conflict-resolver";
+import { detectSourceFormat, stripNotionUuid, SourceFormat } from "./source-detector";
 import { writeImportReport, ImportReportData } from "./import-report";
 import { logger } from "../utils/logger";
 import type { ExtractionResultT } from "../kg/schemas";
@@ -86,6 +87,8 @@ export class ImportPipeline {
 	private llmCalls = 0;
 	private costUSD = 0;
 	private cancelled = false;
+	// v0.68: detected source format (notion/roam/obsidian) — afeta filename normalization
+	private sourceFormat: SourceFormat = "unknown";
 
 	constructor(private plugin: AtlasPlugin) {
 		this.app = plugin.app;
@@ -143,9 +146,17 @@ export class ImportPipeline {
 		};
 
 		await visit(sourceFolder);
+		// v0.68: detectar formato de origem (Notion/Roam/Obsidian) pós-scan
+		const detection = detectSourceFormat(manifest);
+		this.sourceFormat = detection.format;
+		logger.info("import: source format detected", {
+			format: detection.format,
+			confidence: detection.confidence,
+			hints: detection.hints,
+		});
 		onProgress?.({
 			stage: 1,
-			stageName: "Scan complete",
+			stageName: `Scan complete (source: ${detection.format})`,
 			processed: manifest.length,
 			total: manifest.length,
 			skipped: 0,
@@ -154,6 +165,11 @@ export class ImportPipeline {
 			costUSD: 0,
 		});
 		return manifest;
+	}
+
+	/** v0.68: getter pra wizard mostrar formato detectado na UI */
+	getSourceFormat(): SourceFormat {
+		return this.sourceFormat;
 	}
 
 	/**
@@ -312,7 +328,11 @@ export class ImportPipeline {
 			if (note.userOverride?.rejected) continue;
 			const targetFolder = note.userOverride?.targetFolder
 				?? targetFolderFor(note.userOverride?.noteType ?? note.noteType);
-			const filename = note.relPath.split("/").pop()!;
+			let filename = note.relPath.split("/").pop()!;
+			// v0.68: Notion exports → strip UUID hex 32-char suffix
+			if (this.sourceFormat === "notion") {
+				filename = stripNotionUuid(filename);
+			}
 			const targetPath = normalizePath(`${targetFolder}/${filename}`);
 			const safe = await resolveDuplicate(this.app, targetPath);
 			plan.push({

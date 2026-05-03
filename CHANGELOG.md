@@ -4,6 +4,42 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.68.0] — 2026-05-03 — "Notion/Roam/Logseq source detection no Vault Importer"
+
+### Source format detector
+**NEW file** `src/import/source-detector.ts`:
+- `detectSourceFormat(manifest)` — heurística em sample de 50 arquivos pra detectar Notion/Roam/Logseq/Obsidian
+- `stripNotionUuid(filename)` — remove UUID hex 32-char suffix (Notion exports)
+- `convertNotionInlineProps(body)` — converte `Property: value` inline pra YAML frontmatter Atlas
+
+**Detection patterns:**
+- **Notion**: filenames com sufixo ` <32-char-hex>.md` (>50% match → confident detection)
+- **Roam**: presença de JSON file com "roam" no path
+- **Logseq**: estrutura de folders `journals/` + `pages/`
+- **Obsidian**: fallback para markdown puro
+
+### Pipeline integration
+- `ImportPipeline.scan()` agora detecta formato pós-scan e armazena em `sourceFormat`
+- `ImportPipeline.buildMovePlan()` aplica `stripNotionUuid` no filename target se source é Notion
+- `getSourceFormat()` getter exposed pra UI mostrar badge
+
+### Wizard UI banner novo (Tela "Categorias")
+Banner colorido logo no topo:
+- 🟦 **Notion** (UUID suffix será removido automaticamente)
+- 🟧 Roam Research
+- 🟩 Logseq
+- 🟪 Obsidian-compatible
+
+### Files MODIFY
+- `src/import/import-pipeline.ts` — sourceFormat field + detect on scan + apply strip on buildMovePlan
+- `src/ui/import-wizard-modal.ts` — source banner em renderCategories
+- `styles.css` — `.atlas-import-source-banner` (~20 LOC indigo accent)
+
+### Resultado prático
+Usuário com export Notion: `Reuniao com Maria abc123def456789012345678901234ab.md` → Atlas detecta automaticamente + filename final é `Reuniao com Maria.md` (limpo).
+
+---
+
 ## [0.67.0] — 2026-05-03 — "Settings UI Language toggle runtime"
 
 ### Settings — Language section nova (1ª section visível)
