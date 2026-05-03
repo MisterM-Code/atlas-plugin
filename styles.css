@@ -7185,6 +7185,26 @@ button.atlas-btn:active::after,
 	-webkit-text-fill-color: transparent;
 }
 
+/* v0.62: Cosmic polish — subtle radial backdrop por zone (ambient glow) */
+.atlas-today-zone {
+	position: relative;
+	margin-bottom: 18px;
+}
+.atlas-today-zone::before {
+	content: "";
+	position: absolute;
+	inset: -8px -4px 0;
+	pointer-events: none;
+	z-index: -1;
+	border-radius: 16px;
+	opacity: 0;
+	transition: opacity 380ms ease;
+}
+.atlas-today-zone:hover::before { opacity: 0.45; }
+.atlas-today-zone-alerts::before    { background: radial-gradient(ellipse at top left, rgba(0, 229, 229, 0.06), transparent 70%); }
+.atlas-today-zone-action::before    { background: radial-gradient(ellipse at top, rgba(245, 158, 11, 0.05), transparent 70%); }
+.atlas-today-zone-awareness::before { background: radial-gradient(ellipse at top right, rgba(99, 102, 241, 0.06), transparent 70%); }
+
 /* ── ZONE 1: Alerts + Hero ─────────────────────────────────────── */
 
 .atlas-today-alerts-ticker {

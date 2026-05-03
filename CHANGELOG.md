@@ -4,6 +4,29 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.62.0] — 2026-05-03 — "Home Cosmic polish (zone backdrop glow) + Today zone titles i18n"
+
+### Today zones i18n
+- `ZONE_TITLES` constant → `zoneTitles()` factory que retorna via `t("today.zone.*")`
+- 3 zone titles: Alertas / Ações / Contexto bilingual
+
+### Cosmic backdrop polish (`.atlas-today-zone`)
+- Cada zone ganha `::before` com `radial-gradient` ambient subtle:
+  - Alerts (top-left): cyan rgba 6%
+  - Action (top): amber rgba 5%
+  - Awareness (top-right): indigo rgba 6%
+- Hover suaviza opacity 0 → 0.45 (380ms ease)
+- Border-radius 16px + spacing 18px entre zones
+
+### PR #12473 obsidian-releases
+- Trigger commit empty na branch fork pra re-validation
+- Body atualizado em v0.61 com template literal completo
+
+### Total i18n acumulado v0.55→v0.62
+- **~213 chaves bilingual** cobrindo ~89% das strings UX
+
+---
+
 ## [0.61.0] — 2026-05-03 — "Settings i18n completion + WhatsNew + PR #12473 template re-fix"
 
 ### Settings i18n (10 sections)

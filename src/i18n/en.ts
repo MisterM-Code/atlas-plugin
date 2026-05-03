@@ -154,6 +154,11 @@ export const dict: Record<string, string> = {
 	"common.edit": "Edit",
 	"common.view": "View",
 
+	// ─── Today zones (v0.62) ───
+	"today.zone.alerts": "🚨 Alerts",
+	"today.zone.action": "🎯 Action",
+	"today.zone.awareness": "🌐 Awareness",
+
 	// ─── WhatsNew + UX modais (v0.61) ───
 	"whatsnew.title": "🌌 Atlas v{version} — What's new",
 	"whatsnew.subtitle": "See what was added in recent versions. Use Cmd+P to access any command.",

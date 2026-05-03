@@ -15,11 +15,13 @@ import type AtlasPlugin from "../../../main";
 import { getMode } from "../../coach/scope";
 import { t } from "../../i18n";
 
-const ZONE_TITLES = {
-	alerts: "🚨 Alerts",
-	action: "🎯 Action",
-	awareness: "🌐 Awareness",
-};
+function zoneTitles(): { alerts: string; action: string; awareness: string } {
+	return {
+		alerts: t("today.zone.alerts"),
+		action: t("today.zone.action"),
+		awareness: t("today.zone.awareness"),
+	};
+}
 
 let liveTimers: number[] = [];
 
@@ -55,7 +57,7 @@ export async function renderTodayTab(container: HTMLElement, plugin: AtlasPlugin
 
 	// ─── ZONE 2: ACTION ───────────────────────────────────────────
 	const zone2 = container.createDiv({ cls: "atlas-today-zone atlas-today-zone-action" });
-	zone2.createDiv({ cls: "atlas-today-zone-title", text: ZONE_TITLES.action });
+	zone2.createDiv({ cls: "atlas-today-zone-title", text: zoneTitles().action });
 
 	const actionGrid = zone2.createDiv({ cls: "atlas-today-action-grid" });
 
@@ -77,7 +79,7 @@ export async function renderTodayTab(container: HTMLElement, plugin: AtlasPlugin
 
 	// ─── ZONE 3: AWARENESS ────────────────────────────────────────
 	const zone3 = container.createDiv({ cls: "atlas-today-zone atlas-today-zone-awareness" });
-	zone3.createDiv({ cls: "atlas-today-zone-title", text: ZONE_TITLES.awareness });
+	zone3.createDiv({ cls: "atlas-today-zone-title", text: zoneTitles().awareness });
 
 	const awareGrid = zone3.createDiv({ cls: "atlas-today-aware-grid" });
 
