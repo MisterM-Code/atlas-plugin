@@ -265,7 +265,9 @@ export class Agent {
 		}
 
 		// Recent conversation
-		const recentTurns = this.memory.getRecentTurns(4);
+		// v0.52.6: aumentado de 4 → 12 turns. Cloud (Anthropic Haiku/Sonnet) tem 200K context — não justifica corte.
+		// User reclamou de "chat sem historico com contexto max". 12 turns ≈ 6 user + 6 assistant ≈ ~3K tokens.
+		const recentTurns = this.memory.getRecentTurns(12);
 		const messages: ChatMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
 
 		for (const t of recentTurns) {

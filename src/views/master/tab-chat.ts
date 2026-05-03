@@ -213,24 +213,15 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 
 		renderTurn("user", text);
 
-		// Skeleton loader + spinner enquanto LLM pensa
-		const { renderSkeleton } = await import("../../ui/skeleton");
-		const thinkingWrap = messagesEl.createDiv();
-		thinkingWrap.style.padding = "10px 12px";
-		thinkingWrap.style.background = "var(--background-secondary)";
-		thinkingWrap.style.borderRadius = "8px";
-		thinkingWrap.style.marginBottom = "8px";
-		const thinkingHead = thinkingWrap.createDiv();
-		thinkingHead.style.display = "flex";
-		thinkingHead.style.alignItems = "center";
-		thinkingHead.style.gap = "8px";
-		thinkingHead.style.marginBottom = "8px";
-		thinkingHead.style.fontSize = "11px";
-		thinkingHead.style.opacity = "0.6";
-		const spinner = thinkingHead.createSpan();
-		spinner.addClass("atlas-spinner");
-		thinkingHead.createSpan({ text: "Atlas pensando..." });
-		renderSkeleton(thinkingWrap, { kind: "paragraph", count: 3 });
+		// v0.52.6: Thinking indicator com typing dots animados (mais visível que spinner sozinho)
+		const thinkingWrap = messagesEl.createDiv({ cls: "atlas-chat-thinking" });
+		const thinkingHead = thinkingWrap.createDiv({ cls: "atlas-chat-thinking-head" });
+		thinkingHead.createSpan({ cls: "atlas-emoji", text: "🧠" });
+		thinkingHead.createSpan({ cls: "atlas-chat-thinking-text", text: "Atlas está digitando" });
+		const dotsWrap = thinkingHead.createSpan({ cls: "atlas-chat-typing" });
+		dotsWrap.createSpan();
+		dotsWrap.createSpan();
+		dotsWrap.createSpan();
 		messagesEl.scrollTop = messagesEl.scrollHeight;
 
 		try {

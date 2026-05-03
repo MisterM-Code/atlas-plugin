@@ -68,15 +68,34 @@ export class KGStore {
 			if (file instanceof TFile) {
 				await this.app.vault.modify(file, json);
 			} else {
-				const folder = this.app.vault.getAbstractFileByPath(this.atlasFolder);
-				if (!folder) {
-					await this.app.vault.createFolder(this.atlasFolder);
+				// v0.52.6: ensureFolder silencia race "already exists"
+				const { ensureFolder } = await import("../utils/shell");
+				await ensureFolder(this.app.vault, this.atlasFolder);
+				// Re-check file after folder creation race window
+				const f2 = this.app.vault.getAbstractFileByPath(this.path);
+				if (f2 instanceof TFile) {
+					await this.app.vault.modify(f2, json);
+				} else {
+					await this.app.vault.create(this.path, json);
 				}
-				await this.app.vault.create(this.path, json);
 			}
 			this.dirty = false;
 		} catch (e) {
-			logger.error("KG save failed", { error: String(e) });
+			const msg = String(e);
+			// v0.52.6: race "File already exists" do create — retry com modify
+			if (msg.includes("File already exists")) {
+				try {
+					const f3 = this.app.vault.getAbstractFileByPath(this.path);
+					if (f3 instanceof TFile) {
+						await this.app.vault.modify(f3, json);
+						this.dirty = false;
+						return;
+					}
+				} catch (retryErr) {
+					logger.error("KG save retry failed", { error: String(retryErr) });
+				}
+			}
+			logger.error("KG save failed", { error: msg });
 		}
 	}
 

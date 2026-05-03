@@ -11822,3 +11822,23 @@ button.atlas-btn:active::after,
   border: none;
 }
 .atlas-hud-chat-send:hover { filter: brightness(1.1); }
+
+/* ═══ v0.52.6: Chat thinking indicator (typing dots animado) ═══ */
+.atlas-chat-thinking {
+  padding: 10px 14px;
+  background: linear-gradient(90deg, rgba(0,229,229,0.04), rgba(99,102,241,0.04));
+  border: 1px solid rgba(139,211,251,0.15);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  animation: atlas-msg-in 240ms ease;
+}
+.atlas-chat-thinking-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.atlas-chat-thinking-text {
+  font-style: italic;
+}

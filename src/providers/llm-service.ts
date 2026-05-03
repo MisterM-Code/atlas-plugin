@@ -335,10 +335,12 @@ class LLMServiceImpl implements LLMService {
 	}
 
 	private shouldFallback(e: unknown): boolean {
-		// Only fall back on transient/auth/network — NOT on budget exceeded (user's intent)
+		// v0.52.6: NÃO fallback em auth — user precisa ver "API key inválida" pra corrigir.
+		// Antes silenciava → user ficava com Ollama sem entender por que cloud não rotou.
 		const code = (e as { code?: string })?.code;
 		if (code === "budget-exceeded") return false;
-		if (code === "rate-limit" || code === "network" || code === "auth" || code === "missing-key" || code === "model-not-found") {
+		if (code === "auth") return false; // ← v0.52.6: deixa user ver erro
+		if (code === "rate-limit" || code === "network" || code === "missing-key" || code === "model-not-found") {
 			return true;
 		}
 		// Default fallback for unknown errors (better UX than crash)

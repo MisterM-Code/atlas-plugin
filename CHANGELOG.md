@@ -4,6 +4,36 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.6] — 2026-05-03 — "Folder/file race fix + auth surfaceio + 12-turn context + typing dots"
+
+### Folder/File "already exists" race conditions
+- Novo helper `ensureFolder(vault, path)` em `src/utils/shell.ts` — silencia "already exists" causado por race em concurrent saves
+- `src/kg/store.ts` `save()`: refactored — usa `ensureFolder` + retry com `modify` se "File already exists" (KG persistia mas log spammava errors)
+- `src/templates/visual-editor/template-store.ts` `save()`: mesma refatoração
+- User logs mostravam: `KG save failed: Folder already exists` (×2) + `templates: save falhou: File already exists`
+
+### Auth errors agora surfaceiam (NÃO silent fallback)
+- `LLMService.shouldFallback()`: removido fallback em `code === "auth"`
+- Antes: Anthropic "invalid x-api-key" → silently caía pra Ollama → user não entendia por que cloud não rotava
+- Agora: erro humano "API key inválida — verifique em Settings → Cloud Providers" propaga até chat
+- User vê o problema real e pode corrigir
+
+### Chat: 12-turn context + typing dots animado
+- `Agent.run()` `getRecentTurns(4)` → `getRecentTurns(12)` — context máximo (Anthropic Haiku/Sonnet têm 200K window, justifica)
+- ~3K tokens extras por chamada com cloud (custo trivial pra contexto MUITO mais rico)
+- `tab-chat.ts`: thinking indicator agora "🧠 Atlas está digitando ●●●" com 3 dots animados
+- Antes: spinner + skeleton paragraphs (parecia genérico)
+- Agora: animação clara que sinaliza atividade em curso
+
+### Files
+- `src/utils/shell.ts` — `ensureFolder()` helper exportado
+- `src/kg/store.ts` — `save()` refactor
+- `src/templates/visual-editor/template-store.ts` — `save()` refactor
+- `src/providers/llm-service.ts` — `shouldFallback` exclui `auth`
+- `src/agent/agent.ts` — `getRecentTurns(12)`
+- `src/views/master/tab-chat.ts` — thinking indicator com `atlas-chat-typing` dots
+- `styles.css` — `.atlas-chat-thinking*` (~25 LOC)
+
 ## [0.52.5] — 2026-05-03 — "🚨 Fix Anthropic 'Failed to fetch' + Command-routing chat (zero-LLM)"
 
 ### P0 — Anthropic chat agora funciona (era TypeError: Failed to fetch)

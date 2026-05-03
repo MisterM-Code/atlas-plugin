@@ -72,3 +72,29 @@ export async function canRunShell(cmd: string): Promise<boolean> {
 		return false;
 	}
 }
+
+/**
+ * v0.52.6: Idempotent folder creation. Silencia "already exists" errors causados
+ * por race conditions (multiple concurrent saves checking folder existence).
+ *
+ * Use em vez de:
+ *   if (!vault.getAbstractFileByPath(path)) await vault.createFolder(path);
+ *
+ * Que tem race entre check e create.
+ */
+export async function ensureFolder(
+	vault: { getAbstractFileByPath: (p: string) => unknown; createFolder: (p: string) => Promise<unknown> },
+	path: string
+): Promise<void> {
+	if (vault.getAbstractFileByPath(path)) return;
+	try {
+		await vault.createFolder(path);
+	} catch (e) {
+		const msg = String(e);
+		// Race: outra chamada criou entre nosso check e create. Silencia.
+		if (msg.includes("already exists") || msg.includes("Folder already exists") || msg.includes("File already exists")) {
+			return;
+		}
+		throw e;
+	}
+}
