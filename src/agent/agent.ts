@@ -150,6 +150,8 @@ export class Agent {
 							content: result.answer,
 							citations: result.citations.map((c) => c.notePath),
 						});
+						// v0.52.2: explicit save em path do orchestrator também
+						void this.memory.save?.();
 						return result;
 					}
 				} catch (e) {
@@ -341,6 +343,10 @@ export class Agent {
 			content: answer,
 			citations: allCitations.map((c) => c.notePath),
 		});
+
+		// v0.52.2: SAVE explícito pra garantir persistência (antes só dependia de debounce 1.5s
+		// que perdia turns se sidebar/tab fechasse rápido). Best-effort — não bloqueia retorno.
+		void this.memory.save?.();
 
 		return {
 			answer,

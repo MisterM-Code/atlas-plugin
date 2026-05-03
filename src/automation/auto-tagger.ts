@@ -143,6 +143,8 @@ ${bodyExcerpt}`;
 					temperature: 0.2,
 					maxTokens: 200,
 					jsonFormat: true,
+					// v0.52.2: tagging = classification simple, sempre cheap model
+					complexityHint: "simple",
 				});
 			} else {
 				raw = await this.ollama.chat(messages, {

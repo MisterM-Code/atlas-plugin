@@ -148,6 +148,8 @@ export class KGExtractor {
 						temperature: 0.1,
 						maxTokens: 2000,
 						jsonFormat: true,
+						// v0.52.2: extraction é structured output mecânico — sempre simple (Haiku/mini)
+						complexityHint: "simple",
 				  })
 				: await this.ollama.chat(messages, {
 						model: this.model,

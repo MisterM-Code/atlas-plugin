@@ -21,6 +21,9 @@ export async function renderSpendDashboard(container: HTMLElement, plugin: Atlas
 	const cost = router.getCostTracker();
 	const budget = plugin.settings.providers?.budget;
 
+	// v0.52.2: Inline model picker — trocar modelo de chat direto da Spend dashboard
+	void renderInlineModelPicker(container, plugin);
+
 	// Header com total spent
 	const header = container.createDiv({ cls: "atlas-spend-header" });
 
@@ -206,4 +209,76 @@ function generateLast30Days(): string[] {
 		out.push(d.toISOString().split("T")[0]);
 	}
 	return out;
+}
+
+/**
+ * v0.52.2: Inline model picker — permite trocar o modelo de chat direto da Spend dashboard
+ * sem precisar ir em Settings → Cloud Providers → Routing.
+ *
+ * Mostra: provider:model atual + dropdown com top 8 modelos disponíveis (Anthropic+OpenAI+Ollama).
+ */
+async function renderInlineModelPicker(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
+	const router = plugin.providerRouter;
+	const wrap = container.createDiv({ cls: "atlas-spend-picker" });
+	wrap.createSpan({ cls: "atlas-spend-picker-label", text: "🎯 Modelo do chat:" });
+
+	const select = wrap.createEl("select", { cls: "atlas-spend-picker-select" });
+
+	const current = router?.resolveTask("chat");
+	const cur = current ? `${current.provider}:${current.model}` : "ollama:default";
+
+	// Curated quick options (custo crescente). Anthropic + OpenAI + Ollama core.
+	const options: { id: string; label: string; cost: string }[] = [
+		{ id: "ollama:qwen2.5:7b", label: "🤖 Ollama qwen2.5 7b (local, grátis)", cost: "$0" },
+		{ id: "ollama:qwen2.5:14b", label: "🤖 Ollama qwen2.5 14b (local, grátis)", cost: "$0" },
+		{ id: "anthropic:claude-haiku-4-5-20251001", label: "⚡ Claude Haiku 4.5 (cheap, rápido)", cost: "$0.25/$1.25" },
+		{ id: "openai:gpt-4o-mini", label: "⚡ GPT-4o-mini (cheap, rápido)", cost: "$0.15/$0.60" },
+		{ id: "google:gemini-2.0-flash", label: "⚡ Gemini 2.0 Flash (cheap)", cost: "$0.075/$0.30" },
+		{ id: "anthropic:claude-sonnet-4-6", label: "⭐ Claude Sonnet 4.6 (qualidade)", cost: "$3/$15" },
+		{ id: "openai:gpt-4o", label: "⭐ GPT-4o (qualidade)", cost: "$2.50/$10" },
+		{ id: "anthropic:claude-opus-4-7", label: "💎 Claude Opus 4.7 (premium)", cost: "$15/$75" },
+	];
+
+	// Add current as first if not in list
+	if (!options.some((o) => o.id === cur)) {
+		options.unshift({ id: cur, label: `📌 Atual: ${cur}`, cost: "?" });
+	}
+
+	for (const opt of options) {
+		const el = select.createEl("option", { value: opt.id, text: `${opt.label} — ${opt.cost}/M tokens` });
+		if (opt.id === cur) el.selected = true;
+	}
+
+	select.addEventListener("change", async () => {
+		const v = select.value;
+		const [provider, ...rest] = v.split(":");
+		const model = rest.join(":");
+		try {
+			if (!plugin.settings.providers) {
+				plugin.settings.providers = { apiKeys: {} } as never;
+			}
+			if (!plugin.settings.providers.routing) {
+				plugin.settings.providers.routing = {} as never;
+			}
+			(plugin.settings.providers.routing as Record<string, { provider: string; model: string }>).chat = {
+				provider,
+				model,
+			};
+			await plugin.saveSettings();
+			// Re-init router cfg via updateConfig (existing API)
+			try {
+				router?.updateConfig({ routing: plugin.settings.providers.routing as never });
+			} catch {
+				// best-effort
+			}
+			const Notice = (await import("obsidian")).Notice;
+			new Notice(`✓ Chat agora usa ${provider}:${model}`);
+		} catch (e) {
+			const Notice = (await import("obsidian")).Notice;
+			new Notice(`Erro: ${String(e)}`, 6000);
+		}
+	});
+
+	const hint = wrap.createDiv({ cls: "atlas-spend-picker-hint" });
+	hint.setText("Troca o routing.chat. Pra config completa por taskKind: Settings → ☁️ Cloud Providers.");
 }

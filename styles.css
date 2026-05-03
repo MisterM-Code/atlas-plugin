@@ -7633,10 +7633,23 @@ button.atlas-btn:active::after,
 
 /* ── ZONE 3: Awareness ─────────────────────────────────────────── */
 
+/* v0.52.2: 7 widgets em 4 colunas auto-fit (era 3-col com último órfão) */
 .atlas-today-aware-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 	gap: 12px;
+	align-items: stretch;
+}
+/* Insights + Projects ocupam 2 cols cada em viewports largos */
+.atlas-today-aware-grid > .atlas-today-insights,
+.atlas-today-aware-grid > .atlas-today-projects {
+	grid-column: span 2;
+}
+@media (max-width: 1100px) {
+	.atlas-today-aware-grid > .atlas-today-insights,
+	.atlas-today-aware-grid > .atlas-today-projects {
+		grid-column: span 1;
+	}
 }
 
 @media (max-width: 900px) {
@@ -11693,3 +11706,38 @@ button.atlas-btn:active::after,
 .atlas-spend-error-code.is-cloud-server-error { color: #ef4444; background: rgba(239, 68, 68, 0.12); }
 .atlas-spend-error-code.is-timeout { color: #94a3b8; background: rgba(148, 163, 184, 0.10); }
 .atlas-spend-error-code.is-unknown { color: var(--text-muted); background: rgba(255,255,255,0.04); }
+
+/* ═══ v0.52.2: Spend dashboard inline model picker ═══ */
+.atlas-spend-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: linear-gradient(90deg,
+    rgba(0, 229, 229, 0.06),
+    rgba(99, 102, 241, 0.04));
+  border: 1px solid rgba(139, 211, 251, 0.20);
+}
+.atlas-spend-picker-label {
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.atlas-spend-picker-select {
+  flex: 1 1 280px;
+  min-width: 240px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+.atlas-spend-picker-hint {
+  flex: 1 0 100%;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}

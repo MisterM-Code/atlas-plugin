@@ -96,13 +96,29 @@ export class AtlasSettingTab extends PluginSettingTab {
 							apiKeys: this.collectApiKeysPlain(),
 						});
 
-						// v0.21 Sprint J / v0.44 E3: detected new API key → open ApiKeyDetectedModal
-						// Relaxed gate: any reasonably-long key (>20 chars) opens modal once per session.
-						// Avoids cases where wasEmpty mis-detects (e.g., user re-pasting after blanking).
+						// v0.21 Sprint J / v0.44 E3 / v0.52.2: detected NEW + VALID API key → open ApiKeyDetectedModal
+						// v0.52.2: regex validation per provider — evita falso-positivo de paste lixo
+						const looksValidKey = (provider: string, key: string): boolean => {
+							if (!key || key.length < 20) return false;
+							const patterns: Record<string, RegExp> = {
+								openai: /^sk-[A-Za-z0-9_-]{20,}$/,
+								anthropic: /^sk-ant-[A-Za-z0-9_-]{20,}$/,
+								google: /^[A-Za-z0-9_-]{30,}$/, // Gemini API key
+								mistral: /^[A-Za-z0-9]{30,}$/,
+								xai: /^xai-[A-Za-z0-9_-]{20,}$/,
+								openrouter: /^sk-or-v1-[A-Za-z0-9_-]{20,}$/,
+								groq: /^gsk_[A-Za-z0-9_-]{20,}$/,
+								deepseek: /^sk-[A-Za-z0-9_-]{20,}$/,
+								cohere: /^[A-Za-z0-9-]{30,}$/,
+							};
+							const re = patterns[provider];
+							// Sem regex específico → fallback: aceita 20+ chars
+							return re ? re.test(key) : key.length >= 20;
+						};
 						if (
 							v &&
 							v !== "•••••••••••" &&
-							v.length > 20 &&
+							looksValidKey(p.id, v) &&
 							!this.modalShownThisSession.has(p.id)
 						) {
 							this.modalShownThisSession.add(p.id);

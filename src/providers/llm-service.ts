@@ -27,6 +27,13 @@ export interface LLMChatOpts {
 	overrideModel?: { provider: string; model: string };
 	/** Force JSON output (Ollama only currently — cloud TBD). */
 	jsonFormat?: boolean;
+	/**
+	 * v0.52.2: complexity hint pra economia de tokens automática.
+	 * "simple" → tenta downgrade pra modelo mais barato do mesmo provider (haiku/mini/flash)
+	 * "complex" → tenta upgrade pra modelo de reasoning
+	 * undefined → usa routing config sem alterações
+	 */
+	complexityHint?: "simple" | "complex";
 }
 
 export interface LLMService {
@@ -67,7 +74,11 @@ class LLMServiceImpl implements LLMService {
 	async chat(messages: OllamaChatMessage[], opts: LLMChatOpts): Promise<string> {
 		const taskKind = opts.taskKind ?? "chat";
 		const router = this.plugin.providerRouter;
-		const route = opts.overrideModel ?? router?.resolveTask(taskKind);
+		// v0.52.2: smart routing — apply complexityHint downgrade/upgrade ANTES de resolveTask
+		const baseRoute = opts.overrideModel ?? router?.resolveTask(taskKind);
+		const route = opts.complexityHint && baseRoute
+			? this.applyComplexityHint(baseRoute, opts.complexityHint)
+			: baseRoute;
 
 		if (router && route && route.provider !== "ollama") {
 			try {
@@ -242,6 +253,65 @@ class LLMServiceImpl implements LLMService {
 	}
 
 	// ─── Internals ──────────────────────────────────────────────
+
+	/**
+	 * v0.52.2: smart routing — downgrade/upgrade modelo baseado em complexity hint.
+	 * Mapping curado: cada modelo "premium" tem um equivalente "cheap" do mesmo provider.
+	 *
+	 * Economia esperada:
+	 * - claude-sonnet-4-6 ($3/$15/M) → claude-haiku-4-5 ($0.25/$1.25/M) = ~12x mais barato
+	 * - gpt-4o ($2.50/$10/M) → gpt-4o-mini ($0.15/$0.60/M) = ~16x mais barato
+	 */
+	private applyComplexityHint(
+		route: { provider: string; model: string },
+		hint: "simple" | "complex"
+	): { provider: string; model: string } {
+		const downgradeMap: Record<string, Record<string, string>> = {
+			anthropic: {
+				"claude-opus-4-7": "claude-sonnet-4-6",
+				"claude-sonnet-4-6": "claude-haiku-4-5-20251001",
+				"claude-3-5-sonnet-20241022": "claude-haiku-4-5-20251001",
+			},
+			openai: {
+				"gpt-4o": "gpt-4o-mini",
+				"gpt-4-turbo": "gpt-4o-mini",
+				"o1-preview": "gpt-4o-mini",
+				"o1-mini": "gpt-4o-mini",
+			},
+			google: {
+				"gemini-1.5-pro": "gemini-2.0-flash",
+				"gemini-2.5-pro": "gemini-2.0-flash",
+			},
+			mistral: {
+				"mistral-large-latest": "mistral-small-latest",
+			},
+			deepseek: {
+				"deepseek-reasoner": "deepseek-chat",
+			},
+		};
+		const upgradeMap: Record<string, Record<string, string>> = {
+			anthropic: {
+				"claude-haiku-4-5-20251001": "claude-opus-4-7",
+				"claude-sonnet-4-6": "claude-opus-4-7",
+			},
+			openai: {
+				"gpt-4o-mini": "o1-mini",
+				"gpt-4o": "o1-preview",
+			},
+			deepseek: {
+				"deepseek-chat": "deepseek-reasoner",
+			},
+		};
+		const map = hint === "simple" ? downgradeMap : upgradeMap;
+		const newModel = map[route.provider]?.[route.model];
+		if (!newModel) return route; // sem mapping → mantém original
+		logger.info("llm-service: complexity hint applied", {
+			hint,
+			from: `${route.provider}:${route.model}`,
+			to: `${route.provider}:${newModel}`,
+		});
+		return { provider: route.provider, model: newModel };
+	}
 
 	private toProviderMessages(messages: OllamaChatMessage[]): ProviderChatMessage[] {
 		return messages.map((m) => ({

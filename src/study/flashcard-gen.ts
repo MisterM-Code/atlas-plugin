@@ -99,6 +99,8 @@ Gere até ${max} flashcards.`,
 						temperature: 0.3,
 						maxTokens: 2500,
 						jsonFormat: true,
+						// v0.52.2: flashcard generation = pattern matching, simple model OK
+						complexityHint: "simple",
 				  })
 				: await this.ollama.chat(messages, {
 						model: this.model,

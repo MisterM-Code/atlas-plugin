@@ -110,6 +110,8 @@ export class ResearcherAgent {
 						taskKind: "extraction",
 						temperature: 0.2,
 						maxTokens: 200,
+						// v0.52.2: research = digest curto, sempre cheap model
+						complexityHint: "simple",
 					}
 				);
 				data.rawDigest = digest;

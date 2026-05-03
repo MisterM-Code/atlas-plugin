@@ -140,12 +140,23 @@ export async function transcribeAudio(
 ): Promise<string> {
 	if (!config.whisperBinaryPath) {
 		throw new Error(
-			"Atlas: whisper.cpp não configurado. Settings → Atlas → Voice → Whisper binary path."
+			"Atlas: whisper.cpp não configurado.\n\nInstale (Windows: winget install whisper.cpp · Mac: brew install whisper-cpp · Linux: github.com/ggerganov/whisper.cpp), então Settings → Atlas → Voice → cole o caminho do binário."
 		);
 	}
 	if (!config.whisperModelPath) {
 		throw new Error(
-			"Atlas: modelo Whisper não configurado. Settings → Atlas → Voice → Whisper model path."
+			"Atlas: modelo Whisper não configurado.\n\nBaixe um modelo (ex: ggml-small.bin de huggingface.co/ggerganov/whisper.cpp/tree/main) e coloque o path em Settings → Atlas → Voice → Whisper model path."
+		);
+	}
+	// v0.52.2: pre-validate binary exists antes de exec (UX melhor que ENOENT do shell)
+	if (!existsSync(config.whisperBinaryPath)) {
+		throw new Error(
+			`Atlas: whisper binary não encontrado em "${config.whisperBinaryPath}".\n\nVerifique o caminho em Settings → Atlas → Voice. Talvez você precise instalar whisper.cpp (Windows: winget install · Mac: brew install whisper-cpp · Linux: compile do GitHub).`
+		);
+	}
+	if (!existsSync(config.whisperModelPath)) {
+		throw new Error(
+			`Atlas: modelo Whisper não encontrado em "${config.whisperModelPath}".\n\nBaixe ggml-small.bin e ajuste o path em Settings.`
 		);
 	}
 	if (!existsSync(tempFile)) {
@@ -164,9 +175,11 @@ export async function transcribeAudio(
 	try {
 		await execAsync(cmd, { timeout: 60_000, maxBuffer: 10 * 1024 * 1024 });
 	} catch (e) {
-		logger.error("voice: whisper exec falhou", { error: String(e) });
+		// v0.52.2: enriquecer erro com message real do shell pra debug
+		const errMsg = (e as { message?: string; stderr?: string })?.message ?? String(e);
+		logger.error("voice: whisper exec falhou", { error: errMsg });
 		throw new Error(
-			`Atlas: whisper.cpp falhou. Verifique binary path + model path em Settings.`
+			`Atlas: whisper.cpp falhou ao executar.\n\nErro: ${errMsg.substring(0, 280)}\n\nVerifique:\n1. Binary path correto em Settings\n2. Model file existe e é compatível com whisper.cpp\n3. O áudio foi gravado (>1s, formato webm)`
 		);
 	}
 

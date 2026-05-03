@@ -4,6 +4,61 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.2] — 2026-05-02 — "Smart routing + Chat persistence + Inline picker + Voice UX + Key regex + Home grid"
+
+### Sprint 1 — Whisper.cpp UX (P0)
+- Pre-validate `existsSync(whisperBinaryPath)` antes de exec — evita ENOENT raw do shell
+- Erros agora mostram path real + comando install platform-specific (winget / brew / GitHub)
+- Stderr do exec exposto pra debug (até 280 chars)
+
+### Sprint 2 — Chat history persistence
+- `agent.run()` agora chama `void this.memory.save?.()` explícito após addTurn
+- Antes: dependia só de debounce 1.5s — perdia turns se sidebar fechasse rápido
+- Wired em path orchestrator também
+
+### Sprint 3 — Smart routing (token economy automática)
+- `LLMChatOpts.complexityHint?: "simple" | "complex"` (NEW)
+- `LLMService.applyComplexityHint()` mapa downgrade/upgrade per provider:
+  - Sonnet → Haiku (12× cheaper)
+  - GPT-4o → GPT-4o-mini (16× cheaper)
+  - Gemini Pro → Gemini Flash
+  - Mistral Large → Small
+  - DeepSeek Chat ↔ Reasoner
+- Wired em call-sites simples: `kg.extractor`, `agent.researcher`, `study.flashcard-gen`, `automation.auto-tagger` (todos `complexityHint: "simple"`)
+- Resultado: extraction/tagging/research SEMPRE rotam pro modelo cheap quando cloud configurado, mesmo se chat = Sonnet
+
+### Sprint 4 — Inline model picker no Spend dashboard
+- Dropdown 8 opções curadas no topo da Spend (Status → Spend):
+  - 🤖 Ollama qwen 7b/14b ($0)
+  - ⚡ Haiku 4.5 / GPT-4o-mini / Gemini Flash (cheap)
+  - ⭐ Sonnet 4.6 / GPT-4o (qualidade)
+  - 💎 Opus 4.7 (premium)
+- Mostra cost per 1M tokens ao lado de cada opção
+- Click no select → `routing.chat` atualizado + `router.updateConfig()` + Notice
+- Sem precisar ir em Settings → Cloud Providers
+
+### Sprint 5 — API key regex validation
+- Detecção paste agora valida formato per provider:
+  - OpenAI: `sk-[A-Za-z0-9_-]{20,}`
+  - Anthropic: `sk-ant-[A-Za-z0-9_-]{20,}`
+  - xAI: `xai-...`, OpenRouter: `sk-or-v1-...`, Groq: `gsk_...`
+- Evita ApiKeyDetectedModal disparar em paste lixo (gate antes era só `length > 20`)
+
+### Sprint 6 — Home zone Awareness layout
+- Antes: 3-col fixo + 7 widgets = última fila com órfão (3+3+1)
+- Depois: `grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))`
+- Insights + Projects ganham `grid-column: span 2` em viewports ≥1100px (visualmente dominantes)
+- Em <1100px: collapse pra 1-col cada (auto-fit)
+
+### Files
+- `src/automation/voice-input.ts` — pre-validate + better error messages
+- `src/agent/agent.ts` — explicit memory.save() em paths success
+- `src/providers/llm-service.ts` — `applyComplexityHint()` + `complexityHint` em LLMChatOpts
+- `src/kg/extractor.ts`, `src/agent/researcher.ts`, `src/study/flashcard-gen.ts`, `src/automation/auto-tagger.ts` — wire `complexityHint: "simple"`
+- `src/views/master/status-sub/spend-dashboard.ts` — `renderInlineModelPicker()` (NEW ~70 LOC)
+- `src/views/settings-tab.ts` — regex per provider em `looksValidKey()`
+- `styles.css` — `.atlas-spend-picker-*` + `.atlas-today-aware-grid` auto-fit + span 2 em insights/projects (~80 LOC)
+
 ## [0.52.1] — 2026-05-02 — "Spend dashboard mostra falhas + Onboarding tour invite"
 
 ### Spend dashboard — section "Chamadas falhadas"
