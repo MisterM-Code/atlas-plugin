@@ -54,6 +54,8 @@ export interface AutoTagOptions {
 export class AutoTagger {
 	private debouncers = new Map<string, ReturnType<typeof setTimeout>>();
 	private indexer: Indexer;
+	// v0.53.1: graceful disable em Ollama 404 — evita loop de 404 nos logs
+	private disabledForSession = false;
 	// v0.22 Sprint H: optional LLMService — toggle settings.providers.allowAutoTaggerCloud controla cloud usage
 	private llmService: { willUseCloud: () => boolean; chat: (msgs: unknown[], opts: unknown) => Promise<string> } | null = null;
 	private allowCloud = false;
@@ -105,6 +107,8 @@ export class AutoTagger {
 	}
 
 	private async processFile(file: TFile): Promise<void> {
+		// v0.53.1: skip if disabled by 404 do Ollama nesta sessão
+		if (this.disabledForSession) return;
 		const ok = await this.ollama.ping();
 		if (!ok) return; // silent fail, no notification
 
@@ -183,7 +187,16 @@ ${bodyExcerpt}`;
 				new Notice(`🏷️ Atlas: +${suggested.length} tag${suggested.length > 1 ? "s" : ""}: ${suggested.join(", ")}`, 4000);
 			}
 		} catch (e) {
-			logger.warn("auto-tagger: erro", { path: file.path, error: String(e) });
+			const msg = String(e);
+			logger.warn("auto-tagger: erro", { path: file.path, error: msg });
+			// v0.53.1: disable session se Ollama 404 (modelo não existe) — evita loop
+			if (msg.includes("404") || msg.includes("Ollama 404") || msg.includes("model not found")) {
+				this.disabledForSession = true;
+				new Notice(
+					`Atlas: auto-tagger desabilitado nesta sessão (Ollama 404 — modelo "${this.model}" não encontrado). Configure modelo válido em Settings → Ollama, depois reinicie plugin.`,
+					12000
+				);
+			}
 		}
 	}
 

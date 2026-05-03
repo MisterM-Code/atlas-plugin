@@ -75,11 +75,23 @@ export function isWebSpeechAvailable(): boolean {
  * Starts a Web Speech recognition session.
  * Returns handle. Call .stop() when user finishes speaking.
  */
+// v0.53.1: module-level flag — após 1ª network error, skip subsequent tentativas
+// até user resetar manualmente. Logs do user mostravam 4 erros idênticos seguidos.
+let webSpeechNetworkFailedThisSession = false;
+
+export function resetWebSpeechSession(): void {
+	webSpeechNetworkFailedThisSession = false;
+}
+
 export function startWebSpeech(opts: WebSpeechOpts): WebSpeechHandle {
 	const w = window as unknown as Record<string, unknown>;
 	const Ctor = (w.SpeechRecognition ?? w.webkitSpeechRecognition) as SpeechRecognitionType | undefined;
 	if (!Ctor) {
 		throw new Error("Web Speech API não disponível neste browser/Electron.");
+	}
+	// v0.53.1: short-circuit se network falhou nesta sessão
+	if (webSpeechNetworkFailedThisSession) {
+		throw new Error("Web Speech indisponível (network falhou). Configure whisper.cpp em Settings → Voice OU restart Atlas pra retry.");
 	}
 
 	const rec = new Ctor();
@@ -113,7 +125,9 @@ export function startWebSpeech(opts: WebSpeechOpts): WebSpeechHandle {
 		logger.warn("web-speech error", { code });
 
 		// v0.16: trigger global event for Jarvis to auto-prompt whisper config on offline
+		// v0.53.1: marca module-level flag pra evitar tentativas subsequentes em mesma sessão
 		if (code === "network") {
+			webSpeechNetworkFailedThisSession = true;
 			const offline = !navigator.onLine;
 			document.dispatchEvent(
 				new CustomEvent("atlas:voice-needs-whisper-config", {

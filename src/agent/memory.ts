@@ -89,15 +89,18 @@ export class Memory {
 	async save(): Promise<void> {
 		try {
 			const json = JSON.stringify(this.state, null, 2);
-			const file = this.app.vault.getAbstractFileByPath(this.path);
-			if (file instanceof TFile) {
-				await this.app.vault.modify(file, json);
-			} else {
-				if (!this.app.vault.getAbstractFileByPath(this.folder)) {
-					await this.app.vault.createFolder(this.folder);
+			// v0.53.1: adapter.write idempotent (cria OU sobrescreve sem race)
+			// User logs mostravam: "memory: save falhou: Folder already exists" ×8
+			const adapter = this.app.vault.adapter;
+			const folderExists = await adapter.exists(this.folder);
+			if (!folderExists) {
+				try {
+					await adapter.mkdir(this.folder);
+				} catch (folderErr) {
+					if (!String(folderErr).includes("already exists")) throw folderErr;
 				}
-				await this.app.vault.create(this.path, json);
 			}
+			await adapter.write(this.path, json);
 			this.dirty = false;
 		} catch (e) {
 			logger.error("memory: save falhou", { error: String(e) });

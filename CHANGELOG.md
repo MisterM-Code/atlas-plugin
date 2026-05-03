@@ -4,6 +4,47 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.53.1] — 2026-05-03 — "🚨 HOTFIX: 6 bugs concretos dos logs do user"
+
+### Sprint A — Memory.save race "Folder already exists" (×8 nos logs)
+- `src/agent/memory.ts save()` migrado pra `adapter.write()` idempotent (mesma fix de KG/templates v0.52.7)
+- Eliminação total do spam log
+
+### Sprint B — Command patterns mais permissivos
+- "gerar massa teste" sem "de" agora mata pattern e dispatcha `atlas:seed-test-data`
+- Aceita variantes: `gerar dados teste`, `criar test data`, `fazer seed`, `fazer mass test`
+
+### Sprint C — Auto-tagger graceful disable em Ollama 404
+- `src/automation/auto-tagger.ts`: se erro contém "404"/"model not found" → `disabledForSession = true`
+- Notice 1× "Atlas: auto-tagger desabilitado nesta sessão. Modelo X não encontrado. Configure em Settings → Ollama"
+- Não tenta novamente até reload (eliminava loop nos logs)
+
+### Sprint D — Cost format `$0.00` consistente (era `$0`)
+- `src/views/master/tab-today.ts`: cost pill sempre 2 decimais
+- "$0.00 hoje" em vez de "$0 hoje"
+
+### Sprint E — Researcher fuzzy person match
+- `src/kg/store.ts findPersonByName`: agora 4-tier match
+  1. Exact (id/name/alias)
+  2. Lowercase (case insensitive)
+  3. First-name match: "miguel" → "Miguel Veríssimo"
+  4. Substring partial: "veriss" → "Miguel Veríssimo"
+- User pediu "relatório do Miguel" → researcher achava `hasPerson: false` porque exact-match falhava
+
+### Sprint F — Web Speech network: 1 notice + no-retry
+- `src/automation/web-speech.ts`: módulo-level flag `webSpeechNetworkFailedThisSession`
+- Após 1° network error, próximas tentativas throw imediato (não retentam Web Speech API)
+- User logs mostravam 4 erros network consecutivos — agora 1 só + claridade
+- `resetWebSpeechSession()` exportado pra reset manual
+
+### Files
+- `src/agent/memory.ts` — adapter.write
+- `src/agent/intent-dispatcher.ts` — pattern permissivo
+- `src/automation/auto-tagger.ts` — graceful 404
+- `src/views/master/tab-today.ts` — $0.00 format
+- `src/kg/store.ts` — fuzzy findPersonByName
+- `src/automation/web-speech.ts` — module flag + skip
+
 ## [0.53.0] — 2026-05-03 — "Visual polish + Mass data com relationships + Integration report"
 
 ### Sprint A — Visual bugs concretos (12 fixes audit-driven)

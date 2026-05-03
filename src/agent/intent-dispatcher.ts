@@ -238,7 +238,8 @@ const PATTERNS: PatternMatcher[] = [
  * em vez de chamar LLM. ZERO tokens consumidos.
  */
 const COMMAND_PATTERNS: { regex: RegExp; cmd: string; label: string }[] = [
-	{ regex: /^(gere?|cria(?:r)?|gerar|criar)\s+m[ea]ss?as?\s+(?:de\s+)?teste/i, cmd: "atlas:seed-test-data", label: "Gerar massa de teste" },
+	// v0.53.1: pattern mais permissivo — aceita "gerar massa teste" sem "de", "criar dados teste", etc
+	{ regex: /^(gere?|cria(?:r)?|gerar|criar|fa[çc]a|fazer)\s+(?:uma\s+|umas\s+)?(?:m[ea]ss?as?|dados|test\s*data|seed)\s*(?:de\s+|para\s+)?(?:teste|test)/i, cmd: "atlas:seed-test-data", label: "Gerar massa de teste" },
 	{ regex: /^(limpar?|apaga(?:r)?|deleta(?:r)?)\s+(?:massa|seed|teste)/i, cmd: "atlas:clear-test-data", label: "Limpar massa de teste" },
 	{ regex: /^(rod(?:ar|e)|executa(?:r)?|run)\s+(?:o\s+)?smoke\s*test/i, cmd: "atlas:smoke-test-run", label: "Smoke test" },
 	{ regex: /^(ver|abrir|mostrar|abre)\s+log(s)?/i, cmd: "atlas:open-logs", label: "Abrir logs" },

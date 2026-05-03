@@ -219,13 +219,37 @@ export class KGStore {
 
 	findPersonByName(name: string): PersonT | undefined {
 		const id = slugify(name);
-		return this.graph.people.find(
+		const nameLower = name.trim().toLowerCase();
+		// v0.53.1: fuzzy match — exact id/name/alias → lowercase → first-name → substring
+		// 1. Exact match (id, name, alias)
+		const exact = this.graph.people.find(
 			(p) =>
 				p.id === id ||
 				p.name === name ||
 				p.aliases.includes(name) ||
 				p.aliases.some((a) => slugify(a) === id)
 		);
+		if (exact) return exact;
+		// 2. Lowercase exact (case insensitive)
+		const lower = this.graph.people.find(
+			(p) =>
+				p.name.toLowerCase() === nameLower ||
+				p.aliases.some((a) => a.toLowerCase() === nameLower)
+		);
+		if (lower) return lower;
+		// 3. First-name match: query "miguel" → "Miguel Veríssimo"
+		const firstName = this.graph.people.find(
+			(p) => p.name.toLowerCase().split(/\s+/)[0] === nameLower
+		);
+		if (firstName) return firstName;
+		// 4. Substring match (partial): "veriss" → "Miguel Veríssimo"
+		if (nameLower.length >= 4) {
+			const substr = this.graph.people.find(
+				(p) => p.name.toLowerCase().includes(nameLower)
+			);
+			if (substr) return substr;
+		}
+		return undefined;
 	}
 
 	listPeople(): PersonT[] {

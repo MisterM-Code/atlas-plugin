@@ -1153,7 +1153,8 @@ async function renderTodayStatusBar(el: HTMLElement, plugin: AtlasPlugin): Promi
 	(modelLabel.style as CSSStyleDeclaration).cursor = "pointer";
 
 	// Cost pill (async aggregate via CostTracker.getSpend)
-	const costPill = el.createSpan({ cls: "atlas-today-status-cost is-zero", text: "💰 $0 hoje" });
+	// v0.53.1: cost sempre com 2 decimais ($0.00, não "$0")
+	const costPill = el.createSpan({ cls: "atlas-today-status-cost is-zero", text: "💰 $0.00 hoje" });
 	const updateCost = async (): Promise<void> => {
 		try {
 			const tracker = (plugin as unknown as {
@@ -1162,7 +1163,7 @@ async function renderTodayStatusBar(el: HTMLElement, plugin: AtlasPlugin): Promi
 				};
 			}).costTracker;
 			if (!tracker) {
-				costPill.setText("💰 $0 hoje (local)");
+				costPill.setText("💰 $0.00 hoje (local)");
 				return;
 			}
 			const agg = await tracker.getSpend({ window: "day" });
@@ -1174,10 +1175,10 @@ async function renderTodayStatusBar(el: HTMLElement, plugin: AtlasPlugin): Promi
 			} else {
 				costPill.removeClass("is-spend");
 				costPill.addClass("is-zero");
-				costPill.setText("💰 $0 hoje (local)");
+				costPill.setText("💰 $0.00 hoje (local)");
 			}
 		} catch {
-			costPill.setText("💰 $0 hoje");
+			costPill.setText("💰 $0.00 hoje");
 		}
 	};
 	void updateCost();
