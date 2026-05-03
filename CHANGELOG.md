@@ -4,6 +4,23 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.67.0] — 2026-05-03 — "Settings UI Language toggle runtime"
+
+### Settings — Language section nova (1ª section visível)
+- **🌐 Idioma da interface** dropdown PT/EN no topo do Settings → Atlas
+- Aplicação **runtime** via `i18n.setLanguage(val)` — não precisa reload
+- Settings tab re-renderiza imediatamente com strings novas
+- Notice confirma "Atlas: idioma alterado pra Português / English. Recarregue tabs Atlas pra refletir tudo."
+- Persiste em `settings.profile.uiLanguage` (já existia desde v0.55, agora exposto)
+
+### Gap fechado (era P0 UX)
+Antes só tinha picker no onboarding (1ª tela). Quem completou onboarding em 1 idioma não tinha como mudar depois sem fazer redo-onboarding. Agora qualquer momento via Settings → Atlas → Language.
+
+### Total i18n acumulado
+- ~248 chaves bilingual + Settings field labels visíveis runtime
+
+---
+
 ## [0.66.0] — 2026-05-03 — "Sub-tab labels i18n (Analytics + Lab + Reports + Auto)"
 
 ### Sub-tab labels wired (15 labels)

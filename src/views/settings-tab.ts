@@ -27,6 +27,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			text: "Segundo cérebro local. 100% privado. Roda no Ollama.",
 		});
 
+		this.section_language();
 		this.section_user();
 		this.section_profile();
 		this.section_ollama();
@@ -765,6 +766,41 @@ export class AtlasSettingTab extends PluginSettingTab {
 					}
 					this.plugin.settings.profile.showAllToolsOverride = v;
 					await this.plugin.saveSettings();
+				});
+			});
+	}
+
+	// v0.67.0: Settings UI Language toggle (PT/EN runtime switch)
+	private section_language(): void {
+		const { containerEl } = this;
+		containerEl.createEl("h3", { text: t("settings.language.title") });
+		containerEl.createEl("p", {
+			text: t("settings.language.desc"),
+			cls: "atlas-settings-section-desc",
+		});
+
+		const cur = this.plugin.settings.profile?.uiLanguage ?? "pt";
+
+		new Setting(containerEl)
+			.setName("Idioma da interface / UI Language")
+			.addDropdown((dd) => {
+				dd.addOption("pt", t("settings.language.pt"));
+				dd.addOption("en", t("settings.language.en"));
+				dd.setValue(cur);
+				dd.onChange(async (val) => {
+					if (!this.plugin.settings.profile) {
+						this.plugin.settings.profile = {} as never;
+					}
+					(this.plugin.settings.profile as { uiLanguage?: "pt" | "en" }).uiLanguage = val as "pt" | "en";
+					await this.plugin.saveSettings();
+					// Apply runtime
+					try {
+						const i18n = await import("../i18n");
+						i18n.setLanguage(val as "pt" | "en");
+					} catch {/* swallow */}
+					new Notice(`Atlas: idioma alterado pra ${val === "pt" ? "Português" : "English"}. Recarregue tabs Atlas pra refletir tudo.`);
+					// Re-render this Settings tab pra mostrar strings novas
+					this.display();
 				});
 			});
 	}
