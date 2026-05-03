@@ -16,12 +16,19 @@ import { WriterAgent } from "./writer";
 import { logger } from "../utils/logger";
 
 const COMPLEX_PATTERNS = [
-	// "gere relatório/email/análise/resumo/sumário sobre X"
-	/^(?:gere?|cria(?:r)?|fa[çc]a|monte|elabor[ae])\s+(?:um\s+|uma\s+)?(?:relat[oó]rio|email|an[aá]lise|resumo|sum[aá]rio|consolida[cç][aã]o)/i,
+	// "gere relatório/email/análise/resumo/sumário/insight/brief sobre X"
+	/^(?:gere?|cria(?:r)?|fa[çc]a|monte|elabor[ae])\s+(?:um\s+|uma\s+)?(?:relat[oó]rio|email|an[aá]lise|resumo|sum[aá]rio|consolida[cç][aã]o|insight|brief|documento)/i,
 	// "email sobre/de/com X"
 	/^(?:email|relat[oó]rio|an[aá]lise)\s+(?:sobre|de|com|dos|das)/i,
 	// "consolide/agregue todas as X"
 	/^(?:consolid|agreg|junt|reun)[ae]?\s+(?:tod[ao]s?|os|as)\s/i,
+	// v0.70.0 BUG #8: deep research patterns expandidos
+	// "deep dive em X" / "análise profunda dos últimos N" / "exhaustivamente sobre X"
+	/(?:deep\s+dive|an[aá]lise\s+profunda|profundamente|exhaustiv|detalhad[ao])/i,
+	// "o que <pessoa> disse sobre X" / "histórico de X" / "todas as <coisas> com Y"
+	/^(?:o\s+que\s+\S{3,}\s+(?:disse|falou|comentou)|hist[oó]rico\s+de|todas?\s+(?:as|os)\s+\w+\s+(?:com|de|sobre))/i,
+	// "compare X com Y" / "diferenças entre"
+	/^(?:compare|comparar|comparativo|diferen[çc]as?\s+entre|vs\s)/i,
 ];
 
 export interface OrchestrationResult {

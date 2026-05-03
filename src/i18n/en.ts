@@ -154,6 +154,15 @@ export const dict: Record<string, string> = {
 	"common.edit": "Edit",
 	"common.view": "View",
 
+	// ─── Chat empty state + create_note tool (v0.70) ───
+	"chat.empty.title": "Ask about your vault",
+	"chat.empty.subtitle": "Atlas responds with real citations [Note: x.md], creates documents, and searches deeply. 20-turn memory.",
+	"chat.empty.suggest1": "Summarize meetings with Maria",
+	"chat.empty.suggest2": "Create a daily log for today",
+	"chat.empty.suggest3": "Deep analysis of the last 30 days",
+	"tool.create_note.success": "✓ Note '{title}' created at {path} and opened in editor",
+	"voice.error.permission": "Atlas Voice: allow microphone access.",
+
 	// ─── Lab/Reports/Auto sub-tab labels (v0.66) ───
 	"sub.lab.tools": "AI Tools",
 	"sub.lab.serendipity": "Serendipity",

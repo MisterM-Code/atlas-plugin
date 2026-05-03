@@ -215,6 +215,8 @@ export default class AtlasPlugin extends Plugin {
 	hud!: AtlasHUD;
 	// v0.17 — Cloud AI providers + cost tracking
 	providerRouter: import("./src/providers/router").ProviderRouter | null = null;
+	// v0.70.0 BUG #9: expose costTracker pra UI consumers (Today/HUD/Status)
+	costTracker: import("./src/providers/cost-tracker").CostTracker | null = null;
 	// v0.18 — LLMService façade (single entry point for ALL LLM calls)
 	llm!: import("./src/providers/llm-service").LLMService;
 	lastAtlasError: AtlasError | null = null;
@@ -313,8 +315,9 @@ export default class AtlasPlugin extends Plugin {
 				if (v) apiKeys[providerId] = v;
 			}
 			const budget = this.settings.providers?.budget ?? { enabled: false, hardCutoff: false, warnAtPct: 0.8 };
-			const costTracker = new CostTracker(this.app, budget);
-			costTracker.onWarn((pct, kind) => {
+			// v0.70.0 BUG #9 fix: assign to this.costTracker (era local-only, UI nunca acessava)
+			this.costTracker = new CostTracker(this.app, budget);
+			this.costTracker.onWarn((pct, kind) => {
 				new Notice(`⚠️ Atlas budget ${kind}: ${(pct * 100).toFixed(0)}% consumido.`, 8000);
 			});
 			this.providerRouter = new ProviderRouter(
@@ -325,7 +328,7 @@ export default class AtlasPlugin extends Plugin {
 					failoverChain: (this.settings.providers?.failoverChain ?? ["ollama"]) as never,
 					preferLocalForCheap: this.settings.providers?.preferLocalForCheap ?? true,
 				},
-				costTracker
+				this.costTracker
 			);
 			this.providerRouter.attachOllama(this.ollama);
 			logger.info("Atlas v0.17: provider router attached", {

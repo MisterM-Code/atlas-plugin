@@ -134,9 +134,12 @@ export async function tryStartOllamaDaemon(detection: OllamaDetection): Promise<
 	if (detection.running) return true;
 
 	try {
-		// Spawn detached para não bloquear plugin
-		const { spawn } = await import("child_process");
-		const proc = spawn("ollama", ["serve"], {
+		// v0.70.0 BUG #2 fix: child_process pode não estar disponível em alguns ambientes (sandbox)
+		// Usar mesmo eval-require pattern do shell.ts pra graceful degradation
+		const req = (globalThis as { require?: (m: string) => unknown }).require
+			?? (eval("require") as (m: string) => unknown);
+		const cp = req("child_process") as { spawn: (cmd: string, args: string[], opts: unknown) => { unref: () => void } };
+		const proc = cp.spawn("ollama", ["serve"], {
 			detached: true,
 			stdio: "ignore",
 		});
@@ -146,7 +149,7 @@ export async function tryStartOllamaDaemon(detection: OllamaDetection): Promise<
 		await new Promise((resolve) => setTimeout(resolve, 2000));
 		return true;
 	} catch (e) {
-		logger.warn("ollama: falha ao iniciar daemon", { error: String(e) });
+		logger.warn("ollama: falha ao iniciar daemon (child_process indisponível?)", { error: String(e) });
 		return false;
 	}
 }

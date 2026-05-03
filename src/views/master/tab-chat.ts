@@ -9,39 +9,27 @@ import { t } from "../../i18n";
  */
 export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	container.empty();
-	(container as HTMLElement).style.display = "flex";
-	(container as HTMLElement).style.flexDirection = "column";
-	(container as HTMLElement).style.height = "100%";
+	container.addClass("atlas-chat-tab");
 
-	// Header — v0.9 Sprint 30: tagline diferenciada de Jarvis
-	const header = container.createDiv();
-	header.style.display = "flex";
-	header.style.justifyContent = "space-between";
-	header.style.alignItems = "center";
-	header.style.marginBottom = "8px"; // v0.53: alinhado com subtitle below
-	const titleWrap = header.createDiv();
-	const titleEl = titleWrap.createEl("h3", { text: t("chat.title") });
-	titleEl.style.margin = "0";
-	titleEl.style.fontSize = "16px";
+	// v0.70.0: Header polido com gradient cyan→indigo (consistente com Iron Man HUD aesthetic)
+	const header = container.createDiv({ cls: "atlas-chat-header" });
+	const titleWrap = header.createDiv({ cls: "atlas-chat-header-titlewrap" });
+	titleWrap.createEl("h3", { cls: "atlas-chat-header-title", text: t("chat.title") });
 
-	const headerActions = header.createDiv();
-	headerActions.style.display = "flex";
-	headerActions.style.gap = "4px";
-	const newBtn = headerActions.createEl("button", { text: t("chat.btn.new") });
-	newBtn.style.fontSize = "11px";
-	const clearBtn = headerActions.createEl("button", { text: t("chat.btn.clear") });
-	clearBtn.style.fontSize = "11px";
+	const headerActions = header.createDiv({ cls: "atlas-chat-header-actions" });
+	const newBtn = headerActions.createEl("button", {
+		cls: "atlas-chat-btn-pill",
+		text: t("chat.btn.new"),
+	});
+	const clearBtn = headerActions.createEl("button", {
+		cls: "atlas-chat-btn-pill",
+		text: t("chat.btn.clear"),
+	});
 
 	// Subtitle: differentiate from Jarvis
-	const subtitle = container.createDiv();
-	subtitle.style.fontSize = "11px";
-	subtitle.style.opacity = "0.55";
-	subtitle.style.marginBottom = "8px";
-	subtitle.style.lineHeight = "1.5";
+	const subtitle = container.createDiv({ cls: "atlas-chat-subtitle" });
 	subtitle.createSpan({ text: t("chat.subtitle") + " " });
-	const jarvisHintBtn = subtitle.createEl("a", { text: t("chat.jarvis.hint") });
-	jarvisHintBtn.style.color = "var(--atlas-accent, var(--interactive-accent))";
-	jarvisHintBtn.style.cursor = "pointer";
+	const jarvisHintBtn = subtitle.createEl("a", { cls: "atlas-chat-jarvis-hint", text: t("chat.jarvis.hint") });
 	jarvisHintBtn.addEventListener("click", async (e) => {
 		e.preventDefault();
 		const apiAny = plugin.app as unknown as {
@@ -52,10 +40,28 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 
 	// Messages
 	const messagesEl = container.createDiv({ cls: "atlas-chat-messages" });
-	messagesEl.style.flexGrow = "1";
-	messagesEl.style.overflowY = "auto";
-	messagesEl.style.padding = "8px 0";
-	messagesEl.style.minHeight = "200px";
+
+	// v0.70.0: Empty state com personalidade + suggestion chips clicáveis
+	const renderEmptyState = (): void => {
+		if (messagesEl.children.length > 0) return; // skip se já tem messages
+		const emptyEl = messagesEl.createDiv({ cls: "atlas-chat-empty-state" });
+		emptyEl.createDiv({ cls: "atlas-chat-empty-emoji", text: "🧠" });
+		emptyEl.createEl("h3", { cls: "atlas-chat-empty-title", text: t("chat.empty.title") });
+		emptyEl.createEl("p", { cls: "atlas-chat-empty-subtitle", text: t("chat.empty.subtitle") });
+		const sugWrap = emptyEl.createDiv({ cls: "atlas-chat-empty-suggestions" });
+		const suggestions = [
+			t("chat.empty.suggest1"),
+			t("chat.empty.suggest2"),
+			t("chat.empty.suggest3"),
+		];
+		for (const s of suggestions) {
+			const chip = sugWrap.createDiv({ cls: "atlas-chat-empty-chip", text: s });
+			chip.addEventListener("click", () => {
+				inputEl.value = s;
+				inputEl.focus();
+			});
+		}
+	};
 
 	// Input
 	const inputWrap = container.createDiv({ cls: "atlas-chat-input-area" });
@@ -403,12 +409,20 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		plugin.memory.clearCurrentSession();
 		plugin.memory.startNewSession();
 		messagesEl.empty();
+		renderEmptyState(); // v0.70.0: re-show empty state após new
 		new Notice("Atlas: nova sessão iniciada.");
 	});
 	clearBtn.addEventListener("click", () => {
 		messagesEl.empty();
 		statusEl.setText("");
+		renderEmptyState(); // v0.70.0: re-show empty state após clear
 	});
+
+	// v0.70.0: render empty state no first paint se memory vazia
+	const recentTurns = plugin.memory.getRecentTurns?.(1) ?? [];
+	if (recentTurns.length === 0) {
+		renderEmptyState();
+	}
 
 	statusEl.setText(
 		`💾 ${plugin.memory.getFacts().length} fatos · ${plugin.memory.listSessions().length} sessões`

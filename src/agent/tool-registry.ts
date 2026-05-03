@@ -16,8 +16,11 @@
 
 import type AtlasPlugin from "../../main";
 import * as chrono from "chrono-node";
-import { Notice, normalizePath } from "obsidian";
+import { Notice, normalizePath, TFile } from "obsidian";
 import { logger } from "../utils/logger";
+import { targetFolderFor, NoteType } from "../import/heuristic-classifier";
+import { resolveDuplicate } from "../import/conflict-resolver";
+import { slugify } from "../kg/schemas";
 
 export interface ToolResult {
 	ok: boolean;
@@ -872,6 +875,91 @@ _📎 Backlinks_
 			};
 		},
 	},
+	// v0.70.0 — Generic create_note tool (Bug #4-5-6 fix: criar+categorizar+abrir)
+	{
+		name: "create_note",
+		description:
+			"Cria uma nota markdown nova no vault Atlas com categorização automática e abre no editor. " +
+			"Use quando user pedir 'crie documento', 'novo daily', 'gere relatório sobre X', 'crie ADR sobre Y', etc. " +
+			"Auto-detecta noteType + folder destino (ex: daily → 02_Daily, weekly-status → 04_Reports/weekly).",
+		parameters: {
+			type: "object",
+			properties: {
+				title: { type: "string", description: "Título do documento (vira filename slugificado)" },
+				noteType: {
+					type: "string",
+					description: "Tipo do documento (define folder Atlas)",
+					enum: ["daily", "1on1", "meeting", "weekly-status", "project", "raid", "incident", "adr", "paper", "course", "knowledge", "inbox"],
+				},
+				content: {
+					type: "string",
+					description: "Conteúdo markdown completo (com frontmatter YAML opcional). Se vazio, Atlas gera template básico baseado em noteType.",
+				},
+			},
+			required: ["title"],
+		},
+		destructive: false,
+		handler: async (params, plugin) => {
+			const title = asStr(params.title).trim();
+			if (!title) return { ok: false, message: "Título obrigatório." };
+			const rawType = asStr(params.noteType ?? "inbox").trim() as NoteType;
+			const noteType: NoteType = ([
+				"daily", "1on1", "meeting", "weekly-status", "project", "raid",
+				"incident", "adr", "paper", "course", "knowledge", "inbox",
+			] as NoteType[]).includes(rawType) ? rawType : "inbox";
+			const userContent = asStr(params.content ?? "").trim();
+
+			// Folder destino (reuso heuristic-classifier)
+			const folder = targetFolderFor(noteType);
+			const date = new Date().toISOString().slice(0, 10);
+			const slug = slugify(title) || "atlas-note";
+			const filename = noteType === "daily" ? `${date}.md` : `${date}-${slug}.md`;
+			const targetPath = normalizePath(`${folder}/${filename}`);
+
+			// Garantir folder existe
+			try {
+				const exists = await plugin.app.vault.adapter.exists(folder);
+				if (!exists) await plugin.app.vault.adapter.mkdir(folder);
+			} catch (e) {
+				logger.warn("create_note: mkdir failed", { folder, error: String(e) });
+			}
+
+			// Resolve duplicate (suffix incremental)
+			const safe = await resolveDuplicate(plugin.app, targetPath);
+
+			// Frontmatter + content
+			let body = userContent;
+			if (!body) {
+				body = `---\ntype: ${noteType}\ntitle: "${title}"\ndate: ${date}\ncreated_by: atlas\n---\n\n# ${title}\n\n_Atlas criou esta nota — adicione conteúdo aqui._\n`;
+			} else if (!body.startsWith("---\n")) {
+				body = `---\ntype: ${noteType}\ntitle: "${title}"\ndate: ${date}\ncreated_by: atlas\n---\n\n${body}`;
+			}
+
+			// Criar arquivo
+			try {
+				await plugin.app.vault.adapter.write(safe, body);
+			} catch (e) {
+				return { ok: false, message: `Falha ao criar nota: ${String(e)}` };
+			}
+
+			// AUTO-OPEN no editor
+			try {
+				const file = plugin.app.vault.getAbstractFileByPath(safe);
+				if (file instanceof TFile) {
+					await plugin.app.workspace.getLeaf().openFile(file);
+				}
+			} catch (e) {
+				logger.warn("create_note: auto-open failed", { path: safe, error: String(e) });
+			}
+
+			logger.info("tool: create_note", { path: safe, noteType, title });
+			return {
+				ok: true,
+				message: `✓ Nota "${title}" criada em \`${safe}\` e aberta no editor.`,
+				data: { path: safe, noteType, folder },
+			};
+		},
+	},
 ];
 
 /**
@@ -922,6 +1010,7 @@ export async function executeTool(
 				schedule_meeting: "today",
 				compose_email: "today",
 				report_person_sessions: "reports",
+				create_note: "today",
 			};
 			const tabId = tabMap[name];
 			if (tabId) {

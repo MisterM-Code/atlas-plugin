@@ -4,6 +4,83 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.70.0] — 2026-05-03 — "Chat Premium: cost real + create_note + citations reais + deep research + Jarvis robust + visual polish"
+
+### 🔴 BUG #9 FIX: Cost tracking sempre $0 (CRITICAL)
+**Root cause:** `main.ts:316` criava `costTracker` LOCAL, nunca atribuído a `this.costTracker`. UI tentava `plugin.costTracker.getSpend()` → undefined → "$0" sempre.
+**Fix:** `this.costTracker = new CostTracker(...)` + field declaration `costTracker: CostTracker | null = null` em main.ts:218.
+
+### 🔴 BUGS #4-5-6 FIX: Chat agora cria/categoriza/abre documentos
+**NEW tool `create_note`** em `src/agent/tool-registry.ts`:
+- Parameters: `title` + `noteType` (enum: daily/1on1/meeting/weekly-status/project/raid/incident/adr/paper/course/knowledge/inbox) + `content`
+- Reuso `targetFolderFor(noteType)` + `resolveDuplicate()` + `slugify()` (do Vault Importer)
+- **Auto-cria folder** + filename slugificado + frontmatter YAML (type, title, date, created_by: atlas)
+- **Auto-abre no editor** via `workspace.getLeaf().openFile(file)`
+- Badge animation no Today tab via `atlas:entity-created` event
+
+**LLM tool-calling** já passa todos tools registrados — Agent decide quando chamar `create_note` baseado em description ("crie documento", "novo daily", "gere relatório").
+
+### 🔴 BUG #7 FIX: Citations alucinadas
+**Files:** `src/agent/agent.ts:488-500` (formatSearchResults) + `:390+` (validation)
+- Prompt explícito: **"REGRA CRÍTICA: ao citar, use SOMENTE paths exatos da lista abaixo. NUNCA invente paths."**
+- Pós-resposta: regex `/\[Nota:\s*([^\]]+)\]/g` valida cada citation contra `realPaths Set` + vault.getAbstractFileByPath()
+- Logger warn `agent: citations halucinadas detectadas` se LLM inventou paths
+
+### 🔴 BUG #8 FIX: Deep research raso → topK adaptativo + orchestrator expandido
+**Orchestrator patterns expandidos** (`src/agent/orchestrator.ts:18-29`): adicionar 6 patterns:
+- `(?:deep\s+dive|análise\s+profunda|profundamente|exhaustiv|detalhado)/i`
+- `^(o que .{3,} disse sobre|histórico de|todas? as|os \w+ com)/i`
+- `^(compare|comparar|comparativo|diferenças entre|vs)/i`
+
+**topK adaptativo** (`src/agent/agent.ts:249`):
+```ts
+const isComplexQuery = /(?:deep dive|profund|histórico|todas as|os|compare|consolid|elabor)/i.test(query);
+const topK = isComplexQuery ? 20 : 8;
+```
+Era hardcoded `5` — agora 8 default, 20 pra queries complexas.
+
+### 🔴 BUG #1 FIX: Logging completo I/O chat
+**Files:** `src/agent/agent.ts:390+`
+Adicionado `logger.info("agent: response", { intent, answerLength, answerPreview, citationsCount, citations[5], toolsUsed, invented_citations, durationMs })` antes do return.
+
+### 🔴 BUG #2 FIX: Jarvis robustness
+**File 1:** `src/automation/ollama-installer.ts:132-165` — substituir `import("child_process")` por `eval-require` pattern (graceful degradation em sandbox).
+**File 2:** `src/automation/voice-input.ts:39-54` — `class VoicePermissionError` com `cause` + try/catch around getUserMedia → throws typed error em vez de raw exception.
+**Existing flow** em `jarvis-core.ts:876-889` já trata erros (catch → applyState("idle")) — agora com mensagens mais claras via VoicePermissionError type.
+
+### 🟡 BUG #3 FIX: Chat tab visual polish premium (Iron Man HUD aesthetic)
+**Files:** `src/views/master/tab-chat.ts` (refactor inline → CSS classes) + `styles.css` (~140 LOC novas)
+
+**NEW CSS classes:**
+- `.atlas-chat-tab` — flex column 100% height
+- `.atlas-chat-header` — gradient cyan→indigo bg + cyan border-bottom
+- `.atlas-chat-header-title` — gradient text cyan→indigo (consistente com Cockpit)
+- `.atlas-chat-btn-pill` — pill shape + hover lift + accent border
+- `.atlas-chat-jarvis-hint` — dashed underline + hover cyan glow
+- `.atlas-chat-empty-state` — fade-in 380ms cubic-bezier
+- `.atlas-chat-empty-emoji` — drop-shadow glow + breathing animation 3s
+- `.atlas-chat-empty-title` — gradient cyan→indigo
+- `.atlas-chat-empty-chip` — pill clicável → preenche input com sugestão
+- 3 sugestões: "Resumir reuniões com Maria", "Crie um daily log de hoje", "Análise profunda dos últimos 30 dias"
+
+### Files Summary
+**MODIFY (8):**
+- `main.ts` — costTracker assign + field declaration
+- `src/agent/agent.ts` — formatSearchResults whitelist + topK adaptativo + response log + citations validation
+- `src/agent/orchestrator.ts` — COMPLEX_PATTERNS expandido (3→6 patterns)
+- `src/agent/tool-registry.ts` — create_note tool (~85 LOC) + tabMap entry
+- `src/automation/ollama-installer.ts` — eval-require pattern
+- `src/automation/voice-input.ts` — VoicePermissionError class
+- `src/views/master/tab-chat.ts` — refactor inline → classes + empty state + suggestions chips
+- `styles.css` — `.atlas-chat-*` polish (~140 LOC)
+
+**Dictionaries:** 8 chaves novas (`chat.empty.*`, `tool.create_note.success`, `voice.error.permission`)
+
+### Total i18n acumulado
+- ~256 chaves bilingual cobrindo ~94% UX
+
+---
+
 ## [0.69.0] — 2026-05-03 — "Notion frontmatter conversion wired (gap crítico fechado)"
 
 ### Gap fechado: Notion inline props → YAML frontmatter

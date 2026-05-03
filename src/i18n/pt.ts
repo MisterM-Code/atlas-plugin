@@ -156,6 +156,15 @@ export const dict: Record<string, string> = {
 	"common.edit": "Editar",
 	"common.view": "Ver",
 
+	// ─── Chat empty state + create_note tool (v0.70) ───
+	"chat.empty.title": "Pergunte sobre seu vault",
+	"chat.empty.subtitle": "Atlas responde com citações reais [Nota: x.md], cria documentos, e busca profundamente. Memória de 20 turnos.",
+	"chat.empty.suggest1": "Resumir reuniões com Maria",
+	"chat.empty.suggest2": "Crie um daily log de hoje",
+	"chat.empty.suggest3": "Análise profunda dos últimos 30 dias",
+	"tool.create_note.success": "✓ Nota '{title}' criada em {path} e aberta no editor",
+	"voice.error.permission": "Atlas Voice: permita acesso ao microfone.",
+
 	// ─── Lab/Reports/Auto sub-tab labels (v0.66) ───
 	"sub.lab.tools": "Tools IA",
 	"sub.lab.serendipity": "Serendipity",

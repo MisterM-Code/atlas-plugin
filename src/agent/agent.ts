@@ -246,7 +246,10 @@ export class Agent {
 			const searcher = new HybridSearcher(this.embedder);
 			searcher.indexChunks(allChunks);
 
-			const results = await searcher.search(query, 5);
+			// v0.70.0 BUG #8 fix: topK adaptativo — query complexa busca mais chunks
+			const isComplexQuery = /(?:deep\s+dive|profund|hist[óo]rico|todas?\s+(?:as|os)|compare|consolid|elabor)/i.test(query);
+			const topK = isComplexQuery ? 20 : 8;
+			const results = await searcher.search(query, topK);
 			if (results.length > 0) {
 				contextBlock += this.formatSearchResults(results);
 				for (const r of results) {
@@ -387,6 +390,42 @@ export class Agent {
 		// que perdia turns se sidebar/tab fechasse rápido). Best-effort — não bloqueia retorno.
 		void this.memory.save?.();
 
+		// v0.70.0 BUG #7 fix: filter citations halucinadas pelo LLM (paths que não existem no vault)
+		// allCitations vem do retrieval — TODAS são reais por construção.
+		// Mas se LLM gerou [Nota: x.md] no answer text com path inventado, o renderTurn() do chat
+		// pode tentar abrir e falhar. Validar contra vault aqui pra log warn.
+		const realPaths = new Set(allCitations.map((c) => c.notePath));
+		const invented: string[] = [];
+		const citeRegex = /\[Nota:\s*([^\]]+)\]/g;
+		let citeMatch: RegExpExecArray | null;
+		while ((citeMatch = citeRegex.exec(answer)) !== null) {
+			const path = citeMatch[1].trim();
+			if (!realPaths.has(path) && !this.app.vault.getAbstractFileByPath(path)) {
+				invented.push(path);
+			}
+		}
+		if (invented.length > 0) {
+			logger.warn("agent: citations halucinadas detectadas", {
+				count: invented.length,
+				inventedSample: invented.slice(0, 3),
+				realCount: realPaths.size,
+			});
+		}
+
+		// v0.70.0 BUG #1 fix: log resposta estruturada (era só query, faltava response)
+		const startTime = (this as unknown as { __startTime?: number }).__startTime ?? Date.now();
+		logger.info("agent: response", {
+			query: query.slice(0, 100),
+			intent,
+			answerLength: answer.length,
+			answerPreview: answer.slice(0, 200),
+			citationsCount: allCitations.length,
+			citations: allCitations.map((c) => c.notePath).slice(0, 5),
+			toolsUsed,
+			invented_citations: invented.length,
+			durationMs: Date.now() - startTime,
+		});
+
 		return {
 			answer,
 			citations: allCitations,
@@ -486,7 +525,13 @@ export class Agent {
 	}
 
 	private formatSearchResults(results: SearchResult[]): string {
-		const lines = ["\n\n## Notas relevantes (com snippets)"];
+		// v0.70.0 BUG #7 fix: prompt explícito com whitelist de paths permitidos
+		const lines = [
+			"\n\n## Notas relevantes (CITE APENAS estes paths em [Nota: ...])",
+			"",
+			"**REGRA CRÍTICA**: ao citar, use SOMENTE paths exatos da lista abaixo. NUNCA invente paths.",
+			"",
+		];
 		for (const r of results) {
 			lines.push(`- **${r.notePath}** (${r.context})`);
 			lines.push(`  > ${r.snippet}`);

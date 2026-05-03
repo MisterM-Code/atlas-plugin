@@ -34,12 +34,31 @@ export interface VoiceRecordingHandle {
 }
 
 /**
+ * v0.70.0 BUG #2 fix: PermissionDenied ou getUserMedia errors lançam VoicePermissionError
+ * pra caller (Jarvis) tratar gracefully sem travar state.
+ */
+export class VoicePermissionError extends Error {
+	constructor(public readonly cause: string) {
+		super(`VoicePermissionError: ${cause}`);
+		this.name = "VoicePermissionError";
+	}
+}
+
+/**
  * Inicia gravação de voz. Retorna handle pra stop/cancel + amostragem de nível.
+ * Lança `VoicePermissionError` se mic permission denied ou getUserMedia falhar.
  */
 export async function startVoiceRecording(): Promise<VoiceRecordingHandle> {
-	const stream = await navigator.mediaDevices.getUserMedia({
-		audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-	});
+	let stream: MediaStream;
+	try {
+		stream = await navigator.mediaDevices.getUserMedia({
+			audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+		});
+	} catch (e) {
+		const err = e as Error;
+		// NotAllowedError, NotFoundError, NotReadableError, etc.
+		throw new VoicePermissionError(err.name ?? err.message ?? String(e));
+	}
 
 	// Audio analyser para waveform
 	const audioCtx = new AudioContext();
