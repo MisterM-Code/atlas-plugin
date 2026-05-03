@@ -1,5 +1,6 @@
 import type AtlasPlugin from "../../main";
 import { Tutorial } from "./tutorial-system";
+import { t } from "../i18n";
 
 /**
  * Tour definitions — instanciados sob demanda (precisam de plugin pra command/action callbacks).
@@ -18,8 +19,8 @@ export function getAllTutorials(plugin: AtlasPlugin): Tutorial[] {
 function firstStepsTour(plugin: AtlasPlugin): Tutorial {
 	return {
 		id: "first-steps",
-		name: "Primeiros passos",
-		description: "Os 5 fundamentos do Atlas em 2 minutos.",
+		name: t("tour.first-steps.name"),
+		description: t("tour.first-steps.desc"),
 		estimatedMinutes: 2,
 		steps: [
 			{
@@ -69,8 +70,8 @@ function firstStepsTour(plugin: AtlasPlugin): Tutorial {
 function oneOnOneTour(plugin: AtlasPlugin): Tutorial {
 	return {
 		id: "one-on-one",
-		name: "Como rodar seu primeiro 1:1",
-		description: "Estruture sessões de 1:1 com framework GROW + Atlas Brief automático.",
+		name: t("tour.one-on-one.name"),
+		description: t("tour.one-on-one.desc"),
 		estimatedMinutes: 3,
 		steps: [
 			{
@@ -106,8 +107,8 @@ function oneOnOneTour(plugin: AtlasPlugin): Tutorial {
 function weeklyReportTour(plugin: AtlasPlugin): Tutorial {
 	return {
 		id: "weekly-report",
-		name: "Como gerar weekly report automático",
-		description: "Da escrita das daily logs até envio por email do report consolidado.",
+		name: t("tour.weekly-report.name"),
+		description: t("tour.weekly-report.desc"),
 		estimatedMinutes: 2,
 		steps: [
 			{
@@ -143,8 +144,8 @@ function weeklyReportTour(plugin: AtlasPlugin): Tutorial {
 function flashcardsTour(plugin: AtlasPlugin): Tutorial {
 	return {
 		id: "flashcards",
-		name: "Como aprender com flashcards",
-		description: "Spaced repetition local com FSRS-4.5 + sync Anki.",
+		name: t("tour.flashcards.name"),
+		description: t("tour.flashcards.desc"),
 		estimatedMinutes: 2,
 		steps: [
 			{
@@ -180,8 +181,8 @@ function flashcardsTour(plugin: AtlasPlugin): Tutorial {
 function knowledgeGraphTour(plugin: AtlasPlugin): Tutorial {
 	return {
 		id: "knowledge-graph",
-		name: "Como o Knowledge Graph funciona",
-		description: "Atlas extrai pessoas, projetos, temas das suas notas automaticamente.",
+		name: t("tour.knowledge-graph.name"),
+		description: t("tour.knowledge-graph.desc"),
 		estimatedMinutes: 3,
 		steps: [
 			{

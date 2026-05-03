@@ -4,6 +4,28 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.65.0] — 2026-05-03 — "Knowledge CRUD + Tour content i18n"
+
+### Knowledge tab CRUD headers (4 wired)
+- `tab-knowledge.ts` — `🌐 Knowledge Graph` via `t("knowledge.title")`
+- `tab-systems.ts` — `🖥️ Sistemas` via `t("crud.systems.title")`
+- `tab-products.ts` — `📦 Produtos` via `t("crud.products.title")`
+- `tab-roles.ts` — `🎓 Cargos` via `t("crud.roles.title")`
+
+### Tour content i18n (5 tours name + description)
+Wired em `src/tutorial/tours.ts` via `t("tour.*.name/desc")`:
+- first-steps, one-on-one, weekly-report, flashcards, knowledge-graph
+- Visível no tour picker (TabsTourModal pós-onboarding) e Settings → Atlas → "Refazer tour"
+
+### Dictionaries (15 chaves novas)
+- `knowledge.title`, `crud.systems/products/roles.title` (4)
+- `tour.{first-steps,one-on-one,weekly-report,flashcards,knowledge-graph}.{name,desc}` (10)
+
+### Total i18n acumulado v0.55→v0.65
+- **~228 chaves bilingual** cobrindo ~91% das strings UX
+
+---
+
 ## [0.64.0] — 2026-05-03 — "Vault Importer discoverability hooks"
 
 ### Discoverability do v0.63 Vault Importer

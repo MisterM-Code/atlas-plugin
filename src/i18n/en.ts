@@ -154,6 +154,24 @@ export const dict: Record<string, string> = {
 	"common.edit": "Edit",
 	"common.view": "View",
 
+	// ─── Tour names + descriptions (v0.65) ───
+	"tour.first-steps.name": "First steps",
+	"tour.first-steps.desc": "The 5 Atlas fundamentals in 2 minutes.",
+	"tour.one-on-one.name": "Running 1:1s",
+	"tour.one-on-one.desc": "Create 1:1 with auto brief + action items extraction + recurring themes.",
+	"tour.weekly-report.name": "Weekly Report",
+	"tour.weekly-report.desc": "How Atlas generates executive weekly from daily logs + 1:1s + RAID.",
+	"tour.flashcards.name": "Study & Flashcards",
+	"tour.flashcards.desc": "Create flashcards from notes + FSRS review + Anki Mobile sync.",
+	"tour.knowledge-graph.name": "Knowledge Graph",
+	"tour.knowledge-graph.desc": "How Atlas auto-extracts people/projects/themes.",
+
+	// ─── Knowledge tab CRUD headers (v0.65) ───
+	"knowledge.title": "🌐 Knowledge Graph",
+	"crud.systems.title": "🖥️ Systems",
+	"crud.products.title": "📦 Products",
+	"crud.roles.title": "🎓 Roles",
+
 	// ─── Vault Importer (v0.63) ───
 	"import.title": "📥 Import external vault",
 	"import.empty.persons": "No people detected — your vault seems pretty solo!",

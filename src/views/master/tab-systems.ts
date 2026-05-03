@@ -3,6 +3,7 @@ import type AtlasPlugin from "../../../main";
 import { SlideOverPanel } from "../../ui/slide-over-panel";
 import type { SystemT } from "../../kg/schemas";
 import { slugify } from "../../kg/schemas";
+import { t } from "../../i18n";
 
 type SystemFilter = "all" | "healthy" | "degraded" | "down" | "deprecated";
 
@@ -17,7 +18,7 @@ export async function renderSystemsTab(container: HTMLElement, plugin: AtlasPlug
 
 	// Header
 	const header = container.createDiv({ cls: "atlas-crud-header" });
-	header.createEl("h3", { cls: "atlas-crud-title", text: "🖥️ Sistemas" });
+	header.createEl("h3", { cls: "atlas-crud-title", text: t("crud.systems.title") });
 
 	const headerActions = header.createDiv({ cls: "atlas-crud-header-actions" });
 

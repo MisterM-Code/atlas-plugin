@@ -3,6 +3,7 @@ import type AtlasPlugin from "../../../main";
 import { SlideOverPanel } from "../../ui/slide-over-panel";
 import type { ProductT } from "../../kg/schemas";
 import { slugify } from "../../kg/schemas";
+import { t } from "../../i18n";
 import {
 	fieldInput,
 	fieldTextArea,
@@ -23,7 +24,7 @@ export async function renderProductsTab(
 	let currentSearch = "";
 
 	const header = container.createDiv({ cls: "atlas-crud-header" });
-	header.createEl("h3", { cls: "atlas-crud-title", text: "📦 Produtos" });
+	header.createEl("h3", { cls: "atlas-crud-title", text: t("crud.products.title") });
 
 	const headerActions = header.createDiv({ cls: "atlas-crud-header-actions" });
 	const addBtn = headerActions.createEl("button", { cls: "atlas-crud-add-btn mod-cta", text: "+ Novo produto" });

@@ -1,5 +1,6 @@
 import { TFile, Notice } from "obsidian";
 import type AtlasPlugin from "../../../main";
+import { t } from "../../i18n";
 
 type EntityType = "all" | "person" | "project" | "theme";
 
@@ -15,7 +16,7 @@ export async function renderKnowledgeTab(container: HTMLElement, plugin: AtlasPl
 	// Header
 	const header = container.createDiv();
 	header.style.marginBottom = "10px";
-	header.createEl("h3", { text: "🌐 Knowledge Graph" }).style.margin = "0 0 4px 0";
+	header.createEl("h3", { text: t("knowledge.title") }).style.margin = "0 0 4px 0";
 
 	const stats = header.createEl("div");
 	stats.style.fontSize = "11px";

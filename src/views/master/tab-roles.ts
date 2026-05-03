@@ -3,6 +3,7 @@ import type AtlasPlugin from "../../../main";
 import { SlideOverPanel } from "../../ui/slide-over-panel";
 import type { RoleT } from "../../kg/schemas";
 import { slugify } from "../../kg/schemas";
+import { t } from "../../i18n";
 import { fieldInput, fieldTextArea, fieldSelect, formButtons } from "../../ui/form-fields";
 
 export async function renderRolesTab(container: HTMLElement, plugin: AtlasPlugin): Promise<void> {
@@ -11,7 +12,7 @@ export async function renderRolesTab(container: HTMLElement, plugin: AtlasPlugin
 	let currentSearch = "";
 
 	const header = container.createDiv({ cls: "atlas-crud-header" });
-	header.createEl("h3", { cls: "atlas-crud-title", text: "🎓 Cargos" });
+	header.createEl("h3", { cls: "atlas-crud-title", text: t("crud.roles.title") });
 
 	const headerActions = header.createDiv({ cls: "atlas-crud-header-actions" });
 
