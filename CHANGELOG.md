@@ -4,6 +4,41 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.80.0] — 2026-05-03 — "Chat layout fix CRITICAL + onboarding tutorial auto-start"
+
+### 🔴 BUG FIX: Chat layout conflito — sombra/squash/achatamento
+**Root cause:** v0.71 adicionou `.atlas-chat-bubble` + `.atlas-chat-bubble-row` mas v0.54 já tinha `.atlas-chat-message-user/assistant` com padding/border/margin no MESMO elemento HTML. Resultado: `display: flex` da bubble-row + `padding/border-left` do chat-message → row inteira pegava layout duplicado, comprimia conteúdo, sombra fixa fora do tamanho.
+
+**Fix `styles.css`:**
+- `.atlas-chat-message`: removido `padding`, `border-radius`, `background`, `box-shadow`, `white-space: pre-wrap` — agora só animation + spacing
+- `.atlas-chat-message-user/assistant`: removido bg/border, mantido só `margin-left/right: 24px` pra alinhamento
+- `.atlas-chat-bubble`: adicionado `min-width: 0` (CRITICAL pra word-wrap em flex), padding aumentado pra 14×16, font-size 13.5px, line-height 1.65
+- Markdown rendered styles refinados: `.atlas-msg-body p/ul/ol/strong/code/pre/a` com spacing + cores Atlas accent
+
+### 🔴 Empty state emoji shadow proporcional
+- Era 48px + drop-shadow 12-20px (sombra "fixa fora do tamanho")
+- Agora 32px + drop-shadow 4-8px proporcional
+- Breathing animation mais sutil (scale 1.04 em 3.2s)
+
+### 🔴 Onboarding tutorial AUTO-START
+**File:** `src/views/onboarding.ts finish()`
+- Era apenas Notice "Use Cmd+P → Tour..." (passive)
+- Agora **AUTO-DISPARA** `tutorialSystem.start("first-steps")` 8s após onboarding completar
+- Fallback Notice se tutorialSystem indisponível
+
+### Files MODIFY
+- `styles.css` (~85 LOC alterados): chat layout + bubble + markdown body styles + empty state shadow
+- `src/views/onboarding.ts:91-105`: setTimeout dispara tutorialSystem.start
+
+### Resultado
+- Chat agora **legível**: bubbles com padding 14×16, line-height 1.65, font 13.5px
+- Markdown renderiza com p/ul/ol/strong/code/pre formatados
+- Word-wrap funciona (min-width: 0 fix)
+- Empty state emoji proporcional (não mais "sombra grande fixa")
+- First-run: tutorial interativo dispara automático após onboarding
+
+---
+
 ## [0.79.0] — 2026-05-03 — "Settings field descriptions (27 setDesc wired) — backlog 100% i18n Settings"
 
 ### All Settings field descriptions i18n (27 wired)

@@ -88,12 +88,22 @@ export class OnboardingWizard extends Modal {
 				}
 			}, 600);
 		}
-		// v0.52.1: invite user pro tour interativo após TabsTour
+		// v0.80: AUTO-INICIAR tour interativo "first-steps" após TabsTour fechar
+		// (era só Notice, agora dispara tutorial-system real)
 		setTimeout(() => {
-			new Notice(
-				"Atlas pronto! Use Cmd+Shift+J pra falar com Jarvis ou Cmd+P → 'Tour: Primeiros passos' pra aprender passo a passo.",
-				12000
-			);
+			try {
+				const tutSys = (this.plugin as unknown as {
+					tutorialSystem?: { start(id: string): Promise<void> };
+				}).tutorialSystem;
+				if (tutSys) {
+					void tutSys.start("first-steps");
+				} else {
+					new Notice(
+						"Atlas pronto! Cmd+P → 'Tour: Primeiros passos' pra aprender passo a passo.",
+						10000
+					);
+				}
+			} catch {/* swallow */}
 		}, 8000);
 	}
 
