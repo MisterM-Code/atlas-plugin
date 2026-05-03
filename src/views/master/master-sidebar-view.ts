@@ -137,6 +137,7 @@ export class AtlasMasterSidebarView extends ItemView {
 				cls: isActive
 					? "atlas-activity-tab is-active atlas-activity-tab-active"
 					: "atlas-activity-tab",
+				attr: { "data-tab-id": tab.id }, // v0.54.0: id pra animação badge em criações
 			});
 			btn.title = `${tab.label} — ${tab.description}`;
 

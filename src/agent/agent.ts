@@ -119,8 +119,11 @@ export class Agent {
 							{ skipConfirm: true } // dispatcher já validou
 						);
 						toolsUsed.push(`dispatcher:${result.intent}`);
+						// v0.54.0: append link clicável quando tool result inclui path do arquivo criado
+						const dataPath = (toolResult.data as { path?: string })?.path;
+						const linkSuffix = dataPath ? `\n\n📄 [Abrir arquivo](${dataPath})` : "";
 						const responseText = toolResult.ok
-							? `${result.feedback}\n\n${toolResult.message}`
+							? `${result.feedback}\n\n${toolResult.message}${linkSuffix}`
 							: `Falhou: ${toolResult.message}`;
 						return {
 							answer: responseText,
@@ -314,7 +317,15 @@ export class Agent {
 						}
 						const result = await executeTool(name, args as Record<string, unknown>, this.plugin);
 						toolsUsed.push(`tool:${name}`);
-						toolCallsExecuted.push({ name, ok: result.ok, message: result.message });
+						// v0.54.0: capture dataPath pra link clicável na resposta final
+						const tcPath = (result.data as { path?: string })?.path;
+						toolCallsExecuted.push({
+							name,
+							ok: result.ok,
+							message: tcPath
+								? `${result.message}\n📄 [Abrir](${tcPath})`
+								: result.message,
+						});
 						messages.push({
 							role: "assistant",
 							content: tcRes.content || "",

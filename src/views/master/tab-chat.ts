@@ -1,4 +1,4 @@
-import { Notice, MarkdownView, TFile } from "obsidian";
+import { Notice, MarkdownView, TFile, MarkdownRenderer, Component } from "obsidian";
 import type AtlasPlugin from "../../../main";
 import { Agent } from "../../agent/agent";
 
@@ -172,10 +172,14 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		}
 	};
 
+	// v0.54.0: Component owner for MarkdownRenderer lifecycle (cleanup hooks)
+	const mdComponent = new Component();
+
 	const renderTurn = (
 		role: "user" | "assistant",
 		content: string,
-		citations: { notePath: string; snippet: string }[] = []
+		citations: { notePath: string; snippet: string }[] = [],
+		opts: { markdown?: boolean } = {}
 	): HTMLDivElement => {
 		// v0.52.7: layout horizontal com avatar + bubble
 		const cls = role === "user"
@@ -204,7 +208,13 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		void lbl;
 
 		const body = bubble.createDiv({ cls: "atlas-msg-body" });
-		body.setText(content);
+		// v0.54.0: usar MarkdownRenderer pra parsing **bold**, [links](path), listas, code blocks, etc.
+		// Streaming: durante streaming usa setText (plain). Após terminar, re-render markdown via opts.markdown:true.
+		if (opts.markdown && role === "assistant") {
+			void MarkdownRenderer.render(plugin.app, content, body, "", mdComponent);
+		} else {
+			body.setText(content);
+		}
 
 		if (citations.length > 0) renderCitations(bubble, citations);
 
@@ -212,10 +222,10 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		return wrap;
 	};
 
-	// Restore last session
+	// Restore last session — v0.54.0: assistant messages com markdown render
 	const turns = plugin.memory.getRecentTurns(20);
 	for (const t of turns) {
-		renderTurn(t.role, t.content);
+		renderTurn(t.role, t.content, [], { markdown: t.role === "assistant" });
 	}
 
 	const send = async () => {
@@ -271,6 +281,18 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 				.querySelectorAll(".atlas-header-logo")
 				.forEach((el) => el.classList.remove("atlas-thinking"));
 
+			// v0.54.0: re-render markdown completo após stream terminar
+			// (durante streaming era plain pra evitar flicker de parser parcial)
+			if (bodyEl && textBuf.length > 0) {
+				bodyEl.empty();
+				try {
+					await MarkdownRenderer.render(plugin.app, textBuf, bodyEl, "", mdComponent);
+				} catch {
+					// fallback texto plain se MD falhar
+					bodyEl.setText(textBuf);
+				}
+			}
+
 			// v0.8: TTS lê resposta (se toggle ativo + Piper configurado + resposta curta)
 			if (ttsEnabled && plugin.tts?.configured && r.answer.length > 0 && r.answer.length < 500) {
 				void plugin.tts.speakNow(r.answer).catch(() => undefined);
@@ -283,17 +305,45 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 			if (r.toolsUsed.length > 0) statusEl.setText(`Tools: ${r.toolsUsed.join(", ")}`);
 
 			// v0.9 Sprint 30: meta info de tool calls executados (mutações)
+			// v0.54.0: render markdown nos messages (pra mostrar link clicável)
 			if (r.toolCalls && r.toolCalls.length > 0 && wrap) {
-				const meta = wrap.createDiv();
-				meta.style.marginTop = "6px";
-				meta.style.padding = "6px 8px";
-				meta.style.background = "var(--background-modifier-success)";
-				meta.style.borderLeft = "2px solid var(--color-green)";
-				meta.style.borderRadius = "4px";
-				meta.style.fontSize = "10px";
+				const meta = wrap.createDiv({ cls: "atlas-chat-tool-meta" });
 				for (const tc of r.toolCalls) {
 					const line = meta.createDiv();
-					line.setText(`${tc.ok ? "🛠️ ✓" : "🛠️ ✗"} ${tc.name}: ${tc.message}`);
+					const md = `${tc.ok ? "🛠️ ✓" : "🛠️ ✗"} **${tc.name}**: ${tc.message}`;
+					try {
+						void MarkdownRenderer.render(plugin.app, md, line, "", mdComponent);
+					} catch {
+						line.setText(`${tc.ok ? "🛠️ ✓" : "🛠️ ✗"} ${tc.name}: ${tc.message}`);
+					}
+				}
+
+				// v0.54.0 Sprint I: badge anim na tab apropriada quando tool muta KG
+				const mutatingTools = ["create_person", "create_system", "create_product", "create_role", "create_course", "create_action_item", "create_reminder", "schedule_meeting"];
+				const tabBadgeMap: Record<string, string> = {
+					create_person: "knowledge",
+					create_system: "systems",
+					create_product: "products",
+					create_role: "roles",
+					create_course: "study",
+					create_action_item: "hub",
+					create_reminder: "reminders",
+					schedule_meeting: "today",
+				};
+				for (const tc of r.toolCalls) {
+					if (tc.ok && mutatingTools.includes(tc.name)) {
+						const targetTab = tabBadgeMap[tc.name];
+						if (targetTab) {
+							// Pulse anim no tab badge — find activity tab button
+							const tabEl = document.querySelector(
+								`.atlas-master-activity-tab[data-tab-id="${targetTab}"] .atlas-activity-tab-icon`
+							) as HTMLElement | null;
+							if (tabEl) {
+								tabEl.classList.add("atlas-tab-just-created");
+								window.setTimeout(() => tabEl.classList.remove("atlas-tab-just-created"), 1800);
+							}
+						}
+					}
 				}
 			}
 		} catch (e) {

@@ -4,6 +4,41 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.54.0] — 2026-05-03 — "Chat MarkdownRenderer + Tool result links + Badge anim"
+
+### Sprint G — Chat MarkdownRenderer (resolveu raw `**bold**`)
+- `tab-chat.ts`: import `MarkdownRenderer` + `Component` (lifecycle owner)
+- `renderTurn` ganha opção `markdown: true` — usa `MarkdownRenderer.render()` em vez de `setText`
+- Streaming: durante stream renderiza plain (evita flicker de parser parcial)
+- **Pós-stream: re-render markdown completo** com bold/italic/listas/code/links
+- History restore: assistant turns renderizam com markdown
+- Tool meta lines também renderiza markdown (mostra link `[Abrir](path)` clicável)
+
+### Sprint H — Tool result links no chat
+- `agent.ts run()`: quando dispatcher executa tool com sucesso e `data.path` existe, append `📄 [Abrir arquivo](path)` na resposta
+- Aplicado nos 2 paths: dispatcher direct + tool-calling LLM
+- User pede "criar action item" → vê resposta + link clicável que abre `01_Inbox/2026-05-03-task-x.md`
+- ToolResult `data: { path: string }` já existia em todos os tools que criam files (linha 270, 400, etc)
+
+### Sprint I — Badge animado em criações (sem confetti)
+- `tab-chat.ts`: quando tool muta KG (create_person/system/product/role/course/action_item/reminder/schedule_meeting) com sucesso, target tab badge anima
+- `master-sidebar-view.ts`: tabs ganham `data-tab-id` attr pra targeting
+- Animation `atlas-tab-pulse-ring` 1.8s: scale 1→1.18→1.05 + cyan ring 8→14→24px expandindo
+- Mapping: create_person → knowledge tab, create_action_item → hub, create_reminder → reminders, etc
+- Sem confetti (decisão user) — só badge pulsing limpo
+
+### CSS msg body
+- `.atlas-msg-body p/ul/li/code/pre/a/strong` styled apropriadamente
+- Code inline: `background var(--background-modifier-border)` + radius 4
+- Code block: bg secondary + padding 8/10 + overflow-x scroll
+- Links cyan accent
+
+### Files
+- `src/views/master/tab-chat.ts` — MD render + tool meta + badge anim trigger
+- `src/agent/agent.ts` — append link no responseText (2 sites)
+- `src/views/master/master-sidebar-view.ts` — data-tab-id attribute
+- `styles.css` — `.atlas-tab-pulse-ring` keyframe + `.atlas-msg-body *` styles (~70 LOC)
+
 ## [0.53.1] — 2026-05-03 — "🚨 HOTFIX: 6 bugs concretos dos logs do user"
 
 ### Sprint A — Memory.save race "Folder already exists" (×8 nos logs)
