@@ -4,6 +4,44 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.81.0] — 2026-05-03 — "Vault scope security guard + README total rewrite (Iron Man HUD aesthetic)"
+
+### 🔴 SECURITY FIX: Vault Importer scope guard
+**Root cause:** `import-pipeline.ts scan()` accepted absolute paths (`/Users/...`, `C:\\...`) and `..` traversal, allowing FileSystemAdapter to read files **outside the Obsidian vault** (e.g. user's library, Downloads, etc).
+
+**Fix `src/import/import-pipeline.ts:104-118`:**
+- Reject empty paths
+- Reject absolute paths (`/`, `C:\\`, `D:\\`)
+- Reject `..` parent traversal
+- Throw clear error: *"Atlas: por segurança, importação aceita APENAS subpastas dentro do vault atual"*
+
+Atlas now operates **strictly within vault scope** — no leakage to system files.
+
+### 📝 README total rewrite (English, technological, all capabilities)
+**File:** `README.md` (178 → 250 LOC)
+
+New structure:
+- ASCII-art Iron Man HUD banner with cyan/indigo color codes
+- Hero section with full mission statement + 9 cloud providers + 15 profiles
+- **Capabilities Matrix** table — every feature mapped
+- **14 agentic tools** mutation list (create_*/schedule_meeting/compose_email/forget_person/etc)
+- **6-stage Vault Importer pipeline** + 7 review screens
+- **Smart cost routing** with `complexityHint` simple/complex (12-16× cheaper)
+- **Bilingual & Customizable** section with i18n stats
+- **Visual System** — Iron Man HUD aesthetic detailed
+- **Onboarding & Tutorials** with 5 guided tours
+- **Privacy & Security** — 100% local + audit log + no telemetry
+- **Architecture diagram** showing Intent Dispatcher → Orchestrator → Researcher+Writer split
+- Hardware tiers (8/16/32 GB RAM) + recommended models
+- Default hotkeys table
+- Credits to Obsidian/Ollama/Whisper.cpp/Piper/ECharts/Cytoscape/chrono-node + Tony Stark 🦾
+
+### Files MODIFY
+- `src/import/import-pipeline.ts` — scope guard (reject absolute paths + `..`)
+- `README.md` — total rewrite (English, technological, all capabilities)
+
+---
+
 ## [0.80.0] — 2026-05-03 — "Chat layout fix CRITICAL + onboarding tutorial auto-start"
 
 ### 🔴 BUG FIX: Chat layout conflito — sombra/squash/achatamento

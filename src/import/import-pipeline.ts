@@ -103,7 +103,20 @@ export class ImportPipeline {
 	 */
 	async scan(opts: ImportOptions, onProgress?: ProgressCallback): Promise<ImportManifest[]> {
 		const adapter = this.app.vault.adapter;
-		const sourceFolder = normalizePath(opts.sourceFolder);
+		// v0.81.0 SECURITY FIX: reject absolute paths + paths escaping vault scope.
+		// adapter.list() with absolute paths or "../" can leak outside the vault on FileSystemAdapter.
+		// Atlas só pode operar DENTRO do vault Obsidian.
+		const raw = (opts.sourceFolder ?? "").trim();
+		if (!raw) {
+			throw new Error("Atlas: pasta de origem vazia.");
+		}
+		if (raw.startsWith("/") || /^[A-Za-z]:[\\/]/.test(raw) || raw.includes("..")) {
+			throw new Error(
+				"Atlas: por segurança, importação aceita APENAS subpastas dentro do vault atual " +
+				"(ex: 'Notas Antigas'). Paths absolutos (/Users/..., C:\\...) ou com '..' são bloqueados."
+			);
+		}
+		const sourceFolder = normalizePath(raw);
 		const includeAttachments = opts.includeAttachments ?? false;
 		const manifest: ImportManifest[] = [];
 
