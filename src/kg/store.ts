@@ -63,39 +63,22 @@ export class KGStore {
 	async save(): Promise<void> {
 		this.graph.updatedAt = new Date().toISOString();
 		const json = JSON.stringify(this.graph, null, 2);
-		const file = this.app.vault.getAbstractFileByPath(this.path);
 		try {
-			if (file instanceof TFile) {
-				await this.app.vault.modify(file, json);
-			} else {
-				// v0.52.6: ensureFolder silencia race "already exists"
-				const { ensureFolder } = await import("../utils/shell");
-				await ensureFolder(this.app.vault, this.atlasFolder);
-				// Re-check file after folder creation race window
-				const f2 = this.app.vault.getAbstractFileByPath(this.path);
-				if (f2 instanceof TFile) {
-					await this.app.vault.modify(f2, json);
-				} else {
-					await this.app.vault.create(this.path, json);
+			// v0.52.7: usar adapter.write — idempotent (cria OU sobrescreve, sem race)
+			// Bypass do TFile/createFolder/create flow que tinha race "File/Folder already exists".
+			const adapter = this.app.vault.adapter;
+			const folderExists = await adapter.exists(this.atlasFolder);
+			if (!folderExists) {
+				try {
+					await adapter.mkdir(this.atlasFolder);
+				} catch (folderErr) {
+					if (!String(folderErr).includes("already exists")) throw folderErr;
 				}
 			}
+			await adapter.write(this.path, json);
 			this.dirty = false;
 		} catch (e) {
-			const msg = String(e);
-			// v0.52.6: race "File already exists" do create — retry com modify
-			if (msg.includes("File already exists")) {
-				try {
-					const f3 = this.app.vault.getAbstractFileByPath(this.path);
-					if (f3 instanceof TFile) {
-						await this.app.vault.modify(f3, json);
-						this.dirty = false;
-						return;
-					}
-				} catch (retryErr) {
-					logger.error("KG save retry failed", { error: String(retryErr) });
-				}
-			}
-			logger.error("KG save failed", { error: msg });
+			logger.error("KG save failed", { error: String(e) });
 		}
 	}
 

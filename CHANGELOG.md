@@ -4,6 +4,42 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.7] — 2026-05-03 — "child_process eval-require + KG idempotent + Key UX visível + Chat avatar"
+
+### P0 — child_process resolve fix
+- `await import("child_process")` causava `TypeError: Failed to resolve module specifier 'child_process'` em Electron renderer (esbuild não transforma dynamic import → browser/renderer rejeita ESM specifier de módulo Node)
+- **Fix**: usar `(globalThis.require ?? eval("require"))("child_process")` — bypass do esbuild static analysis, runtime usa `require` global do Node integration
+
+### P0 — KG/template race fix definitivo
+- `KGStore.save()` e `TemplateStore.save()` migrados pra `vault.adapter.write()` — API idempotent que cria OU sobrescreve sem race
+- Bypass do TFile/createFolder/create flow que tinha race "File/Folder already exists"
+- User logs mostravam recurrence: "KG save failed: File already exists" + "templates: save falhou: File already exists"
+
+### Settings — API key UX visível (P1)
+- Campo agora type="text" com font monospace (era password masked com "•••••••••••" que confundia paste)
+- **Char count** abaixo de cada field: "X chars armazenados"
+- **Test button** (✓) por provider — verifica se key registra no router + reporta length real armazenado
+- User reclamou "campo cortando" — agora user vê o que está digitando
+
+### Sprint D — Chat technologic upgrade
+- **Avatar circular** em cada turno (32px):
+  - Atlas: gradient cyan→indigo→violet com 🧠 + breathing animation 3.5s + glow halo
+  - User: gradient initial letter (M/etc) com border subtle
+- **Bubble layout** (não mais linha plana): avatar à esquerda + bubble com border-radius cortado no canto avatar
+- User messages alinhadas à direita (`flex-direction: row-reverse`)
+- Animação entrada: slide+fade `cubic-bezier(0.34, 1.56, 0.64, 1)` 280ms (era plain CSS fade)
+- Label "Atlas" agora gradient text (cyan→indigo)
+- Hover bubble: glow cyan box-shadow
+- Thinking indicator: avatar 🧠 pulsante 1.4s + bubble com 3 dots animados
+
+### Files
+- `src/utils/shell.ts` — `getExecAsync()` com eval-require trick
+- `src/kg/store.ts` — `save()` via `adapter.write()` idempotent
+- `src/templates/visual-editor/template-store.ts` — `save()` idempotent
+- `src/views/settings-tab.ts` — API key field text + char count + Test button
+- `src/views/master/tab-chat.ts` — `renderTurn()` com avatar + bubble
+- `styles.css` — `.atlas-chat-avatar*` + `.atlas-chat-bubble*` + `atlas-chat-row-in` (~140 LOC)
+
 ## [0.52.6] — 2026-05-03 — "Folder/file race fix + auth surfaceio + 12-turn context + typing dots"
 
 ### Folder/File "already exists" race conditions

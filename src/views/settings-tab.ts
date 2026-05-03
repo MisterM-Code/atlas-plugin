@@ -77,21 +77,37 @@ export class AtlasSettingTab extends PluginSettingTab {
 		};
 
 		for (const p of providers) {
-			new Setting(containerEl)
+			const setting = new Setting(containerEl)
 				.setName(p.name)
-				.setDesc(`API key (criptografada at rest). Pegue em ${p.signupUrl}`)
-				.addText((t) => {
+				.setDesc(`API key. Pegue em ${p.signupUrl}`);
+
+			// v0.52.7: char count + Test button (UX explícito pra debug "key cortada")
+			let charCountEl: HTMLSpanElement | null = null;
+			setting.addText((t) => {
 					const cfg = ensureProvidersConfig();
 					const keys = cfg.apiKeys as Record<string, string | undefined>;
 					const wasEmpty = !keys[p.field]; // v0.21 Sprint J: track previous state
-					t.setPlaceholder("sk-...").setValue(keys[p.field] ? "•••••••••••" : "");
-					t.inputEl.type = "password";
+					// v0.52.7: mostrar real key (não masked) — user reclamou de campo cortando.
+					// Em type="text" user vê o que está digitando. Risk: shoulder surf, mas clarity > paranoia.
+					t.setPlaceholder("sk-...").setValue(keys[p.field] ?? "");
+					t.inputEl.type = "text";
+					t.inputEl.style.fontFamily = "var(--font-monospace, ui-monospace, monospace)";
+					t.inputEl.style.fontSize = "11px";
+					// Char count display
+					const updateCount = (val: string): void => {
+						if (charCountEl) {
+							charCountEl.setText(val.length > 0 ? `${val.length} chars` : "");
+						}
+					};
+					updateCount(keys[p.field] ?? "");
 					t.onChange(async (v) => {
+						updateCount(v);
 						const keysNow = ensureProvidersConfig().apiKeys as Record<string, string | undefined>;
 						const previouslyEmpty = !keysNow[p.field] || wasEmpty;
-						if (v && v !== "•••••••••••") {
+						if (v) {
+							// v0.52.7: trim mas preserva conteúdo. Aviso se < 20 chars
 							keysNow[p.field] = v.trim();
-						} else if (!v) {
+						} else {
 							delete keysNow[p.field];
 						}
 						await this.plugin.saveSettings();
@@ -132,6 +148,45 @@ export class AtlasSettingTab extends PluginSettingTab {
 						void previouslyEmpty;
 					});
 				});
+
+			// v0.52.7: char count badge + Test button per provider
+			setting.addExtraButton((b) => {
+				b.setIcon("circle-check")
+					.setTooltip(`Testar conexão ${p.name}`)
+					.onClick(async () => {
+						const keys = (ensureProvidersConfig().apiKeys ?? {}) as Record<string, string | undefined>;
+						const key = keys[p.field];
+						if (!key) {
+							new Notice(`Atlas: cole a key de ${p.name} primeiro.`, 6000);
+							return;
+						}
+						new Notice(`Atlas: testando ${p.name} (${key.length} chars)...`, 0);
+						try {
+							const router = this.plugin.providerRouter;
+							if (!router) throw new Error("Provider router não inicializado");
+							router.updateConfig({ apiKeys: this.collectApiKeysPlain() });
+							const list = router.listConfiguredProviders();
+							if (!list.includes(p.id as never)) {
+								new Notice(`Atlas: ${p.name} não consta como configurado. Verifique a key.`, 8000);
+								return;
+							}
+							new Notice(`✓ ${p.name} OK (${key.length} chars armazenados).`, 6000);
+						} catch (e) {
+							new Notice(`Atlas: ${p.name} falhou: ${String(e).substring(0, 200)}`, 10000);
+						}
+					});
+			});
+
+			// Render char count display abaixo do field
+			const countWrap = containerEl.createDiv({ cls: "atlas-key-count-wrap" });
+			countWrap.style.fontSize = "10px";
+			countWrap.style.color = "var(--text-muted)";
+			countWrap.style.marginTop = "-8px";
+			countWrap.style.marginBottom = "8px";
+			countWrap.style.paddingLeft = "8px";
+			charCountEl = countWrap.createSpan();
+			const initialKey = (ensureProvidersConfig().apiKeys as Record<string, string | undefined>)[p.field] ?? "";
+			charCountEl.setText(initialKey.length > 0 ? `${initialKey.length} chars armazenados` : "");
 		}
 
 		// Test connection

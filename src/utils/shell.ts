@@ -20,8 +20,15 @@ let cachedExecAsync: ExecAsyncFn | null = null;
 async function getExecAsync(): Promise<ExecAsyncFn> {
 	if (cachedExecAsync) return cachedExecAsync;
 	try {
-		const cp = await import("child_process");
-		const util = await import("util");
+		// v0.52.7: usar `require` (Node global em Electron) via eval pra evitar esbuild
+		// transformar `await import("child_process")` em ESM dynamic import (que browser
+		// rejeita: "Failed to resolve module specifier 'child_process'").
+		// Em Obsidian renderer, `require` está disponível via Node integration.
+		// eslint-disable-next-line no-eval
+		const nodeRequire = (globalThis as { require?: (m: string) => unknown }).require
+			?? (eval("require") as (m: string) => unknown);
+		const cp = nodeRequire("child_process") as { exec: (...args: unknown[]) => unknown };
+		const util = nodeRequire("util") as { promisify: <T>(fn: T) => unknown };
 		cachedExecAsync = util.promisify(cp.exec) as unknown as ExecAsyncFn;
 		return cachedExecAsync;
 	} catch (e) {

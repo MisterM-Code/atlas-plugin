@@ -50,38 +50,20 @@ export class TemplateStore {
 	async save(): Promise<void> {
 		const json = JSON.stringify({ version: 1, templates: this.templates }, null, 2);
 		try {
-			const file = this.app.vault.getAbstractFileByPath(this.path);
-			if (file instanceof TFile) {
-				await this.app.vault.modify(file, json);
-			} else {
-				// v0.52.6: helper centralizado
-				const { ensureFolder } = await import("../../utils/shell");
-				await ensureFolder(this.app.vault, this.atlasFolder);
-				// Re-check pós-folder pra evitar race no create
-				const f2 = this.app.vault.getAbstractFileByPath(this.path);
-				if (f2 instanceof TFile) {
-					await this.app.vault.modify(f2, json);
-				} else {
-					await this.app.vault.create(this.path, json);
+			// v0.52.7: adapter.write é idempotent — elimina race do TFile/create flow
+			const adapter = this.app.vault.adapter;
+			const folderExists = await adapter.exists(this.atlasFolder);
+			if (!folderExists) {
+				try {
+					await adapter.mkdir(this.atlasFolder);
+				} catch (folderErr) {
+					if (!String(folderErr).includes("already exists")) throw folderErr;
 				}
 			}
+			await adapter.write(this.path, json);
 			this.dirty = false;
 		} catch (e) {
-			const msg = String(e);
-			// v0.52.6: retry com modify se "File already exists" race
-			if (msg.includes("File already exists")) {
-				try {
-					const f3 = this.app.vault.getAbstractFileByPath(this.path);
-					if (f3 instanceof TFile) {
-						await this.app.vault.modify(f3, json);
-						this.dirty = false;
-						return;
-					}
-				} catch (retryErr) {
-					logger.error("templates: save retry failed", { error: String(retryErr) });
-				}
-			}
-			logger.error("templates: save falhou", { error: msg });
+			logger.error("templates: save falhou", { error: String(e) });
 		}
 	}
 

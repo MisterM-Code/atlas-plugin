@@ -11842,3 +11842,146 @@ button.atlas-btn:active::after,
 .atlas-chat-thinking-text {
   font-style: italic;
 }
+
+/* ═══ v0.52.7: Chat technologic upgrade — avatar + bubble + animations ═══ */
+.atlas-chat-bubble-row {
+  display: flex !important;
+  flex-direction: row;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  margin: 0 0 4px;
+  background: transparent !important;
+  border-left: none !important;
+  animation: atlas-chat-row-in 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes atlas-chat-row-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.atlas-chat-message-user.atlas-chat-bubble-row {
+  flex-direction: row-reverse;
+}
+.atlas-chat-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  position: relative;
+  overflow: visible;
+}
+.atlas-chat-avatar-assistant {
+  background: linear-gradient(135deg, #00e5e5 0%, #6366f1 50%, #a855f7 100%);
+  box-shadow: 0 0 14px rgba(0, 229, 229, 0.40),
+              0 2px 4px rgba(0, 0, 0, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.30);
+  animation: atlas-chat-avatar-breathing 3.5s ease-in-out infinite;
+}
+.atlas-chat-avatar-assistant::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 229, 229, 0.20), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+.atlas-chat-avatar-user {
+  background: linear-gradient(135deg, var(--background-modifier-border-hover), var(--background-secondary));
+  color: var(--text-normal);
+  font-weight: 700;
+  font-size: 13px;
+  border: 1px solid var(--background-modifier-border);
+}
+.atlas-chat-avatar-emoji {
+  font-size: 18px;
+  filter: drop-shadow(0 0 4px rgba(0, 229, 229, 0.60));
+}
+@keyframes atlas-chat-avatar-breathing {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(0, 229, 229, 0.40), 0 2px 4px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.30); }
+  50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 229, 229, 0.55), 0 2px 6px rgba(0,0,0,0.30), inset 0 1px 0 rgba(255,255,255,0.40); }
+}
+/* Pulse mais forte enquanto Atlas digitando */
+.atlas-chat-thinking .atlas-emoji,
+.atlas-chat-avatar-assistant.is-thinking {
+  animation: atlas-chat-avatar-thinking 1s ease-in-out infinite;
+}
+@keyframes atlas-chat-avatar-thinking {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(0, 229, 229, 0.60)); }
+  50% { transform: scale(1.18); filter: drop-shadow(0 0 12px rgba(0, 229, 229, 1)); }
+}
+
+.atlas-chat-bubble {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  position: relative;
+}
+.atlas-chat-message-assistant .atlas-chat-bubble {
+  background: linear-gradient(135deg, rgba(0,229,229,0.06), rgba(99,102,241,0.04));
+  border: 1px solid rgba(139,211,251,0.18);
+  border-top-left-radius: 4px;
+}
+.atlas-chat-message-user .atlas-chat-bubble {
+  background: linear-gradient(135deg, var(--atlas-accent-soft, rgba(0,229,229,0.10)), var(--background-secondary-alt, var(--background-secondary)));
+  border: 1px solid rgba(0,229,229,0.18);
+  border-top-right-radius: 4px;
+  margin-left: auto;
+}
+.atlas-chat-bubble:hover {
+  box-shadow: 0 4px 12px rgba(0, 229, 229, 0.10);
+}
+.atlas-chat-msg-label {
+  font-size: 10px;
+  opacity: 0.6;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+.atlas-chat-message-user .atlas-chat-msg-label {
+  text-align: right;
+  color: rgba(0, 229, 229, 0.85);
+}
+.atlas-chat-message-assistant .atlas-chat-msg-label {
+  background: linear-gradient(90deg, #00e5e5, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 1;
+}
+
+/* Thinking indicator com avatar pulsante */
+.atlas-chat-thinking {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+}
+.atlas-chat-thinking::before {
+  content: "🧠";
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #00e5e5 0%, #6366f1 50%, #a855f7 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 14px rgba(0, 229, 229, 0.40);
+  animation: atlas-chat-avatar-breathing 1.4s ease-in-out infinite;
+}
+.atlas-chat-thinking-head {
+  flex: 1 1 auto;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, rgba(0,229,229,0.04), rgba(99,102,241,0.04));
+  border: 1px solid rgba(139,211,251,0.18);
+  border-radius: 10px;
+  border-top-left-radius: 4px;
+}

@@ -177,23 +177,36 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		content: string,
 		citations: { notePath: string; snippet: string }[] = []
 	): HTMLDivElement => {
+		// v0.52.7: layout horizontal com avatar + bubble
 		const cls = role === "user"
-			? "atlas-chat-message atlas-chat-message-user"
-			: "atlas-chat-message atlas-chat-message-assistant";
+			? "atlas-chat-message atlas-chat-message-user atlas-chat-bubble-row"
+			: "atlas-chat-message atlas-chat-message-assistant atlas-chat-bubble-row";
 		const wrap = messagesEl.createDiv({ cls });
 
-		const lbl = wrap.createEl("div", {
-			cls: "atlas-chat-msg-label",
-			text: role === "user" ? "Você" : "🧠 Atlas",
-		});
-		lbl.style.fontSize = "10px";
-		lbl.style.opacity = "0.6";
-		lbl.style.marginBottom = "4px";
+		// Avatar (Atlas logo SVG OR user gradient circle)
+		const avatar = wrap.createDiv({ cls: `atlas-chat-avatar atlas-chat-avatar-${role}` });
+		if (role === "assistant") {
+			// Atlas brain emoji avatar com glow
+			avatar.createSpan({ cls: "atlas-emoji atlas-chat-avatar-emoji", text: "🧠" });
+		} else {
+			// User: primeira letra do display name
+			const initial = (plugin.settings.user?.displayName ?? "M").charAt(0).toUpperCase();
+			avatar.createSpan({ cls: "atlas-chat-avatar-initial", text: initial });
+		}
 
-		const body = wrap.createEl("div", { cls: "atlas-msg-body" });
+		// Bubble container (label + body + citations)
+		const bubble = wrap.createDiv({ cls: "atlas-chat-bubble" });
+
+		const lbl = bubble.createDiv({
+			cls: "atlas-chat-msg-label",
+			text: role === "user" ? (plugin.settings.user?.displayName ?? "Você") : "Atlas",
+		});
+		void lbl;
+
+		const body = bubble.createDiv({ cls: "atlas-msg-body" });
 		body.setText(content);
 
-		if (citations.length > 0) renderCitations(wrap, citations);
+		if (citations.length > 0) renderCitations(bubble, citations);
 
 		messagesEl.scrollTop = messagesEl.scrollHeight;
 		return wrap;
