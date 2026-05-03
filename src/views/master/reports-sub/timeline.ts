@@ -1,5 +1,6 @@
 import { TFile, Notice } from "obsidian";
 import type AtlasPlugin from "../../../../main";
+import { t } from "../../../i18n";
 
 interface ReportEntry {
 	title: string;
@@ -56,10 +57,10 @@ export async function renderReportsTimeline(
 	if (reports.length === 0) {
 		const empty = timeline.createDiv({ cls: "atlas-tab-empty-state" });
 		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🎉" });
-		empty.createEl("div", { cls: "atlas-tab-empty-title", text: "Nenhum report gerado ainda" });
+		empty.createEl("div", { cls: "atlas-tab-empty-title", text: t("empty.reports.timeline.title") });
 		empty.createEl("div", {
 			cls: "atlas-tab-empty-desc",
-			text: "Use os botões acima pra gerar weekly report, year-in-review, podcast, ou outros artefatos.",
+			text: t("empty.reports.timeline.body"),
 		});
 		return;
 	}

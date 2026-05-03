@@ -94,6 +94,16 @@
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* v0.57: feedback pulse on click */
+.atlas-citation-card.is-clicked {
+	animation: atlas-citation-click-pulse 280ms ease;
+}
+@keyframes atlas-citation-click-pulse {
+	0%   { transform: scale(1); }
+	40%  { transform: scale(0.92); box-shadow: 0 0 0 4px var(--atlas-accent-soft, rgba(99,102,241,0.3)); }
+	100% { transform: scale(1); }
+}
+
 /* Typing indicator (3 dots) */
 .atlas-chat-typing {
 	display: inline-flex;
@@ -12274,4 +12284,31 @@ button.atlas-btn:active::after,
 }
 .atlas-badge-glow:hover::after {
   opacity: 1;
+}
+
+/* v0.57: pulse animation no tab quando entidade é criada */
+.atlas-activity-tab.is-entity-pulse,
+.atlas-master-activity-tab.is-entity-pulse {
+  animation: atlas-tab-entity-pulse 900ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.atlas-activity-tab.is-entity-pulse::after,
+.atlas-master-activity-tab.is-entity-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px var(--atlas-accent, #00e5e5);
+  animation: atlas-tab-entity-glow 900ms ease-out;
+}
+@keyframes atlas-tab-entity-pulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  60%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+@keyframes atlas-tab-entity-glow {
+  0%   { opacity: 0;   box-shadow: 0 0 0 0 var(--atlas-accent, #00e5e5); }
+  40%  { opacity: 0.9; box-shadow: 0 0 0 6px var(--atlas-accent-soft, rgba(0,229,229,0.45)); }
+  100% { opacity: 0;   box-shadow: 0 0 0 14px transparent; }
 }

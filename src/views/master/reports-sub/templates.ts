@@ -6,6 +6,7 @@ import {
 } from "../../../templates/visual-editor/editor-ui";
 import { AtlasTemplate, buildDefaultContext } from "../../../templates/visual-editor/block-types";
 import { renderTemplate } from "../../../templates/visual-editor/block-renderer";
+import { t } from "../../../i18n";
 
 /**
  * Templates sub-view — grid de cards dos templates Atlas.
@@ -91,10 +92,10 @@ export async function renderReportsTemplates(
 		const empty = grid.createDiv({ cls: "atlas-tab-empty-state" });
 		empty.style.gridColumn = "1 / -1";
 		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "📐" });
-		empty.createEl("div", { cls: "atlas-tab-empty-title", text: "Nenhum template" });
+		empty.createEl("div", { cls: "atlas-tab-empty-title", text: t("empty.reports.templates.title") });
 		empty.createEl("div", {
 			cls: "atlas-tab-empty-desc",
-			text: "Click '+ Novo' acima para criar seu primeiro template.",
+			text: t("empty.reports.templates.body"),
 		});
 		return;
 	}

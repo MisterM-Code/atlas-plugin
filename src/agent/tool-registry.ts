@@ -909,6 +909,27 @@ export async function executeTool(
 	try {
 		const result = await tool.handler(params, plugin);
 		logger.info("tool: executed", { name, ok: result.ok });
+		// v0.57: dispatch event pra badge pulse animation no Master Sidebar
+		if (result.ok) {
+			const tabMap: Record<string, string> = {
+				create_person: "knowledge",
+				create_system: "systems",
+				create_product: "products",
+				create_role: "roles",
+				create_course: "study",
+				create_action_item: "hub",
+				create_reminder: "reminders",
+				schedule_meeting: "today",
+				compose_email: "today",
+				report_person_sessions: "reports",
+			};
+			const tabId = tabMap[name];
+			if (tabId) {
+				document.dispatchEvent(new CustomEvent("atlas:entity-created", {
+					detail: { tool: name, tabId },
+				}));
+			}
+		}
 		return result;
 	} catch (e) {
 		logger.error("tool: handler falhou", { name, error: String(e) });

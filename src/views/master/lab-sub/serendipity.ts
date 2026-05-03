@@ -1,5 +1,6 @@
 import { TFile, Notice } from "obsidian";
 import type AtlasPlugin from "../../../../main";
+import { t } from "../../../i18n";
 
 /**
  * Serendipity sub-view — feed dos insights gerados pela engine.
@@ -57,11 +58,11 @@ export async function renderLabSerendipity(
 		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "📭" });
 		empty.createEl("div", {
 			cls: "atlas-tab-empty-title",
-			text: "Nenhum insight ainda",
+			text: t("empty.lab.serendipity.title"),
 		});
 		empty.createEl("div", {
 			cls: "atlas-tab-empty-desc",
-			text: "Click 'Forçar 1 insight agora' acima ou aguarde o próximo tick (10h/14h/19h).",
+			text: t("empty.lab.serendipity.body"),
 		});
 		return;
 	}

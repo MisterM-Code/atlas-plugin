@@ -155,4 +155,20 @@ export const dict: Record<string, string> = {
 	"common.add.new": "+ Novo",
 	"common.edit": "Editar",
 	"common.view": "Ver",
+
+	// ─── Empty states sub-tabs (v0.57) ───
+	"empty.lab.tools.title": "Nenhuma ferramenta IA disponível",
+	"empty.lab.tools.body": "Configure um perfil em Settings para liberar tools especializadas.",
+	"empty.lab.serendipity.title": "Nenhum insight ainda",
+	"empty.lab.serendipity.body": "Atlas observa seu vault e gera conexões inesperadas. Volte aqui depois.",
+	"empty.lab.capsules.title": "Nenhuma cápsula do tempo",
+	"empty.lab.capsules.body": "Crie uma cápsula com mensagem pra abrir no futuro.",
+	"empty.reports.timeline.title": "Nenhum relatório gerado",
+	"empty.reports.timeline.body": "Use Composer pra criar weekly, monthly ou ad-hoc.",
+	"empty.reports.templates.title": "Nenhum template",
+	"empty.reports.templates.body": "Adicione templates personalizados em .atlas/templates/",
+	"empty.study.courses.title": "Nenhum curso ainda",
+	"empty.study.courses.body": "Crie seu primeiro curso pra acompanhar progresso e flashcards.",
+	"empty.auto.aliaser.title": "Sem aliases pendentes",
+	"empty.auto.aliaser.body": "Use 'Buscar duplicatas' para Atlas detectar e propor fusões.",
 };

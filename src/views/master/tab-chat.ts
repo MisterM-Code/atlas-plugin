@@ -155,7 +155,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 
 	const renderCitations = (
 		wrap: HTMLDivElement,
-		citations: { notePath: string }[]
+		citations: { notePath: string; snippet?: string }[]
 	): void => {
 		const citWrap = wrap.createDiv({ cls: "atlas-chat-citations" });
 		const seen = new Set<string>();
@@ -166,7 +166,15 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 				cls: "atlas-citation-card",
 				text: `📄 ${c.notePath.split("/").pop()?.replace(/\.md$/, "")}`,
 			});
+			// v0.57: hover tooltip com snippet (se disponível)
+			if (c.snippet) {
+				chip.title = c.snippet.slice(0, 280);
+			} else {
+				chip.title = c.notePath;
+			}
 			chip.addEventListener("click", () => {
+				chip.addClass("is-clicked");
+				setTimeout(() => chip.removeClass("is-clicked"), 280);
 				const f = plugin.app.vault.getAbstractFileByPath(c.notePath);
 				if (f instanceof TFile) plugin.app.workspace.getLeaf().openFile(f);
 			});

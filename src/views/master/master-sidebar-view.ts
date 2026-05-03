@@ -34,6 +34,8 @@ export class AtlasMasterSidebarView extends ItemView {
 
 	private fab: QuickAddFab | null = null;
 	private header: AtlasHeaderHandle | null = null;
+	/** v0.57: handler pra dispose no onClose */
+	private entityCreatedHandler: ((ev: Event) => void) | null = null;
 
 	constructor(leaf: WorkspaceLeaf, private plugin: AtlasPlugin) {
 		super(leaf);
@@ -63,11 +65,26 @@ export class AtlasMasterSidebarView extends ItemView {
 		this.renderActivityBar();
 		// activateTab cuida de montar o FAB no tabContentEl atual
 		await this.activateTab(this.currentTab);
+
+		// v0.57: badge pulse on entity creation (dispatched by tool-registry)
+		this.entityCreatedHandler = (ev: Event) => {
+			const detail = (ev as CustomEvent).detail as { tabId?: string } | undefined;
+			if (!detail?.tabId) return;
+			const btn = this.activityBarEl?.querySelector<HTMLElement>(`[data-tab-id="${detail.tabId}"]`);
+			if (!btn) return;
+			btn.addClass("is-entity-pulse");
+			setTimeout(() => btn.removeClass("is-entity-pulse"), 900);
+		};
+		document.addEventListener("atlas:entity-created", this.entityCreatedHandler);
 	}
 
 	async onClose(): Promise<void> {
 		this.fab?.unmount();
 		this.fab = null;
+		if (this.entityCreatedHandler) {
+			document.removeEventListener("atlas:entity-created", this.entityCreatedHandler);
+			this.entityCreatedHandler = null;
+		}
 	}
 
 	async activateTab(id: TabId): Promise<void> {

@@ -153,4 +153,20 @@ export const dict: Record<string, string> = {
 	"common.add.new": "+ New",
 	"common.edit": "Edit",
 	"common.view": "View",
+
+	// ─── Empty states sub-tabs (v0.57) ───
+	"empty.lab.tools.title": "No AI tools available",
+	"empty.lab.tools.body": "Configure a profile in Settings to unlock specialized tools.",
+	"empty.lab.serendipity.title": "No insights yet",
+	"empty.lab.serendipity.body": "Atlas watches your vault and surfaces unexpected connections. Come back later.",
+	"empty.lab.capsules.title": "No time capsules",
+	"empty.lab.capsules.body": "Create a capsule with a message to open in the future.",
+	"empty.reports.timeline.title": "No reports generated",
+	"empty.reports.timeline.body": "Use Composer to create weekly, monthly, or ad-hoc reports.",
+	"empty.reports.templates.title": "No templates",
+	"empty.reports.templates.body": "Add custom templates in .atlas/templates/",
+	"empty.study.courses.title": "No courses yet",
+	"empty.study.courses.body": "Create your first course to track progress and flashcards.",
+	"empty.auto.aliaser.title": "No pending aliases",
+	"empty.auto.aliaser.body": "Use 'Find duplicates' to let Atlas detect and propose merges.",
 };

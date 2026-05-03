@@ -1,6 +1,7 @@
 import { TFile, Notice } from "obsidian";
 import type AtlasPlugin from "../../../../main";
 import { TimeCapsuleModal } from "../../../tools/time-capsule";
+import { t } from "../../../i18n";
 
 const CAPSULE_FOLDER = "12_Studies/time-capsules";
 
@@ -68,11 +69,11 @@ export async function renderLabCapsules(
 		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🕰️" });
 		empty.createEl("div", {
 			cls: "atlas-tab-empty-title",
-			text: "Nenhuma cápsula ainda",
+			text: t("empty.lab.capsules.title"),
 		});
 		empty.createEl("div", {
 			cls: "atlas-tab-empty-desc",
-			text: "Click '+ Nova cápsula' para escrever uma carta pro seu eu futuro.",
+			text: t("empty.lab.capsules.body"),
 		});
 		return;
 	}

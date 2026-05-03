@@ -4,6 +4,34 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.57.0] — 2026-05-03 — "Citations clicáveis polish + Badge pulse em criações + Empty states i18n"
+
+### Citations clicáveis (Chat tab) — refinement
+- `tab-chat.ts renderCitations`: chip ganha `title` (tooltip) com snippet truncado a 280 chars (fallback notePath)
+- Chip click adiciona class `is-clicked` por 280ms → pulse animation
+- `styles.css`: `.atlas-citation-card.is-clicked` keyframe `atlas-citation-click-pulse` (scale 0.92→1 + box-shadow ring soft)
+
+### Badge pulse em criações de entidades
+- `tool-registry.ts executeTool`: ao tool `result.ok === true` em `create_person`/`create_system`/`create_product`/`create_role`/`create_course`/`create_action_item`/`create_reminder`/`schedule_meeting`/`compose_email`/`report_person_sessions`, dispatcha `CustomEvent("atlas:entity-created", { detail: { tool, tabId } })`
+- `master-sidebar-view.ts onOpen`: registra listener `atlas:entity-created` → adiciona class `is-entity-pulse` no tab respectivo por 900ms
+- `master-sidebar-view.ts onClose`: remove listener
+- `styles.css`: 2 keyframes — `atlas-tab-entity-pulse` (scale 1→1.18→0.96→1 cubic-bezier) + `atlas-tab-entity-glow` (cyan accent ring expanding 0→14px fade)
+
+### Empty states i18n nas sub-tabs
+- `lab-sub/serendipity.ts` — "Nenhum insight ainda" + body via `t("empty.lab.serendipity.*")`
+- `lab-sub/capsules.ts` — "Nenhuma cápsula ainda" via `t("empty.lab.capsules.*")`
+- `reports-sub/timeline.ts` — "Nenhum report gerado" via `t("empty.reports.timeline.*")`
+- `reports-sub/templates.ts` — "Nenhum template" via `t("empty.reports.templates.*")`
+- pt.ts/en.ts: 14 chaves novas em namespace `empty.*` (lab.tools/serendipity/capsules, reports.timeline/templates, study.courses, auto.aliaser)
+
+### Pendente v0.58.0
+- Empty states restantes (lab tools-ia, study courses, auto aliaser, entity-tree)
+- Sidebar audit: tabs com função obscura → renomear/refatorar/hide
+- Policies & gates audit: vault structure consistente, slot-filling E2E
+- More i18n: Hub/Lab/Reports headers + buttons
+
+---
+
 ## [0.56.0] — 2026-05-03 — "i18n expansão: Chat + Today + Settings views"
 
 ### i18n wired nas views principais
