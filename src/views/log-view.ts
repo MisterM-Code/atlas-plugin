@@ -72,6 +72,20 @@ export class LogViewModal extends Modal {
 			this.renderEntries();
 		});
 
+		// v0.73: Quick filter "Chat I/O only" — Conversa Atlas (entradas + respostas + tools)
+		const btnChatOnly = toolbar.createEl("button", {
+			text: "💬 Chat I/O",
+			cls: "atlas-log-btn",
+		});
+		btnChatOnly.title = "Mostrar apenas queries, respostas e tool calls do chat";
+		btnChatOnly.addEventListener("click", () => {
+			this.searchQuery = "agent:|tool:";
+			searchInput.value = this.searchQuery;
+			this.filterLevel = "all";
+			levelSelect.value = "all";
+			this.renderEntries();
+		});
+
 		// Buttons
 		const btnCopy = toolbar.createEl("button", { text: "📋 Copiar tudo", cls: "atlas-log-btn" });
 		btnCopy.addEventListener("click", async () => this.copyAll());

@@ -37,11 +37,20 @@ export function getLogEntries(filter?: { level?: Level; search?: string; limit?:
 	}
 	if (filter?.search) {
 		const q = filter.search.toLowerCase();
-		result = result.filter(
-			(e) =>
-				e.msg.toLowerCase().includes(q) ||
-				(e.meta && JSON.stringify(e.meta).toLowerCase().includes(q))
-		);
+		// v0.73: suporta OR via "|" — ex: "agent:|tool:" matches both
+		const terms = q.split("|").map((s) => s.trim()).filter(Boolean);
+		if (terms.length > 1) {
+			result = result.filter((e) => {
+				const haystack = e.msg.toLowerCase() + " " + (e.meta ? JSON.stringify(e.meta).toLowerCase() : "");
+				return terms.some((t) => haystack.includes(t));
+			});
+		} else {
+			result = result.filter(
+				(e) =>
+					e.msg.toLowerCase().includes(q) ||
+					(e.meta && JSON.stringify(e.meta).toLowerCase().includes(q))
+			);
+		}
 	}
 	if (filter?.limit) result = result.slice(-filter.limit);
 	return result;

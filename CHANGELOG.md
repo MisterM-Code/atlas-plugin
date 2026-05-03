@@ -4,6 +4,36 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.73.0] — 2026-05-03 — "Logs view: Chat I/O quick filter + OR search"
+
+### Log View polish — Chat I/O filter rápido
+**File:** `src/views/log-view.ts`
+- Botão novo `💬 Chat I/O` na toolbar (antes do search) — preset filter pra `agent:|tool:`
+- 1 click mostra apenas: `agent: query`, `agent: response`, `tool: executed`, `tool: create_note`, etc
+- Tooltip "Mostrar apenas queries, respostas e tool calls do chat"
+
+### Logger search OR support
+**File:** `src/utils/logger.ts`
+- `getLogEntries({search})` agora suporta sintaxe `term1|term2|term3` pra OR (split em `|`)
+- Preserva substring search original como fallback se sem `|`
+- Permite filter avançado: "agent:|tool:|orchestrator" mostra tudo
+
+### Resultado prático
+Quando user reporta "chat não funcionou" ou quer auditar conversa:
+1. Cmd+P → "Atlas: Open logs"
+2. Click `💬 Chat I/O` filter
+3. Vê histórico completo de turnos: query → response → tools → citations → custo
+4. Click `📋 Copiar tudo` → manda pra debug
+
+Cobertura logs (do v0.70):
+- `agent: query` (input + 100 chars)
+- `agent: intent` (classificação)
+- `agent: response` (intent + answerLength + answerPreview + citations[5] + toolsUsed + invented_citations + durationMs)
+- `tool: executed` (name + ok)
+- `agent: filtered hallucinated citations` (warn)
+
+---
+
 ## [0.72.0] — 2026-05-03 — "Voice command 'criar nota/documento/relatório' wired ao create_note tool"
 
 ### Voice command `create_note` integration
