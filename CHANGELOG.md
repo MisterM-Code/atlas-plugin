@@ -4,6 +4,41 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.76.0] — 2026-05-03 — "Tour STEPS titles i18n (26 strings) — backlog finalizado"
+
+### Tour STEPS title i18n (26 titles, 5 tours)
+**File:** `src/tutorial/tours.ts`
+
+- **first-steps** (6 steps): welcome / sidebar / capture / spotlight / chat / done
+- **one-on-one** (5 steps): intro / create / brief / hover / actions
+- **weekly-report** (5 steps): intro / daily / generate / send / podcast
+- **flashcards** (5 steps): intro / gen / review / anki / feynman
+- **knowledge-graph** (5 steps): intro / index / tab / aliasing / context
+
+Total: 26 step titles bilingual via `t("tour.{tour-id}.{step-id}")`.
+
+### Body content em PT (intencional)
+Bodies de tours são markdown rico multi-linha com keyboard shortcuts e formatting.
+Mantidos em PT pra evitar inconsistência. Translation incremental se demand.
+
+### Total i18n acumulado v0.55→v0.76
+- **~282 chaves bilingual** cobrindo ~95% das strings UX
+  - Sidebar tabs (14) + sub-tab labels (15)
+  - Chat (Today/Settings/Onboarding/FAB headers + body)
+  - Vault Importer wizard
+  - Tour names + descriptions + STEP titles (5+5+26 = 36)
+  - WhatsNew + empty states + tooltips
+  - Settings sections (10 headers + Profile/Health/Import history)
+  - 9 critical bug fixes + create_note + voice commands
+
+### Backlog real restante (~5%)
+- Tour body content (markdown rico — risk inconsistência)
+- Settings field labels (~50 setName/setDesc — refactor incremental)
+- Notice messages (centenas — refactor incremental)
+- PR #12473 obsidian-releases — bot validation queue async
+
+---
+
 ## [0.75.0] — 2026-05-03 — "WhatsNew modal sync: v0.70-v0.74 entries"
 
 ### WhatsNew modal entries added (top of FEATURES_BY_VERSION)
