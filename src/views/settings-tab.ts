@@ -1014,7 +1014,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		});
 
 		new Setting(containerEl)
-			.setName("Habilitar email")
+			.setName(t("settings.field.email.enabled"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.email.enabled)
@@ -1024,7 +1024,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl).setName("SMTP host").addText((t) =>
+		new Setting(containerEl).setName(t("settings.field.email.smtp")).addText((t) =>
 			t
 				.setValue(this.plugin.settings.email.smtpHost)
 				.onChange(async (v) => {
@@ -1033,7 +1033,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 				})
 		);
 
-		new Setting(containerEl).setName("Usuário").addText((t) =>
+		new Setting(containerEl).setName(t("settings.field.email.user")).addText((t) =>
 			t
 				.setValue(this.plugin.settings.email.smtpUser)
 				.onChange(async (v) => {
@@ -1043,7 +1043,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		);
 
 		new Setting(containerEl)
-			.setName("Endereço 'From'")
+			.setName(t("settings.field.email.from"))
 			.setDesc("Costuma ser igual ao usuário SMTP.")
 			.addText((t) =>
 				t
@@ -1055,7 +1055,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Destinatários default — weekly report")
+			.setName(t("settings.field.email.recipients"))
 			.setDesc("Separe múltiplos por vírgula.")
 			.addTextArea((t) =>
 				t
@@ -1071,7 +1071,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.createEl("h3", { text: t("settings.notifications.title") });
 
-		new Setting(containerEl).setName("Desktop").addToggle((t) =>
+		new Setting(containerEl).setName(t("settings.field.notify.desktop")).addToggle((t) =>
 			t
 				.setValue(this.plugin.settings.notifications.desktopEnabled)
 				.onChange(async (v) => {
@@ -1081,7 +1081,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		);
 
 		new Setting(containerEl)
-			.setName("Telegram (push mobile)")
+			.setName(t("settings.field.notify.telegram"))
 			.setDesc("Crie um bot via @BotFather, cole o token.")
 			.addToggle((t) =>
 				t
@@ -1092,7 +1092,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl).setName("Telegram bot token").addText((t) =>
+		new Setting(containerEl).setName(t("settings.field.notify.telegram.token")).addText((t) =>
 			t
 				.setValue(this.plugin.settings.notifications.telegramBotToken)
 				.onChange(async (v) => {
@@ -1101,7 +1101,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 				})
 		);
 
-		new Setting(containerEl).setName("Telegram chat ID").addText((t) =>
+		new Setting(containerEl).setName(t("settings.field.notify.telegram.chat")).addText((t) =>
 			t
 				.setValue(this.plugin.settings.notifications.telegramChatId)
 				.onChange(async (v) => {
@@ -1136,7 +1136,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			window.open("https://github.com/ggerganov/whisper.cpp", "_blank");
 		});
 
-		new Setting(containerEl).setName("Habilitar voice capture").addToggle((t) =>
+		new Setting(containerEl).setName(t("settings.field.voice.enabled")).addToggle((t) =>
 			t
 				.setValue(this.plugin.settings.voice.enabled)
 				.onChange(async (v) => {
@@ -1147,7 +1147,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		// v0.22 Sprint F: Auto-detect now button
 		new Setting(containerEl)
-			.setName("🔍 Auto-detect whisper.cpp agora")
+			.setName(t("settings.field.voice.autodetect"))
 			.setDesc("Re-scan dos paths conhecidos (/opt/homebrew, /usr/local, ~/whisper.cpp/build, etc).")
 			.addButton((b) => {
 				b.setButtonText("Detectar").onClick(async () => {
@@ -1181,7 +1181,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Caminho do binário whisper.cpp")
+			.setName(t("settings.field.voice.binary"))
 			.setDesc("Ex: /opt/homebrew/bin/whisper-cpp")
 			.addText((t) =>
 				t
@@ -1193,7 +1193,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Caminho do modelo whisper")
+			.setName(t("settings.field.voice.model"))
 			.setDesc("Ex: ~/whisper.cpp/models/ggml-base.bin")
 			.addText((t) =>
 				t
@@ -1206,7 +1206,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		// v0.22 Sprint F: Test button (validates binary executes)
 		new Setting(containerEl)
-			.setName("✓ Testar binário whisper.cpp")
+			.setName(t("settings.field.voice.test"))
 			.setDesc("Executa `whisper-cpp --version` e confirma que está funcionando.")
 			.addButton((b) => {
 				b.setButtonText("Testar").onClick(async () => {
@@ -1235,7 +1235,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		// v0.22 Sprint F: Install instructions (per-OS)
 		new Setting(containerEl)
-			.setName("📦 Como instalar whisper.cpp?")
+			.setName(t("settings.field.voice.install"))
 			.setDesc("Comando + instruções específicas pra seu OS.")
 			.addButton((b) => {
 				b.setButtonText("Ver instruções").onClick(async () => {
@@ -1263,7 +1263,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		containerEl.createEl("h3", { text: t("settings.advanced.title") });
 
 		new Setting(containerEl)
-			.setName("Auto-indexar vault no startup")
+			.setName(t("settings.field.adv.autoindex"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.behavior.autoIndexOnStartup)
@@ -1274,7 +1274,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Extrair Knowledge Graph ao salvar")
+			.setName(t("settings.field.adv.autokg"))
 			.setDesc("Pode atrasar saves em vaults grandes.")
 			.addToggle((t) =>
 				t
@@ -1286,7 +1286,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Audit log")
+			.setName(t("settings.field.adv.audit"))
 			.setDesc("Loga ações em .atlas/audit.jsonl (recomendado).")
 			.addToggle((t) =>
 				t
@@ -1298,7 +1298,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Resetar onboarding")
+			.setName(t("settings.field.adv.reset"))
 			.setDesc("Re-executa o wizard de configuração inicial.")
 			.addButton((b) =>
 				b.setButtonText("Resetar").onClick(async () => {
@@ -1322,7 +1322,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 				row.createSpan({ cls: "atlas-settings-import-hist-stats", text: `${entry.total} notas · $${entry.cost.toFixed(4)}` });
 			}
 			new Setting(containerEl)
-				.setName("Limpar histórico de imports")
+				.setName(t("settings.field.adv.import.clear"))
 				.addButton((b) =>
 					b.setButtonText("Limpar").onClick(async () => {
 						(this.plugin.settings as { importHistory?: unknown[] }).importHistory = [];

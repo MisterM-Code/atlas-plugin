@@ -187,6 +187,28 @@ export const dict: Record<string, string> = {
 	"analytics.mood.label": "Mood",
 	"analytics.mood.desc": "Mood/energy line + monthly radar (reads daily logs frontmatter)",
 
+	// ─── Settings field labels remaining (v0.78) ───
+	"settings.field.email.enabled": "Enable email",
+	"settings.field.email.smtp": "SMTP host",
+	"settings.field.email.user": "Username",
+	"settings.field.email.from": "'From' address",
+	"settings.field.email.recipients": "Default recipients — weekly report",
+	"settings.field.notify.desktop": "Desktop",
+	"settings.field.notify.telegram": "Telegram (mobile push)",
+	"settings.field.notify.telegram.token": "Telegram bot token",
+	"settings.field.notify.telegram.chat": "Telegram chat ID",
+	"settings.field.voice.enabled": "Enable voice capture",
+	"settings.field.voice.autodetect": "🔍 Auto-detect whisper.cpp now",
+	"settings.field.voice.binary": "Whisper.cpp binary path",
+	"settings.field.voice.model": "Whisper model path",
+	"settings.field.voice.test": "✓ Test whisper.cpp binary",
+	"settings.field.voice.install": "📦 How to install whisper.cpp?",
+	"settings.field.adv.autoindex": "Auto-index vault on startup",
+	"settings.field.adv.autokg": "Extract Knowledge Graph on save",
+	"settings.field.adv.audit": "Audit log",
+	"settings.field.adv.reset": "Reset onboarding",
+	"settings.field.adv.import.clear": "Clear import history",
+
 	// ─── Settings field labels (v0.77) ───
 	"settings.field.budget.enabled": "Budget enabled",
 	"settings.field.budget.monthly": "Monthly budget (USD)",

@@ -189,6 +189,28 @@ export const dict: Record<string, string> = {
 	"analytics.mood.label": "Mood",
 	"analytics.mood.desc": "Mood/energy line + radar mensal (lê frontmatter dos daily logs)",
 
+	// ─── Settings field labels remaining (v0.78) ───
+	"settings.field.email.enabled": "Habilitar email",
+	"settings.field.email.smtp": "SMTP host",
+	"settings.field.email.user": "Usuário",
+	"settings.field.email.from": "Endereço 'From'",
+	"settings.field.email.recipients": "Destinatários default — weekly report",
+	"settings.field.notify.desktop": "Desktop",
+	"settings.field.notify.telegram": "Telegram (push mobile)",
+	"settings.field.notify.telegram.token": "Telegram bot token",
+	"settings.field.notify.telegram.chat": "Telegram chat ID",
+	"settings.field.voice.enabled": "Habilitar voice capture",
+	"settings.field.voice.autodetect": "🔍 Auto-detect whisper.cpp agora",
+	"settings.field.voice.binary": "Caminho do binário whisper.cpp",
+	"settings.field.voice.model": "Caminho do modelo whisper",
+	"settings.field.voice.test": "✓ Testar binário whisper.cpp",
+	"settings.field.voice.install": "📦 Como instalar whisper.cpp?",
+	"settings.field.adv.autoindex": "Auto-indexar vault no startup",
+	"settings.field.adv.autokg": "Extrair Knowledge Graph ao salvar",
+	"settings.field.adv.audit": "Audit log",
+	"settings.field.adv.reset": "Resetar onboarding",
+	"settings.field.adv.import.clear": "Limpar histórico de imports",
+
 	// ─── Settings field labels (v0.77) ───
 	"settings.field.budget.enabled": "Budget enabled",
 	"settings.field.budget.monthly": "Budget mensal (USD)",

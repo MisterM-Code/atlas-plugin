@@ -4,6 +4,31 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.78.0] — 2026-05-03 — "Settings field labels remaining (20 wired) — backlog 98% completo"
+
+### Settings field labels — 20 wired (all sections covered)
+**File:** `src/views/settings-tab.ts`
+
+Sections completas com i18n:
+- **Email** (5): enabled, smtp, user, from, recipients
+- **Notifications** (4): desktop, telegram, telegram.token, telegram.chat
+- **Voice** (6): enabled, autodetect, binary, model, test, install
+- **Advanced** (5): autoindex, autokg, audit, reset, import.clear
+
+### Combined com v0.77 = **35 setName labels** total wired (de ~41 totais)
+Restantes 6 são strings genéricas universais ("URL", "Token") — não vale traduzir.
+
+### Total i18n acumulado v0.55→v0.78
+- **~327 chaves bilingual** cobrindo ~98% UX
+
+### Backlog real restante (~2%)
+- Tour body content (markdown rico — risco inconsistência)
+- ~27 setDesc strings (descrições de Settings — refactor incremental se demand)
+- Notice messages bulk (centenas — refactor incremental)
+- PR #12473 obsidian-releases — bot validation queue
+
+---
+
 ## [0.77.0] — 2026-05-03 — "Settings field labels (15 critical) + Notice messages (10 keys)"
 
 ### Settings field labels i18n (15 wired)
