@@ -12434,6 +12434,156 @@ button.atlas-btn:active::after,
 	transform: scale(0.96);
 }
 
+/* v0.71.0: Input area Iron Man HUD aesthetic */
+.atlas-chat-input-area {
+	border-top: 1px solid rgba(0, 229, 229, 0.18);
+	padding: 12px 14px;
+	background: linear-gradient(180deg, transparent, rgba(5, 11, 24, 0.4));
+}
+.atlas-chat-input {
+	width: 100%;
+	min-height: 64px;
+	padding: 10px 12px;
+	font-size: 13px;
+	border-radius: 10px;
+	border: 1px solid rgba(99, 102, 241, 0.3);
+	background: rgba(15, 23, 42, 0.5);
+	color: var(--text-normal);
+	resize: vertical;
+	transition: border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
+}
+.atlas-chat-input:focus {
+	border-color: var(--atlas-accent, #00e5e5);
+	background: rgba(15, 23, 42, 0.8);
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(0, 229, 229, 0.15);
+}
+.atlas-chat-input-actions {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+}
+.atlas-chat-status {
+	font-size: 10px;
+	opacity: 0.55;
+	flex-grow: 1;
+	text-align: left;
+}
+.atlas-chat-btn-icon {
+	background: rgba(99, 102, 241, 0.08);
+	border: 1px solid rgba(99, 102, 241, 0.25);
+	border-radius: 50%;
+	width: 34px;
+	height: 34px;
+	font-size: 14px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	transition: transform 220ms ease, border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
+}
+.atlas-chat-btn-icon:hover:not(:disabled) {
+	transform: translateY(-2px);
+	border-color: var(--atlas-accent, #00e5e5);
+	background: rgba(0, 229, 229, 0.1);
+	box-shadow: 0 0 8px rgba(0, 229, 229, 0.3);
+}
+.atlas-chat-btn-icon:active:not(:disabled) {
+	transform: scale(0.94);
+}
+.atlas-chat-btn-icon.is-active {
+	background: rgba(0, 229, 229, 0.2);
+	border-color: var(--atlas-accent, #00e5e5);
+	box-shadow: 0 0 8px rgba(0, 229, 229, 0.4);
+}
+.atlas-chat-btn-icon:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+/* Recording state — pulsing red */
+.atlas-chat-btn-mic.is-recording {
+	background: rgba(239, 68, 68, 0.2);
+	border-color: #ef4444;
+	animation: atlas-chat-mic-recording 1.2s infinite;
+}
+@keyframes atlas-chat-mic-recording {
+	0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); transform: scale(1); }
+	50%      { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); transform: scale(1.08); }
+}
+/* Send button — gradient cyan→indigo */
+.atlas-chat-btn-send {
+	background: linear-gradient(135deg, #00e5e5, #6366f1) !important;
+	color: white !important;
+	border: none !important;
+	border-radius: 18px !important;
+	padding: 6px 18px !important;
+	font-weight: 600 !important;
+	font-size: 12px !important;
+	cursor: pointer;
+	transition: transform 220ms ease, box-shadow 220ms ease, opacity 220ms ease !important;
+	box-shadow: 0 2px 8px rgba(0, 229, 229, 0.3);
+}
+.atlas-chat-btn-send:hover:not(:disabled) {
+	transform: translateY(-2px) scale(1.04);
+	box-shadow: 0 4px 16px rgba(0, 229, 229, 0.5);
+}
+.atlas-chat-btn-send:active:not(:disabled) {
+	transform: scale(0.96);
+}
+
+/* v0.71: Message bubbles refinement */
+.atlas-chat-messages {
+	flex-grow: 1;
+	overflow-y: auto;
+	padding: 12px 14px;
+	min-height: 200px;
+	scroll-behavior: smooth;
+}
+.atlas-chat-bubble-row {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 14px;
+	animation: atlas-chat-bubble-in 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes atlas-chat-bubble-in {
+	from { opacity: 0; transform: translateY(8px); }
+	to   { opacity: 1; transform: translateY(0); }
+}
+.atlas-chat-message-user .atlas-chat-bubble {
+	background: linear-gradient(135deg, rgba(0, 229, 229, 0.12), rgba(99, 102, 241, 0.08));
+	border-left: 2px solid var(--atlas-accent, #00e5e5);
+}
+.atlas-chat-message-assistant .atlas-chat-bubble {
+	background: rgba(15, 23, 42, 0.4);
+	border-left: 2px solid rgba(99, 102, 241, 0.4);
+}
+.atlas-chat-bubble {
+	flex: 1;
+	padding: 10px 14px;
+	border-radius: 8px;
+	font-size: 13px;
+	line-height: 1.55;
+}
+.atlas-chat-avatar {
+	width: 28px;
+	height: 28px;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 16px;
+	border-radius: 50%;
+	background: rgba(99, 102, 241, 0.15);
+	transition: filter 320ms ease;
+}
+.atlas-chat-avatar.is-thinking {
+	filter: drop-shadow(0 0 8px var(--atlas-accent, #00e5e5));
+	animation: atlas-pulse-soft 1.4s infinite;
+}
+
 /* v0.68.0: Source format banner (Notion/Roam/Obsidian) no Vault Importer wizard */
 .atlas-import-source-banner {
 	display: flex;

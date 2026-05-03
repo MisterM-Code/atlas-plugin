@@ -63,54 +63,43 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		}
 	};
 
-	// Input
+	// v0.71.0: Input area polish (Iron Man HUD aesthetic)
 	const inputWrap = container.createDiv({ cls: "atlas-chat-input-area" });
-	inputWrap.style.borderTop = "1px solid var(--background-modifier-border)";
-	inputWrap.style.padding = "8px 0";
-
 	const inputEl = inputWrap.createEl("textarea", { cls: "atlas-chat-input" });
 	inputEl.placeholder = t("chat.placeholder");
-	inputEl.style.width = "100%";
-	inputEl.style.minHeight = "60px";
-	inputEl.style.padding = "6px";
-	inputEl.style.fontSize = "13px";
 
-	const inputActions = inputWrap.createDiv();
-	inputActions.style.display = "flex";
-	inputActions.style.justifyContent = "space-between";
-	inputActions.style.alignItems = "center";
-	inputActions.style.marginTop = "6px";
-	inputActions.style.gap = "8px";
+	const inputActions = inputWrap.createDiv({ cls: "atlas-chat-input-actions" });
 
-	const statusEl = inputActions.createEl("span") as HTMLSpanElement;
-	statusEl.style.fontSize = "10px";
-	statusEl.style.opacity = "0.5";
-	statusEl.style.flexGrow = "1";
+	const statusEl = inputActions.createEl("span", { cls: "atlas-chat-status" }) as HTMLSpanElement;
 
-	// v0.8: Voice toggle 🔊 (lê respostas com Piper)
-	const ttsToggle = inputActions.createEl("button", { text: "🔇" }) as HTMLButtonElement;
-	ttsToggle.style.padding = "4px 8px";
-	ttsToggle.style.fontSize = "12px";
+	// v0.71: TTS toggle pill
+	const ttsToggle = inputActions.createEl("button", {
+		cls: "atlas-chat-btn-icon",
+		text: "🔇",
+	}) as HTMLButtonElement;
 	ttsToggle.title = "Ler respostas em voz alta (Piper TTS)";
 	let ttsEnabled = false;
 	ttsToggle.addEventListener("click", () => {
 		ttsEnabled = !ttsEnabled;
 		ttsToggle.setText(ttsEnabled ? "🔊" : "🔇");
+		ttsToggle.toggleClass("is-active", ttsEnabled);
 		ttsToggle.title = ttsEnabled
 			? "TTS ON — respostas serão faladas"
 			: "TTS OFF — click pra ativar";
 	});
 
-	// v0.8: Voice input 🎙️ (whisper.cpp)
-	const micBtn = inputActions.createEl("button", { text: "🎙️" }) as HTMLButtonElement;
-	micBtn.style.padding = "4px 8px";
-	micBtn.style.fontSize = "12px";
+	// v0.71: Mic button pill
+	const micBtn = inputActions.createEl("button", {
+		cls: "atlas-chat-btn-icon atlas-chat-btn-mic",
+		text: "🎙️",
+	}) as HTMLButtonElement;
 	micBtn.title = "Falar (gravar voz → transcrever no input)";
 	let recording: { stop: () => Promise<{ tempFile: string } | null>; cancel: () => void } | null = null;
 	micBtn.addEventListener("click", async () => {
 		if (recording) {
 			micBtn.setText("⏳");
 			micBtn.disabled = true;
+			micBtn.removeClass("is-recording");
 			try {
 				const result = await recording.stop();
 				recording = null;
@@ -133,21 +122,24 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 			} finally {
 				micBtn.setText("🎙️");
 				micBtn.disabled = false;
-				micBtn.style.background = "";
+				micBtn.removeClass("is-recording");
 			}
 		} else {
 			try {
 				const { startVoiceRecording } = await import("../../automation/voice-input");
 				recording = await startVoiceRecording();
 				micBtn.setText("⏸️");
-				micBtn.style.background = "var(--color-red)";
+				micBtn.addClass("is-recording");
 			} catch (e) {
 				new Notice(`Atlas: mic não disponível — ${String(e)}`, 8000);
 			}
 		}
 	});
 
-	const sendBtn = inputActions.createEl("button", { text: t("chat.btn.send") }) as HTMLButtonElement;
+	const sendBtn = inputActions.createEl("button", {
+		cls: "atlas-chat-btn-send mod-cta",
+		text: t("chat.btn.send"),
+	}) as HTMLButtonElement;
 
 	const agent = new Agent(
 		plugin.app,

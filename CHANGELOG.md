@@ -4,6 +4,58 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.71.0] — 2026-05-03 — "Chat input area + buttons + bubbles polish premium"
+
+### Visual polish da Chat tab — input area + buttons + bubbles
+v0.70 polish o header. v0.71 finaliza com input + buttons + message bubbles.
+
+**Input textarea:**
+- Border cyan accent + bg deep navy semi-transparent
+- Focus glow (3px box-shadow rgba(0,229,229,0.15)) + bg darker
+- Border-radius 10px (era 0)
+
+**Mic button:**
+- Pill 34×34 redondo com border indigo accent
+- Hover: translateY -2px + cyan glow shadow
+- Recording state: red pulse animation (`atlas-chat-mic-recording` 1.2s infinite com box-shadow expanding 0→6px)
+- Estado active class `is-recording` (era inline `style.background = red`)
+
+**TTS button (🔇/🔊):**
+- Mesmo pill 34×34 estilo
+- Active state cyan glow quando ON
+- Toggle class `is-active`
+
+**Send button:**
+- Gradient cyan→indigo background
+- Hover: scale 1.04 + translateY -2px + shadow expanding 8→16px
+- Active: scale 0.96 (feedback haptic-style)
+- Border-radius 18px (pill)
+
+**Message bubbles:**
+- User: gradient cyan/indigo + border-left cyan accent
+- Assistant: bg deep navy + border-left indigo soft
+- Animation `atlas-chat-bubble-in` 280ms cubic-bezier(0.34, 1.56, 0.64, 1) — bouncy pop
+- Avatar: rounded 28px com bg indigo soft, durante thinking ganha drop-shadow glow + pulse-soft animation
+
+**Status bar:**
+- Class `.atlas-chat-status` (era inline) — opacity 0.55, font 10px
+
+### Files MODIFY
+- `src/views/master/tab-chat.ts` — refactor inline → CSS classes (input, actions, mic, TTS, send) + add `is-recording`/`is-active` toggleClass
+- `styles.css` — `.atlas-chat-input-area`, `.atlas-chat-input`, `.atlas-chat-btn-icon`, `.atlas-chat-btn-mic`, `.atlas-chat-btn-send`, `.atlas-chat-bubble-row`, `.atlas-chat-message-user/assistant`, `.atlas-chat-avatar.is-thinking` (~145 LOC)
+
+### Resultado
+Chat tab agora 100% Iron Man HUD aesthetic consistente:
+- Header gradient cyan→indigo (v0.70)
+- Empty state breathing emoji + 3 suggestion chips (v0.70)
+- Input glow on focus
+- Mic pulsing red durante recording
+- Send button gradient com hover scale
+- Message bubbles com slide-in bouncy
+- Avatar pulsing glow durante AI thinking
+
+---
+
 ## [0.70.0] — 2026-05-03 — "Chat Premium: cost real + create_note + citations reais + deep research + Jarvis robust + visual polish"
 
 ### 🔴 BUG #9 FIX: Cost tracking sempre $0 (CRITICAL)
