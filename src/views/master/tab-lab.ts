@@ -38,7 +38,7 @@ export async function renderLabTab(
 		{
 			id: "tools-ia",
 			icon: "🛠️",
-			label: "Tools IA",
+			label: t("sub.lab.tools"),
 			description: "Reasoning · Pre-mortem · Manager README · Year in Review · Podcast",
 			render: (c) => {
 				renderLabToolsIa(c, plugin);
@@ -47,21 +47,21 @@ export async function renderLabTab(
 		{
 			id: "serendipity",
 			icon: "💡",
-			label: "Serendipity",
+			label: t("sub.lab.serendipity"),
 			description: "Feed dos insights gerados pela engine + forçar 1 agora",
 			render: (c) => renderLabSerendipity(c, plugin),
 		},
 		{
 			id: "capsules",
 			icon: "🕰️",
-			label: "Capsules",
+			label: t("sub.lab.capsules"),
 			description: "Time capsules: notas seladas para abrir no futuro",
 			render: (c) => renderLabCapsules(c, plugin),
 		},
 		{
 			id: "tree",
 			icon: "🌳",
-			label: "Entity Tree",
+			label: t("sub.lab.tree"),
 			description: "Knowledge Graph hierárquico (pessoas / projetos / temas)",
 			render: (c) => renderLabEntityTree(c, plugin),
 		},

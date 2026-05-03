@@ -4,6 +4,7 @@ import { renderAnalyticsHeatmap } from "./analytics-sub/heatmap";
 import { renderAnalyticsTrends } from "./analytics-sub/trends";
 import { renderAnalyticsKgGraph } from "./analytics-sub/kg-graph";
 import { renderAnalyticsMood } from "./analytics-sub/mood";
+import { t } from "../../i18n";
 
 type AnalyticsSubId = "heatmap" | "trends" | "kg-graph" | "mood";
 
@@ -24,7 +25,7 @@ export async function renderAnalyticsTab(
 
 	const header = container.createDiv();
 	header.style.marginBottom = "10px";
-	header.createEl("h3", { text: "📈 Analytics" }).style.margin = "0 0 4px 0";
+	header.createEl("h3", { text: t("analytics.title") }).style.margin = "0 0 4px 0";
 	const sub = header.createEl("div", {
 		text: "Charts ECharts: heatmap, trends, KG graph, mood timeline. Click nodes/cells pra navegar.",
 	});
@@ -35,29 +36,29 @@ export async function renderAnalyticsTab(
 		{
 			id: "heatmap",
 			icon: "📅",
-			label: "Heatmap",
-			description: "365-day grid de modificações (GitHub-style)",
+			label: t("analytics.heatmap.label"),
+			description: t("analytics.heatmap.desc"),
 			render: (c) => renderAnalyticsHeatmap(c, plugin),
 		},
 		{
 			id: "trends",
 			icon: "📊",
-			label: "Trends",
-			description: "KG growth · Sessões/semana · Top temas · Commitments",
+			label: t("analytics.trends.label"),
+			description: t("analytics.trends.desc"),
 			render: (c) => renderAnalyticsTrends(c, plugin),
 		},
 		{
 			id: "kg-graph",
 			icon: "🌐",
-			label: "KG Graph",
-			description: "Force-directed do Knowledge Graph (people/projects/themes/systems)",
+			label: t("analytics.kg.label"),
+			description: t("analytics.kg.desc"),
 			render: (c) => renderAnalyticsKgGraph(c, plugin),
 		},
 		{
 			id: "mood",
 			icon: "🌡️",
-			label: "Mood",
-			description: "Mood/energy line + radar mensal (lê frontmatter dos daily logs)",
+			label: t("analytics.mood.label"),
+			description: t("analytics.mood.desc"),
 			render: (c) => renderAnalyticsMood(c, plugin),
 		},
 	];

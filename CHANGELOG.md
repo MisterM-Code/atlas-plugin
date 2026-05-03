@@ -4,6 +4,25 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.66.0] — 2026-05-03 — "Sub-tab labels i18n (Analytics + Lab + Reports + Auto)"
+
+### Sub-tab labels wired (15 labels)
+- **Analytics tab**: header `📈 Analytics` + 4 sub-tabs (Heatmap / Trends / KG Graph / Mood) com label + descrição
+- **Lab tab**: 4 sub-tabs (Tools IA / Serendipity / Capsules / Entity Tree)
+- **Reports tab**: 3 sub-tabs (Timeline / Composer / Templates)
+- **Automations tab**: 4 sub-tabs (Tagger / Aliaser / Rules / Atlas Percebeu)
+
+### Dictionaries (20 chaves novas)
+- `analytics.title`, `analytics.{heatmap,trends,kg,mood}.{label,desc}` (9)
+- `sub.lab.{tools,serendipity,capsules,tree}` (4)
+- `sub.reports.{timeline,composer,templates}` (3)
+- `sub.auto.{tagger,aliaser,rules,proactive}` (4)
+
+### Total i18n acumulado v0.55→v0.66
+- **~248 chaves bilingual** cobrindo ~93% das strings UX
+
+---
+
 ## [0.65.0] — 2026-05-03 — "Knowledge CRUD + Tour content i18n"
 
 ### Knowledge tab CRUD headers (4 wired)

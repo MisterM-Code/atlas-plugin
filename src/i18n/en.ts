@@ -154,6 +154,30 @@ export const dict: Record<string, string> = {
 	"common.edit": "Edit",
 	"common.view": "View",
 
+	// ─── Lab/Reports/Auto sub-tab labels (v0.66) ───
+	"sub.lab.tools": "AI Tools",
+	"sub.lab.serendipity": "Serendipity",
+	"sub.lab.capsules": "Capsules",
+	"sub.lab.tree": "Entity Tree",
+	"sub.reports.timeline": "Timeline",
+	"sub.reports.composer": "Composer",
+	"sub.reports.templates": "Templates",
+	"sub.auto.tagger": "Tagger",
+	"sub.auto.aliaser": "Aliaser",
+	"sub.auto.rules": "Rules",
+	"sub.auto.proactive": "Atlas Notices",
+
+	// ─── Analytics sub-tabs (v0.66) ───
+	"analytics.title": "📈 Analytics",
+	"analytics.heatmap.label": "Heatmap",
+	"analytics.heatmap.desc": "365 days of vault activity — colors indicate intensity",
+	"analytics.trends.label": "Trends",
+	"analytics.trends.desc": "KG growth · Sessions/week · Top themes · Commitments",
+	"analytics.kg.label": "KG Graph",
+	"analytics.kg.desc": "Knowledge graph visualization (people/projects/themes)",
+	"analytics.mood.label": "Mood",
+	"analytics.mood.desc": "Mood/energy line + monthly radar (reads daily logs frontmatter)",
+
 	// ─── Tour names + descriptions (v0.65) ───
 	"tour.first-steps.name": "First steps",
 	"tour.first-steps.desc": "The 5 Atlas fundamentals in 2 minutes.",
