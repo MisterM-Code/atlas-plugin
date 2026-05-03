@@ -17,7 +17,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	header.style.display = "flex";
 	header.style.justifyContent = "space-between";
 	header.style.alignItems = "center";
-	header.style.marginBottom = "4px";
+	header.style.marginBottom = "8px"; // v0.53: alinhado com subtitle below
 	const titleWrap = header.createDiv();
 	const titleEl = titleWrap.createEl("h3", { text: "💬 Atlas Chat" });
 	titleEl.style.margin = "0";

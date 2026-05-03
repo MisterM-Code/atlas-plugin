@@ -12023,3 +12023,110 @@ button.atlas-btn:active::after,
   margin-top: 4px;
   font-style: italic;
 }
+
+/* ═══ v0.53.0: Visual polish — char count, chat, activity badges, vencendo, knowledge chips ═══ */
+
+/* Settings: char count abaixo de cada API key field */
+.atlas-key-count-wrap {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin: 0 0 12px 32px;  /* alinhado com setting indent, sem margin negativo */
+  padding: 0;
+  font-family: var(--font-monospace, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+}
+.atlas-key-count-wrap span:not(:empty)::before { content: "✓ "; color: #22c55e; }
+
+/* Activity bar badges — pill consistent positioning */
+.atlas-activity-tab-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--background-primary);
+  z-index: 2;
+}
+.atlas-activity-tab-icon {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.atlas-master-activity-tab {
+  position: relative;
+}
+
+/* Today: vencendo cols precisam de gap */
+.atlas-today-vencendo-cols {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .atlas-today-vencendo-cols { grid-template-columns: 1fr; }
+}
+
+/* Today: hero stats com gap explícito */
+.atlas-today-hero-stats {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 12px !important;
+  align-items: center;
+}
+
+/* Knowledge chips: gap 6px (era 3px ultra-apertado) */
+.atlas-knowledge-chips,
+.atlas-knowledge-filter-bar {
+  gap: 6px !important;
+}
+
+/* Chat input area melhorado */
+.atlas-chat-input-area {
+  padding: 10px 0 4px;
+}
+.atlas-chat-input {
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--background-modifier-border) !important;
+  background: var(--background-secondary) !important;
+  font-size: 13px !important;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.atlas-chat-input:focus {
+  outline: none;
+  border-color: var(--atlas-accent, #00e5e5) !important;
+  box-shadow: 0 0 0 3px rgba(0, 229, 229, 0.15);
+}
+
+/* Tool call meta — match radius do bubble */
+.atlas-chat-tool-meta {
+  border-radius: 10px !important;
+}
+
+/* Quick Presets buttons hover */
+.atlas-quick-preset-btn {
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 200ms ease,
+              border-color 200ms ease;
+}
+.atlas-quick-preset-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 229, 229, 0.20);
+  border-color: var(--atlas-accent, #00e5e5);
+}
+.atlas-quick-preset-btn:active {
+  transform: translateY(0);
+}

@@ -203,13 +203,8 @@ export class AtlasSettingTab extends PluginSettingTab {
 					});
 			});
 
-			// Render char count display abaixo do field
+			// v0.53: Render char count display abaixo do field (sem margin negativo que flutuava)
 			const countWrap = containerEl.createDiv({ cls: "atlas-key-count-wrap" });
-			countWrap.style.fontSize = "10px";
-			countWrap.style.color = "var(--text-muted)";
-			countWrap.style.marginTop = "-8px";
-			countWrap.style.marginBottom = "8px";
-			countWrap.style.paddingLeft = "8px";
 			charCountEl = countWrap.createSpan();
 			const initialKey = (ensureProvidersConfig().apiKeys as Record<string, string | undefined>)[p.field] ?? "";
 			charCountEl.setText(initialKey.length > 0 ? `${initialKey.length} chars armazenados` : "");

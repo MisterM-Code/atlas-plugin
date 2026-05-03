@@ -4,6 +4,42 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.53.0] — 2026-05-03 — "Visual polish + Mass data com relationships + Integration report"
+
+### Sprint A — Visual bugs concretos (12 fixes audit-driven)
+- Chat header marginBottom: 4 → 8px (alinhado com subtitle)
+- Settings char count: removido marginTop:-8px (flutuava sobre próximo field), agora `margin: 0 0 12px 32px` alinhado com setting indent. Prefix verde "✓ X chars armazenados"
+- Activity Bar badges: positioning absolute top:4 right:4, gradient red→orange, white/2px border-radius pill, box-shadow ring 2px var(--background-primary)
+- Today vencendo cols: gap missing → `gap: 10px` + responsive 1-col em <720px
+- Today hero stats: gap explícito 12px (era undefined)
+- Knowledge chips: gap 3px → 6px (era ultra-apertado)
+- Chat input textarea: padding 6 → 10/12, border-radius 10px, focus shadow 0 0 0 3px cyan
+- Tool call meta: border-radius 4 → 10px (consistente com bubbles)
+- Quick Presets buttons: hover translateY(-2) + cyan glow + bouncy cubic-bezier
+
+### Sprint B — Mass data com relationships ricas
+- Seed antes era flat (entities sem cross-links). Agora:
+  - **Themes recorrentes** (5 temas × 2-4 sessions = 14 cross-links theme↔session+person)
+  - **Commitments bidirecionais** (5 commitments Eu↔Person com sessionId + dueDate)
+  - **Action items linked** (20 items com ownerId + sessionId + wikilink pra Sistema no description)
+- Total cross-links registrados: 14 themes + 5 commits + 20 actions = 39 relacionamentos verificáveis
+
+### Sprint C — Integration logging + KG integrity report
+- `seed-test-data.ts` ganha `integrationLog` array — registra cada step com `{step, created, cross_links, detail}`
+- Pós-save, gera relatório em `99_TestSeed/_integration-report.md`:
+  - Tabela "📊 Steps" — created vs cross-links per entity
+  - Tabela "🔗 KG Integrity" — counts + cross-link resolution
+  - Raw JSON do integrationLog
+  - Lista "🔍 Verificação manual" com instruções de check (Knowledge tab → contagem esperada, etc)
+- `logger.info("seed: completed", {integrity, integrationLog})` — vai pro `.atlas/atlas.log` + LogView
+- Notice final detalhado com counts cross-link
+
+### Files
+- `src/commands/seed-test-data.ts` — themes + commitments + cross-links + integrationLog + integrity report (~150 LOC)
+- `src/views/master/tab-chat.ts` — header margin
+- `src/views/settings-tab.ts` — char count margin reset
+- `styles.css` — `.atlas-key-count-wrap` + activity badges + vencendo gap + hero stats + knowledge chips + chat input + tool meta + quick preset hover (~100 LOC)
+
 ## [0.52.8] — 2026-05-03 — "Active Provider banner + prefix mismatch warning"
 
 ### Fix UX confusion: "coloquei OpenAI mas vejo Anthropic"

@@ -97,6 +97,10 @@ export async function runSeedTestData(plugin: AtlasPlugin): Promise<void> {
 
 	const notice = new Notice("Atlas: gerando massa de teste...", 0);
 
+	// v0.53: integration log — registra cada step + relationships criados.
+	// Aparece no final da seed em formato JSON pra user/dev verificar.
+	const integrationLog: { step: string; created?: number; cross_links?: number; detail: string }[] = [];
+
 	try {
 		// Ensure folders
 		for (const f of [SEED_FOLDER, SESSIONS_FOLDER, TASKS_FOLDER]) {
@@ -227,29 +231,105 @@ ${tmpl.decisions.length > 0 ? tmpl.decisions.map((d) => `- ${d}`).join("\n") : "
 			sessionCount++;
 		}
 
-		// 6. Action items (mix open/done/overdue)
+		// v0.53: 6. THEMES — recorrentes em múltiplas sessões (cross-references)
+		// Auto-extract themes do SESSION_TEMPLATES + criar Theme entries no KG
+		const THEMES_RECURRING = [
+			{ name: "carga-trabalho", sentiment: "blocker" as const, count: 4 },
+			{ name: "lideranca", sentiment: "growth" as const, count: 3 },
+			{ name: "carreira", sentiment: "neutral" as const, count: 2 },
+			{ name: "comunicacao", sentiment: "blocker" as const, count: 3 },
+			{ name: "performance", sentiment: "growth" as const, count: 2 },
+		];
+		let themeLinkCount = 0;
+		for (const t of THEMES_RECURRING) {
+			// Distribuir o tema em N sessões diferentes (cross-link)
+			for (let s = 0; s < t.count && s < SESSION_TEMPLATES.length; s++) {
+				const session = subjects[s % subjects.length];
+				const sessionId = `seed-session-${s}-${session.name.replace(/\s+/g, "-").toLowerCase()}`;
+				plugin.kg.upsertTheme({
+					name: t.name,
+					sentiment: t.sentiment,
+					scope: "pessoa",
+					personId: personIdMap[session.name],
+					sessionId,
+				});
+				themeLinkCount++;
+			}
+		}
+		integrationLog.push({
+			step: "themes",
+			created: THEMES_RECURRING.length,
+			cross_links: themeLinkCount,
+			detail: `${THEMES_RECURRING.length} themes recorrentes, ${themeLinkCount} cross-references com sessions`,
+		});
+
+		// v0.53: 7. COMMITMENTS — bidirecionais (Eu↔Person)
+		const COMMITMENTS_TEMPLATES = [
+			{ from: "eu", to: PEOPLE[0].name, text: "Resolver bloqueio do PIX em 7 dias", weight: "high" as const, daysOut: 7 },
+			{ from: "eu", to: PEOPLE[1].name, text: "Promover Maria pra Tech Lead próximo cycle", weight: "high" as const, daysOut: 90 },
+			{ from: PEOPLE[0].name, to: "eu", text: "Conversar com PO sobre repriorização até sexta", weight: "medium" as const, daysOut: 5 },
+			{ from: PEOPLE[2].name, to: "eu", text: "Submeter PR-432 review até quarta", weight: "medium" as const, daysOut: 3 },
+			{ from: "eu", to: PEOPLE[5].name, text: "Skip-level mensal — agendar próximo", weight: "low" as const, daysOut: 14 },
+		];
+		let commitmentCount = 0;
+		for (const c of COMMITMENTS_TEMPLATES) {
+			const fromId = c.from === "eu" ? "eu" : personIdMap[c.from] ?? "eu";
+			const toId = c.to === "eu" ? "eu" : personIdMap[c.to] ?? "eu";
+			plugin.kg.upsertCommitment({
+				id: `seed-commit-${commitmentCount}`,
+				text: c.text,
+				madeBy: fromId,
+				madeTo: toId,
+				dueDate: daysFromNow(c.daysOut).split("T")[0],
+				status: "open",
+				weight: c.weight,
+				sessionId: `seed-session-${commitmentCount % SESSION_TEMPLATES.length}-${subjects[commitmentCount % subjects.length].name.replace(/\s+/g, "-").toLowerCase()}`,
+				sourceNotePath: `${SESSIONS_FOLDER}/seed-commit-${commitmentCount}.md`,
+			});
+			commitmentCount++;
+		}
+		integrationLog.push({
+			step: "commitments",
+			created: commitmentCount,
+			detail: `${commitmentCount} commitments bidirecionais (Eu↔Person) com session links + due dates`,
+		});
+
+		// 8. Action items COM RELATIONSHIPS (person + system + session)
 		const aiStates = [
-			{ count: 8, due: () => daysFromNow(7) },     // open futuras
-			{ count: 6, due: () => daysAgo(3) + "T18:00:00.000Z" }, // overdue
-			{ count: 6, due: () => daysFromNow(0) + "T18:00:00.000Z" }, // hoje
+			{ count: 8, due: () => daysFromNow(7) },
+			{ count: 6, due: () => daysAgo(3) + "T18:00:00.000Z" },
+			{ count: 6, due: () => daysFromNow(0) + "T18:00:00.000Z" },
 		];
 		let aiCount = 0;
+		const aiCrossLinks: { person: string; system: string; session: string }[] = [];
 		for (const group of aiStates) {
 			for (let i = 0; i < group.count; i++) {
 				const owner = PEOPLE[aiCount % PEOPLE.length];
+				const system = SYSTEMS[aiCount % SYSTEMS.length];
+				const sessionIdx = aiCount % SESSION_TEMPLATES.length;
+				const sessionRef = subjects[sessionIdx];
+				const sessionId = `seed-session-${sessionIdx}-${sessionRef.name.replace(/\s+/g, "-").toLowerCase()}`;
 				const id = `seed-ai-${aiCount}`;
-				const description = `Task de teste #${aiCount + 1}: revisar ${SYSTEMS[aiCount % SYSTEMS.length].name}`;
+				const description = `Revisar [[Sistema: ${system.name}]] — owner [[${owner.name}]]`;
 				plugin.kg.upsertActionItem({
 					id,
 					description,
 					ownerId: personIdMap[owner.name],
 					dueDate: group.due(),
 					status: "open",
+					sessionId, // ← cross-link
 					sourceNotePath: `${TASKS_FOLDER}/seed-ai-${aiCount}.md`,
 				});
+				aiCrossLinks.push({ person: owner.name, system: system.name, session: sessionId });
 				aiCount++;
 			}
 		}
+		integrationLog.push({
+			step: "action_items",
+			created: aiCount,
+			cross_links: aiCrossLinks.length,
+			detail: `${aiCount} action items, todos com (ownerId + sessionId), wikilink pra Sistema no description`,
+		});
 
 		// 7. Reminders (3 futuros)
 		const reminderTexts = [
@@ -274,12 +354,97 @@ ${reminderLines}
 			await plugin.app.vault.create(remindersPath, md);
 		}
 
+		// v0.53: log finais pra steps que não logaram explicitly
+		integrationLog.unshift(
+			{ step: "people", created: PEOPLE.length, detail: `${PEOPLE.length} pessoas (cargos: TL/Sr/Eng/PM/EM/Director/Designer/DevOps/VP)` },
+			{ step: "systems", created: SYSTEMS.length, detail: `${SYSTEMS.length} sistemas (PIX/Stripe/Asaas/ERP/Salesforce)` },
+			{ step: "products", created: PRODUCTS.length, detail: `${PRODUCTS.length} produtos` },
+			{ step: "roles", created: ROLES.length, detail: `${ROLES.length} cargos padronizados` },
+			{ step: "sessions", created: sessionCount, detail: `${sessionCount} sessões 1:1 (GROW/CLEAR alternados, espaçadas 7d)` },
+			{ step: "reminders", created: reminderTexts.length, detail: `${reminderTexts.length} reminders futuros (1d/3d/7d)` }
+		);
+
 		await plugin.kg.save();
+
+		// v0.53: KG integrity report — verifica relationships após save
+		const kgData = plugin.kg.data;
+		const integrity = {
+			people: kgData.people.length,
+			systems: kgData.systems.length,
+			products: kgData.products.length,
+			roles: kgData.roles.length,
+			sessions: kgData.sessions.length,
+			actionItems: kgData.actionItems.length,
+			commitments: kgData.commitments.length,
+			themes: kgData.themes.length,
+			// Cross-link checks
+			actionItemsWithOwner: kgData.actionItems.filter((a) => !!a.ownerId).length,
+			actionItemsWithSession: kgData.actionItems.filter((a) => !!a.sessionId).length,
+			commitmentsWithSession: kgData.commitments.filter((c) => !!c.sessionId).length,
+			themesWithPerson: kgData.themes.filter((t) => t.personIds.length > 0).length,
+			themesWithSession: kgData.themes.filter((t) => t.sessionIds.length > 0).length,
+			sessionsWithPerson: kgData.sessions.filter((s) => !!s.personId).length,
+		};
+
+		// Write integration report to vault
+		const reportLines: string[] = [
+			`---`,
+			`type: atlas-seed-report`,
+			`date: ${new Date().toISOString()}`,
+			`---`,
+			``,
+			`# 🌱 Atlas Seed Integration Report`,
+			``,
+			`**Created** in \`${SEED_FOLDER}/\` em ${new Date().toLocaleString("pt-BR")}`,
+			``,
+			`## 📊 Steps`,
+			``,
+			`| Step | Created | Cross-links | Detail |`,
+			`|---|---|---|---|`,
+		];
+		for (const log of integrationLog) {
+			reportLines.push(
+				`| ${log.step} | ${log.created ?? "—"} | ${log.cross_links ?? "—"} | ${log.detail.replace(/\|/g, "\\|")} |`
+			);
+		}
+		reportLines.push(``, `## 🔗 KG Integrity (post-save verification)`, ``);
+		reportLines.push(`| Entity | Count | Cross-links resolved |`);
+		reportLines.push(`|---|---|---|`);
+		reportLines.push(`| People | ${integrity.people} | — |`);
+		reportLines.push(`| Systems | ${integrity.systems} | — |`);
+		reportLines.push(`| Products | ${integrity.products} | — |`);
+		reportLines.push(`| Roles | ${integrity.roles} | — |`);
+		reportLines.push(`| Sessions | ${integrity.sessions} | ${integrity.sessionsWithPerson}/${integrity.sessions} com personId |`);
+		reportLines.push(`| Action items | ${integrity.actionItems} | ${integrity.actionItemsWithOwner} c/owner · ${integrity.actionItemsWithSession} c/session |`);
+		reportLines.push(`| Commitments | ${integrity.commitments} | ${integrity.commitmentsWithSession} c/session |`);
+		reportLines.push(`| Themes | ${integrity.themes} | ${integrity.themesWithPerson} c/person · ${integrity.themesWithSession} c/session |`);
+		reportLines.push(``, `## 📋 Raw integrationLog (JSON)`, ``, "```json", JSON.stringify(integrationLog, null, 2), "```");
+		reportLines.push(``, `## 🔍 Verificação manual`, ``);
+		reportLines.push(`- Tab Knowledge → Pessoas: deve mostrar ${integrity.people} cards`);
+		reportLines.push(`- Tab Knowledge → Sistemas: ${integrity.systems} cards`);
+		reportLines.push(`- Tab Hub → Action items: ${integrity.actionItems} items (mix open/today/overdue)`);
+		reportLines.push(`- Today tab → Próximos compromissos: deve listar 1:1s mockadas`);
+		reportLines.push(`- Cmd+P → "atlas: report person sessions" + "Miguel" → relatório c/ ${integrity.sessions}+ sessões`);
+
+		const reportPath = normalizePath(`${SEED_FOLDER}/_integration-report.md`);
+		try {
+			await plugin.app.vault.adapter.write(reportPath, reportLines.join("\n"));
+		} catch {
+			// best-effort
+		}
+
+		// Logger output (vai pra .atlas/atlas.log + LogView)
+		const { logger } = await import("../utils/logger");
+		logger.info("seed: completed", { integrity, integrationLog });
 
 		notice.hide();
 		new Notice(
-			`🌱 Massa criada em ${SEED_FOLDER}/:\n• ${PEOPLE.length} pessoas\n• ${SYSTEMS.length} sistemas, ${PRODUCTS.length} produtos, ${ROLES.length} cargos\n• ${sessionCount} sessões\n• ${aiCount} action items + ${reminderTexts.length} reminders`,
-			10000
+			`🌱 Massa criada em ${SEED_FOLDER}/:\n` +
+				`• ${PEOPLE.length} pessoas · ${SYSTEMS.length} sistemas · ${PRODUCTS.length} produtos · ${ROLES.length} cargos\n` +
+				`• ${sessionCount} sessões · ${commitmentCount} commitments · ${themeLinkCount} theme-links\n` +
+				`• ${aiCount} action items · ${reminderTexts.length} reminders\n` +
+				`📋 Relatório: ${SEED_FOLDER}/_integration-report.md`,
+			15000
 		);
 	} catch (e) {
 		notice.hide();
