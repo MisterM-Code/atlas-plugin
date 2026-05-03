@@ -4,6 +4,48 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.55.0] — 2026-05-03 — "i18n bilíngue (PT-BR + EN) + Onboarding language picker + LED polish"
+
+### Sprint 1 — i18n foundation
+- `src/i18n/index.ts` (NEW) — `t(key, vars?)` translation helper, `setLanguage(locale)`, `initI18n()`
+- `src/i18n/pt.ts` (NEW) — 100+ chaves PT-BR (sidebar, today, chat, settings, onboarding, common, notice)
+- `src/i18n/en.ts` (NEW) — 100+ chaves EN espelhadas
+- `settings.profile.uiLanguage: "pt" | "en"` (default "pt")
+- `main.ts onload` chama `initI18n(settings.profile.uiLanguage)` cedo no boot
+
+### Sprint 2 — Sidebar i18n applied
+- `TabDef` ganha `i18nLabel?: string` + `i18nDesc?: string` opcionais
+- `master-sidebar-view.ts` renderTabs: `dispLabel = tab.i18nLabel ? t(tab.i18nLabel) : tab.label`
+- 14 tabs ganham i18n keys: `sidebar.today`, `sidebar.chat`, `sidebar.hub`, `sidebar.reminders`, `sidebar.suggest`, `sidebar.knowledge`, `sidebar.systems`, `sidebar.products`, `sidebar.roles`, `sidebar.reports`, `sidebar.analytics`, `sidebar.lab`, `sidebar.automations`, `sidebar.study`, `sidebar.health`, `sidebar.status`, `sidebar.jarvis`
+- Tooltip + label + description traduzidos automaticamente
+
+### Sprint 3 — Onboarding language picker (1ª tela!)
+- Novo step "language" inserido como PRIMEIRO antes de welcome
+- 2 cards visuais grande (🇧🇷 Português / 🇺🇸 English) com flag + nome + tagline
+- Click aplica imediatamente via `setLanguage()`
+- Persiste em `settings.profile.uiLanguage`
+- Subsequent steps já usam idioma escolhido
+
+### Sprint 4 — LED polish CSS refinement
+- `.atlas-card-interactive::before` — gradient border anim 120deg cyan→indigo (mask trick)
+- Hover: opacity 0→1 + translateY -3px + shadow stack 3 layers (drop + ring 1px cyan + glow 16px)
+- `.atlas-badge-glow::after` — radial-gradient halo cyan opacity hover-revealed
+
+### Files
+- `src/i18n/index.ts`, `src/i18n/pt.ts`, `src/i18n/en.ts` (NEW, ~250 LOC total)
+- `src/types.ts` — `profile.uiLanguage` field
+- `src/views/master/types.ts` — TabDef i18n fields
+- `src/views/master/master-sidebar-view.ts` — 14 tabs ganham i18n keys + render usa t()
+- `src/views/onboarding.ts` — step "language" novo + `renderLanguage()` method
+- `main.ts` — initI18n no onload
+- `styles.css` — `.atlas-onboarding-language-*` + LED polish (~120 LOC)
+
+### Pendente v0.56.0 (próximo)
+- i18n nas demais views (Today/Chat/Settings/etc) — 80+ strings restantes
+- Sidebar audit: empty states padronizados + tab descriptions claras
+- Policies & gates audit: structure folders verify + slot-filling test E2E
+- Citations clicáveis verify
+
 ## [0.54.0] — 2026-05-03 — "Chat MarkdownRenderer + Tool result links + Badge anim"
 
 ### Sprint G — Chat MarkdownRenderer (resolveu raw `**bold**`)

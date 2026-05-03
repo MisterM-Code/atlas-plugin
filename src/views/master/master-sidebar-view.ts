@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf, setIcon } from "obsidian";
 import type AtlasPlugin from "../../../main";
 import { TabId, TabDef } from "./types";
+import { t } from "../../i18n";
 import { renderAtlasHeader, AtlasHeaderHandle } from "../../ui/atlas-header";
 import { renderTodayTab } from "./tab-today";
 import { renderChatTab } from "./tab-chat";
@@ -139,7 +140,10 @@ export class AtlasMasterSidebarView extends ItemView {
 					: "atlas-activity-tab",
 				attr: { "data-tab-id": tab.id }, // v0.54.0: id pra animação badge em criações
 			});
-			btn.title = `${tab.label} — ${tab.description}`;
+			// v0.55.0: usa i18n se i18nLabel/i18nDesc setados, senão fallback pra label/description
+			const dispLabel = tab.i18nLabel ? t(tab.i18nLabel) : tab.label;
+			const dispDesc = tab.i18nDesc ? t(tab.i18nDesc) : tab.description;
+			btn.title = `${dispLabel} — ${dispDesc}`;
 
 			// v0.21 Sprint D: SEMPRE wrap icon em .atlas-activity-tab-icon pra alinhamento consistente
 			const iconWrap = btn.createDiv({ cls: "atlas-activity-tab-icon" });
@@ -184,6 +188,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "sparkles",
 				label: "Jarvis",
 				description: "Assistente de voz com tool calling",
+				i18nLabel: "sidebar.jarvis",
+				i18nDesc: "sidebar.jarvis.desc",
 				render: renderJarvisTab,
 			},
 			{
@@ -192,6 +198,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "sun",
 				label: "Today",
 				description: "Dashboard do dia",
+				i18nLabel: "sidebar.today",
+				i18nDesc: "sidebar.today.desc",
 				render: renderTodayTab,
 			},
 			{
@@ -200,6 +208,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "message-circle",
 				label: "Chat",
 				description: "Atlas Chat com KG",
+				i18nLabel: "sidebar.chat",
+				i18nDesc: "sidebar.chat.desc",
 				render: renderChatTab,
 			},
 			{
@@ -208,6 +218,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "check-square",
 				label: "Hub",
 				description: "Action Items consolidados",
+				i18nLabel: "sidebar.hub",
+				i18nDesc: "sidebar.hub.desc",
 				badge: () => {
 					const today = new Date().toISOString().split("T")[0];
 					const overdue = plugin.kg.data.actionItems.filter(
@@ -227,6 +239,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "bell",
 				label: "Reminders",
 				description: "Lembretes com countdown + snooze",
+				i18nLabel: "sidebar.reminders",
+				i18nDesc: "sidebar.reminders.desc",
 				badge: () => {
 					try {
 						const w = (plugin as unknown as { reminderWatcher?: { lastOverdueCount?: number } })
@@ -245,6 +259,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "link",
 				label: "Suggest",
 				description: "Smart link suggestions live",
+				i18nLabel: "sidebar.suggest",
+				i18nDesc: "sidebar.suggest.desc",
 				render: renderSuggestionsTab,
 			},
 			{
@@ -253,6 +269,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "network",
 				label: "Knowledge",
 				description: "Pessoas, projetos, temas (cards)",
+				i18nLabel: "sidebar.knowledge",
+				i18nDesc: "sidebar.knowledge.desc",
 				render: renderKnowledgeTab,
 			},
 			{
@@ -261,6 +279,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "server",
 				label: "Sistemas",
 				description: "PIX, Stripe, apps internos — CRUD completo",
+				i18nLabel: "sidebar.systems",
+				i18nDesc: "sidebar.systems.desc",
 				badge: () => {
 					const down = plugin.kg.data.systems.filter(
 						(s) => s.status === "down" || s.status === "degraded"
@@ -275,6 +295,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "package",
 				label: "Produtos",
 				description: "Portfolio de produtos com sistemas associados",
+				i18nLabel: "sidebar.products",
+				i18nDesc: "sidebar.products.desc",
 				render: renderProductsTab,
 			},
 			{
@@ -283,6 +305,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "graduation-cap",
 				label: "Cargos",
 				description: "Cargos padronizados do time",
+				i18nLabel: "sidebar.roles",
+				i18nDesc: "sidebar.roles.desc",
 				render: renderRolesTab,
 			},
 			{
@@ -291,6 +315,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "file-bar-chart",
 				label: "Reports",
 				description: "Timeline · Composer · Templates (3 sub-tabs)",
+				i18nLabel: "sidebar.reports",
+				i18nDesc: "sidebar.reports.desc",
 				render: renderReportsTab,
 			},
 			{
@@ -299,6 +325,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "trending-up",
 				label: "Analytics",
 				description: "Heatmap · Trends · KG Graph · Mood (ECharts)",
+				i18nLabel: "sidebar.analytics",
+				i18nDesc: "sidebar.analytics.desc",
 				render: renderAnalyticsTab,
 			},
 			{
@@ -307,6 +335,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "flask-conical",
 				label: "Lab",
 				description: "Tools IA · Serendipity · Time Capsules · Entity Tree",
+				i18nLabel: "sidebar.lab",
+				i18nDesc: "sidebar.lab.desc",
 				badge: () => {
 					// v0.51.1: Time capsules ready to deliver TODAY (or overdue)
 					try {
@@ -327,6 +357,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "bot",
 				label: "Auto",
 				description: "AutoTagger · Aliaser · Rules · Atlas Percebeu (monitoramento)",
+				i18nLabel: "sidebar.automations",
+				i18nDesc: "sidebar.automations.desc",
 				badge: () => {
 					// v0.51.1: Pending proactive insights + pending aliaser candidates
 					try {
@@ -350,6 +382,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "book-open",
 				label: "Study",
 				description: "Flashcards + papers + cursos",
+				i18nLabel: "sidebar.study",
+				i18nDesc: "sidebar.study.desc",
 				badge: () => {
 					const due = plugin.flashcards?.dueToday().length ?? 0;
 					return due > 0 ? String(due) : null;
@@ -362,6 +396,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "stethoscope",
 				label: "Health",
 				description: "Workspace health score",
+				i18nLabel: "sidebar.health",
+				i18nDesc: "sidebar.health.desc",
 				render: renderHealthTab,
 			},
 			{
@@ -370,6 +406,8 @@ export class AtlasMasterSidebarView extends ItemView {
 				lucideIcon: "settings-2",
 				label: "Status",
 				description: "Diagnóstico Ollama + RAM",
+				i18nLabel: "sidebar.status",
+				i18nDesc: "sidebar.status.desc",
 				render: renderStatusTab,
 			},
 		];

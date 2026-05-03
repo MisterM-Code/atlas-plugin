@@ -27,6 +27,9 @@ export interface TabDef {
 	lucideIcon?: string;
 	label: string;
 	description: string;
+	/** v0.55.0: i18n keys (opcional). Quando setado, renderTabs prefere t(i18nLabel). */
+	i18nLabel?: string;
+	i18nDesc?: string;
 	badge?: () => string | null;
 	render: (container: HTMLElement, plugin: AtlasPlugin) => Promise<void> | void;
 	onClose?: (plugin: AtlasPlugin) => void;

@@ -187,6 +187,8 @@ export interface AtlasSettings {
 		showAllToolsOverride?: boolean; // mostrar tools mesmo de perfis não selecionados
 		// optional integration URL per profile (calendar, etc)
 		calendarUrl?: string; // iCal URL
+		// v0.55.0: UI language ("pt" PT-BR / "en" EN). Diferente de voice.language (ASR).
+		uiLanguage?: "pt" | "en";
 	};
 }
 

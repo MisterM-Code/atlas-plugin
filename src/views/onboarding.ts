@@ -7,7 +7,9 @@ import { detectSystemInfo, recommendationForProfile } from "../utils/system-info
 import { applyResponsiveModal } from "../ui/modal-helpers";
 import { PROFILES, PROFILE_CATEGORIES, ProfileId, mergeProfiles } from "../profiles/registry";
 
+// v0.55.0: language picker NOVA primeira tela. User escolhe PT/EN antes de tudo.
 const STEPS = [
+	"language",
 	"welcome",
 	"profile",
 	"workflow",
@@ -99,6 +101,9 @@ export class OnboardingWizard extends Modal {
 		this.renderHeader();
 
 		switch (this.step) {
+			case "language":
+				this.renderLanguage();
+				break;
 			case "welcome":
 				this.renderWelcome();
 				break;
@@ -148,6 +153,63 @@ export class OnboardingWizard extends Modal {
 			else if (i === idx) cls += " is-current";
 			dots.createDiv({ cls });
 		}
+	}
+
+	// ─── Step: language (v0.55.0) ───
+
+	private renderLanguage(): void {
+		const c = this.contentEl;
+		c.addClass("atlas-onboarding-language");
+
+		c.createEl("h2", { text: "🌐 Language / Idioma", cls: "atlas-onboarding-welcome-title" });
+		c.createEl("p", {
+			cls: "atlas-onboarding-welcome-tagline",
+			text: "Pick the language for Atlas UI. You can switch anytime in Settings.",
+		});
+
+		const grid = c.createDiv({ cls: "atlas-onboarding-language-grid" });
+
+		const options: { id: "pt" | "en"; flag: string; name: string; tagline: string }[] = [
+			{ id: "pt", flag: "🇧🇷", name: "Português (BR)", tagline: "Audiência principal. UI e exemplos em PT." },
+			{ id: "en", flag: "🇺🇸", name: "English (US)", tagline: "Standard tech audience. UI and examples in EN." },
+		];
+
+		const current = this.plugin.settings.profile?.uiLanguage ?? "pt";
+
+		for (const opt of options) {
+			const card = grid.createDiv({ cls: `atlas-onboarding-language-card ${opt.id === current ? "is-selected" : ""}` });
+			card.createDiv({ cls: "atlas-onboarding-language-flag", text: opt.flag });
+			card.createEl("h3", { cls: "atlas-onboarding-language-name", text: opt.name });
+			card.createEl("p", { cls: "atlas-onboarding-language-tagline", text: opt.tagline });
+			card.addEventListener("click", async () => {
+				if (!this.plugin.settings.profile) {
+					this.plugin.settings.profile = { ids: [] };
+				}
+				this.plugin.settings.profile.uiLanguage = opt.id;
+				await this.plugin.saveSettings();
+				// Aplica imediatamente
+				try {
+					const i18n = await import("../i18n");
+					i18n.setLanguage(opt.id);
+				} catch {
+					// silent
+				}
+				// Visual select
+				grid.querySelectorAll(".atlas-onboarding-language-card").forEach((el) =>
+					el.removeClass("is-selected")
+				);
+				card.addClass("is-selected");
+			});
+		}
+
+		// Nav
+		new Setting(c)
+			.addButton((b) =>
+				b.setButtonText("Pular tudo / Skip all").onClick(() => this.finish())
+			)
+			.addButton((b) =>
+				b.setButtonText("Próximo / Next").setCta().onClick(() => void this.go("welcome"))
+			);
 	}
 
 	// ─── Step: welcome ───

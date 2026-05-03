@@ -12186,3 +12186,92 @@ button.atlas-btn:active::after,
 }
 .atlas-msg-body a:hover { filter: brightness(1.2); }
 .atlas-msg-body strong { font-weight: 700; color: var(--text-normal); }
+
+/* ═══ v0.55.0: Onboarding language picker ═══ */
+.atlas-onboarding-language-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+@media (max-width: 600px) {
+  .atlas-onboarding-language-grid { grid-template-columns: 1fr; }
+}
+.atlas-onboarding-language-card {
+  padding: 24px 18px;
+  border-radius: 14px;
+  background: var(--background-secondary);
+  border: 2px solid var(--background-modifier-border);
+  cursor: pointer;
+  text-align: center;
+  transition: all 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.atlas-onboarding-language-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0, 229, 229, 0.4);
+  box-shadow: 0 8px 22px rgba(0, 229, 229, 0.18);
+}
+.atlas-onboarding-language-card.is-selected {
+  border-color: var(--atlas-accent, #00e5e5);
+  background: linear-gradient(135deg, rgba(0,229,229,0.08), rgba(99,102,241,0.04));
+  box-shadow: 0 0 0 4px rgba(0, 229, 229, 0.18),
+              0 8px 22px rgba(0, 229, 229, 0.22);
+}
+.atlas-onboarding-language-flag { font-size: 48px; margin-bottom: 8px; }
+.atlas-onboarding-language-name { margin: 0 0 8px; font-size: 18px; }
+.atlas-onboarding-language-tagline {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ═══ v0.55.0: LED polish refinement em cards critical ═══ */
+.atlas-card-interactive {
+  position: relative;
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 220ms ease,
+              border-color 220ms ease;
+}
+.atlas-card-interactive::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, transparent 30%, rgba(0,229,229,0.40) 50%, transparent 70%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+.atlas-card-interactive:hover::before {
+  opacity: 1;
+}
+.atlas-card-interactive:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12),
+              0 0 0 1px rgba(0, 229, 229, 0.18),
+              0 0 16px rgba(0, 229, 229, 0.12);
+}
+
+/* Refined glow ring em badges Atlas */
+.atlas-badge-glow {
+  position: relative;
+}
+.atlas-badge-glow::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(0, 229, 229, 0.30), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.atlas-badge-glow:hover::after {
+  opacity: 1;
+}

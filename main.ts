@@ -272,6 +272,14 @@ export default class AtlasPlugin extends Plugin {
 			},
 		});
 
+		// v0.55.0: init i18n cedo no boot — antes de qualquer UI render
+		try {
+			const { initI18n } = await import("./src/i18n");
+			initI18n(this.settings.profile?.uiLanguage);
+		} catch (e) {
+			logger.warn("i18n init failed", { error: String(e) });
+		}
+
 		this.kg = new KGStore(this.app, this.settings.folders.atlas);
 		await this.kg.load();
 
