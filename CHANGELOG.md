@@ -4,6 +4,62 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.63.0] — 2026-05-03 — "Vault Importer Wizard — migra vaults existentes pra estrutura Atlas"
+
+### Vault Importer (NEW MAJOR FEATURE)
+**Problema:** usuários reais com 100-1000 notas em vaults Obsidian caóticos (sem frontmatter, sem tags, sem KG) querem migrar pra estrutura Atlas com TUDO categorizado.
+
+**Solução:** wizard de 7 telas com revisão granular em cada estágio.
+
+### Pipeline 6 stages (zero-LLM first, LLM apenas em low-confidence)
+- **Stage 1 (Scan)**: read-only adapter.list recursivo → manifest com metadata (path/size/mtime)
+- **Stage 2 (Classify)**: 16 regras heurística zero-LLM (frontmatter.type / path patterns / tags / filename) → noteType + confidence
+- **Stage 3 (Extract)**: KGExtractor LLM apenas se confidence < 0.7 (tipicamente ~10% das notas)
+- **Stage 4 (Categorize)**: noteType → folder map (espelha setupVaultStructure) + RuleEngine
+- **Stage 5 (Move)**: app.fileManager.renameFile preserva backlinks atomicamente
+- **Stage 6 (Index + KG)**: KGStore.upsertPerson/Theme + Indexer + Embedder
+
+**Custo estimado pra 500 notas com cloud (Anthropic Haiku): ~$0.10** (vs $0.50-$5 se LLM em todas).
+
+### Wizard UI (7 telas)
+- **Welcome**: source picker (path absoluto OU subfolder do vault) + toggle attachments
+- **Categories**: tabela com 14 noteTypes detectados + count + confidence (cor verde/amarelo/laranja) + KPIs (total, range datas, tags únicas)
+  - Click numa linha → CategoryReviewModal mostra todas notas da categoria com dropdown reclassify individual
+- **Entities**: grid de Pessoas detectadas + Sistemas detectados, cada um com card + botão Aceitar/Rejeitar
+- **Tags**: lista de tags propostas com count + checkboxes accept/reject + bulk actions
+- **Folders**: tabela tipo→folder com input editável pra reroute customizado
+- **Configure**: toggles (extract LLM / auto-tag / move files / backup) + estimativa custo live
+- **Run + Done**: progress streaming log + KPIs final + CTAs (abrir relatório / KG)
+
+### Files NEW (6)
+- `src/import/heuristic-classifier.ts` — 16 regras + targetFolderFor()
+- `src/import/conflict-resolver.ts` — resolveDuplicate (suffix incremental), markBrokenLink, detectBrokenLinks
+- `src/import/import-report.ts` — render markdown report em `01_Inbox/atlas-import-report-*.md`
+- `src/import/import-pipeline.ts` — ImportPipeline class com 6 stages + cancel + progress callback
+- `src/ui/import-wizard-modal.ts` — ImportWizardModal + CategoryReviewModal (~600 LOC)
+- `src/commands/import-vault.ts` — entry-point lazy import
+
+### Files MODIFY
+- `main.ts` — registrar comando `atlas:import-vault` ("📥 Importar vault externo (wizard)")
+- `src/types.ts` — adicionar `importHistory?: { ranAt, sourcePath, total, cost }[]`
+- `src/i18n/pt.ts` + `en.ts` — 6 chaves novas (`import.title`, `import.empty.*`, `import.report.*`)
+- `styles.css` — `.atlas-import-*` (~280 LOC: header dots progress, body fade-in, stat cards, table com hover, entity cards, tag list, log streaming, done hero)
+
+### Reuso de infra existente (~70%)
+- `KGExtractor.extract` + `ExtractionCache` SHA-256 — Stage 3
+- `SystemDetector.detect` — Stage 2 + entity grouping
+- `KGStore.upsertPerson` — Stage 6 idempotent
+- `app.fileManager.renameFile` — Stage 5 (Obsidian preserva backlinks)
+- `applyResponsiveModal` + Modal/Setting Obsidian — UI
+- `t(import.*)` — i18n bilingual
+
+### Conflict resolution
+- Duplicate filename → suffix `-imported-1.md`, `-imported-2.md`
+- Wikilinks quebrados → adiciona comentário `<!-- ATLAS_BROKEN_LINK: original=[[X]] -->`
+- YAML inválido → fallback `01_Inbox` com tag `#atlas/needs-review`
+
+---
+
 ## [0.62.0] — 2026-05-03 — "Home Cosmic polish (zone backdrop glow) + Today zone titles i18n"
 
 ### Today zones i18n

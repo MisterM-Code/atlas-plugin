@@ -1279,6 +1279,16 @@ captured_via: webhook
 			callback: () => setupVaultStructure(this),
 		});
 
+		// v0.63.0: Vault Importer Wizard
+		this.addCommand({
+			id: "import-vault",
+			name: "📥 Importar vault externo (wizard)",
+			callback: async () => {
+				const { importVaultCommand } = await import("./src/commands/import-vault");
+				void importVaultCommand(this);
+			},
+		});
+
 		this.addCommand({
 			id: "test-ollama",
 			name: "Testar Ollama",

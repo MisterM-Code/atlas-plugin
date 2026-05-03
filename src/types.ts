@@ -190,6 +190,14 @@ export interface AtlasSettings {
 		// v0.55.0: UI language ("pt" PT-BR / "en" EN). Diferente de voice.language (ASR).
 		uiLanguage?: "pt" | "en";
 	};
+
+	// v0.63.0: Vault Importer history
+	importHistory?: {
+		ranAt: number;
+		sourcePath: string;
+		total: number;
+		cost: number;
+	}[];
 }
 
 export const DEFAULT_SETTINGS: AtlasSettings = {

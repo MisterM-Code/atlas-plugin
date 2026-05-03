@@ -156,6 +156,14 @@ export const dict: Record<string, string> = {
 	"common.edit": "Editar",
 	"common.view": "Ver",
 
+	// ─── Vault Importer (v0.63) ───
+	"import.title": "📥 Importar vault externo",
+	"import.empty.persons": "Nenhuma pessoa detectada — seu vault parece bem solo!",
+	"import.empty.systems": "Nenhum sistema detectado nas notas.",
+	"import.empty.tags": "Nenhuma tag sugerida — ative auto-tagger LLM se quiser.",
+	"import.report.title": "Relatório de import — {date}",
+	"import.done.success": "Pronto! {count} notas importadas em {time}",
+
 	// ─── Today zones (v0.62) ───
 	"today.zone.alerts": "🚨 Alertas",
 	"today.zone.action": "🎯 Ações",
