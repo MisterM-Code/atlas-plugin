@@ -4,6 +4,41 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.5] — 2026-05-03 — "🚨 Fix Anthropic 'Failed to fetch' + Command-routing chat (zero-LLM)"
+
+### P0 — Anthropic chat agora funciona (era TypeError: Failed to fetch)
+- `src/providers/anthropic.ts:buildHeaders()` adiciona header `anthropic-dangerous-direct-browser-access: "true"`
+- Sem esse header, Anthropic API rejeita preflight em Electron renderer
+- User logs mostravam: `llm: cloud stream failed, falling back {"error":"TypeError: Failed to fetch"}` — agora resolve
+- Cobrança Anthropic agora vai funcionar e aparecer no Spend dashboard
+
+### Command-routing no chat (zero-LLM tokens)
+- Intent Dispatcher V2 ganha `COMMAND_PATTERNS` array com 15 padrões em PT-BR
+- User digita no chat → executa Command Palette → ZERO custos
+- Patterns curados:
+  - "gere/cria massa de teste" → `atlas:seed-test-data`
+  - "limpar massa de teste" → `atlas:clear-test-data`
+  - "rodar smoke test" → `atlas:smoke-test-run`
+  - "ver/abrir logs" → `atlas:open-logs`
+  - "self-test / diagnóstico" → `atlas:self-test`
+  - "active learning / revisar extrações" → `atlas:active-learning-review`
+  - "novo 1:1" → `atlas:new-1on1`
+  - "novo daily" → `atlas:daily-log`
+  - "weekly report" → `atlas:weekly-now`
+  - "indexar vault" → `atlas:index-vault`
+  - "jarvis" → `atlas:jarvis`
+  - "quick capture" → `atlas:quick-capture`
+  - "ical sync" → `atlas:ical-sync-now`
+  - "what's new / novidades" → `atlas:whats-new`
+  - "pre-mortem" → `atlas:pre-mortem`
+- `Agent.run()` em src/agent/agent.ts handles `tool === "__command__"` sentinel → `executeCommandById`
+- Resposta no chat: "✓ <Label> executado." sem cost
+
+### Files
+- `src/providers/anthropic.ts` — header browser-access
+- `src/agent/intent-dispatcher.ts` — COMMAND_PATTERNS + check antes dos PATTERNS regulares
+- `src/agent/agent.ts:run()` — handle sentinel `__command__`
+
 ## [0.52.4] — 2026-05-03 — "🚨 HOTFIX: LLMService init bug + Haiku default + RAM warn + folder race"
 
 ### Bug crítico corrigido (P0 — quebra o chat com cloud)

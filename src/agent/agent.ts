@@ -84,6 +84,32 @@ export class Agent {
 				const result = dispMod.tryDispatch(query, plugin);
 				if (result) {
 					if (result.kind === "direct") {
+						// v0.52.5: __command__ sentinel — roteia pra Command Palette em vez de tool registry
+						if (result.tool === "__command__") {
+							const cmdId = (result.toolArgs as { commandId?: string }).commandId ?? "";
+							const label = (result.toolArgs as { label?: string }).label ?? cmdId;
+							try {
+								const apiAny = this.app as unknown as {
+									commands?: { executeCommandById?: (id: string) => boolean };
+								};
+								const ok = apiAny.commands?.executeCommandById?.(cmdId);
+								toolsUsed.push(`command:${cmdId}`);
+								return {
+									answer: ok === false
+										? `Comando "${label}" não encontrado (id: ${cmdId}).`
+										: `✓ ${label} executado.`,
+									citations: [],
+									toolsUsed,
+								};
+							} catch (e) {
+								logger.warn("agent: command dispatch failed", { cmdId, error: String(e) });
+								return {
+									answer: `Falhou ao executar "${label}": ${String(e)}`,
+									citations: [],
+									toolsUsed,
+								};
+							}
+						}
 						// Execute tool directly — ZERO LLM tokens
 						const toolMod = await import("./tool-registry");
 						const toolResult = await toolMod.executeTool(

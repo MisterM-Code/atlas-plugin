@@ -233,12 +233,49 @@ const PATTERNS: PatternMatcher[] = [
 ];
 
 /**
+ * v0.52.5: Command patterns — quando user digita "gere massa de teste",
+ * "rodar smoke test", "ver logs", etc no chat, despacha pro Command Palette
+ * em vez de chamar LLM. ZERO tokens consumidos.
+ */
+const COMMAND_PATTERNS: { regex: RegExp; cmd: string; label: string }[] = [
+	{ regex: /^(gere?|cria(?:r)?|gerar|criar)\s+m[ea]ss?as?\s+(?:de\s+)?teste/i, cmd: "atlas:seed-test-data", label: "Gerar massa de teste" },
+	{ regex: /^(limpar?|apaga(?:r)?|deleta(?:r)?)\s+(?:massa|seed|teste)/i, cmd: "atlas:clear-test-data", label: "Limpar massa de teste" },
+	{ regex: /^(rod(?:ar|e)|executa(?:r)?|run)\s+(?:o\s+)?smoke\s*test/i, cmd: "atlas:smoke-test-run", label: "Smoke test" },
+	{ regex: /^(ver|abrir|mostrar|abre)\s+log(s)?/i, cmd: "atlas:open-logs", label: "Abrir logs" },
+	{ regex: /^(self[\s-]?test|diagn[oó]stico|self check|teste\s+de\s+sa[uú]de)/i, cmd: "atlas:self-test", label: "Self-test" },
+	{ regex: /^(active\s+learning|revisar\s+extra[cç][oõ]es|review\s+kg)/i, cmd: "atlas:active-learning-review", label: "Active Learning review" },
+	{ regex: /^(novo|criar|fazer)\s+1[\s:.\-]?on[\s:.\-]?1/i, cmd: "atlas:new-1on1", label: "Novo 1:1" },
+	{ regex: /^(novo|criar|abrir)\s+daily/i, cmd: "atlas:daily-log", label: "Daily log" },
+	{ regex: /^(weekly|semanal)\s+(report|relat[oó]rio)/i, cmd: "atlas:weekly-now", label: "Weekly report" },
+	{ regex: /^(index|reindexa(?:r)?|indexar)\s+(?:o\s+)?vault/i, cmd: "atlas:index-vault", label: "Indexar vault" },
+	{ regex: /^(jarvis|abrir\s+jarvis|ativar\s+jarvis)$/i, cmd: "atlas:jarvis", label: "Jarvis" },
+	{ regex: /^(quick\s+capture|capturar)$/i, cmd: "atlas:quick-capture", label: "Quick capture" },
+	{ regex: /^(ical|calendar)\s+(sync|sincron|atualiza)/i, cmd: "atlas:ical-sync-now", label: "Sincronizar calendar" },
+	{ regex: /^(what'?s?\s+new|novidades)/i, cmd: "atlas:whats-new", label: "What's New" },
+	{ regex: /^(pre[\s-]?mortem)/i, cmd: "atlas:pre-mortem", label: "Pre-mortem" },
+];
+
+/**
  * Tenta despachar query via heurística. Retorna null se nenhum pattern match
  * (caller deve fallback pra LLM).
  */
 export function tryDispatch(query: string, plugin: AtlasPlugin): DispatchResult | null {
 	const trimmed = query.trim();
 	if (!trimmed) return null;
+
+	// v0.52.5: COMMAND_PATTERNS primeiro — match imediato pra Command Palette
+	for (const cp of COMMAND_PATTERNS) {
+		if (cp.regex.test(trimmed)) {
+			return {
+				kind: "direct",
+				intent: "command_run",
+				tool: "__command__", // sentinel handled em agent.ts
+				toolArgs: { commandId: cp.cmd, label: cp.label },
+				confidence: 0.95,
+				feedback: `Executando: ${cp.label}`,
+			};
+		}
+	}
 
 	for (const pat of PATTERNS) {
 		const match = pat.regex.exec(trimmed);

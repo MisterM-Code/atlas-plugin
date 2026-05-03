@@ -235,6 +235,9 @@ export class AnthropicProvider implements AIProvider {
 			"Content-Type": "application/json",
 			"x-api-key": this.config.apiKey,
 			"anthropic-version": "2023-06-01",
+			// v0.52.5: required pra fetch direto do browser/Electron renderer.
+			// Sem esse header, Anthropic API rejeita preflight → TypeError: Failed to fetch.
+			"anthropic-dangerous-direct-browser-access": "true",
 		};
 	}
 
