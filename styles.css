@@ -12286,6 +12286,86 @@ button.atlas-btn:active::after,
   opacity: 1;
 }
 
+/* v0.60: Atlas Cockpit popout */
+.atlas-cockpit {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: radial-gradient(ellipse at center, #050B18 0%, #000510 100%);
+  color: var(--text-normal);
+  overflow: hidden;
+}
+.atlas-cockpit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(0, 229, 229, 0.18);
+  background: rgba(5, 11, 24, 0.85);
+  backdrop-filter: blur(8px);
+}
+.atlas-cockpit-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: linear-gradient(90deg, #00e5e5, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.atlas-cockpit-actions {
+  display: flex;
+  gap: 4px;
+}
+.atlas-cockpit-pin {
+  background: transparent;
+  border: 1px solid rgba(0, 229, 229, 0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-normal);
+}
+.atlas-cockpit-pin:hover {
+  background: rgba(0, 229, 229, 0.1);
+}
+.atlas-cockpit-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.atlas-cockpit-chat-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid rgba(0, 229, 229, 0.18);
+  background: rgba(5, 11, 24, 0.92);
+}
+.atlas-cockpit-chat-icon {
+  opacity: 0.7;
+}
+.atlas-cockpit-chat-input {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-normal);
+}
+.atlas-cockpit-chat-input:focus {
+  border-color: var(--atlas-accent, #00e5e5);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 229, 229, 0.18);
+}
+.atlas-cockpit-chat-send {
+  padding: 6px 12px;
+  font-weight: 600;
+}
+
 /* v0.57: pulse animation no tab quando entidade é criada */
 .atlas-activity-tab.is-entity-pulse,
 .atlas-master-activity-tab.is-entity-pulse {

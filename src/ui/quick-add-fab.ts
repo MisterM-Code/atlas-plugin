@@ -13,6 +13,7 @@ import { renderRoleEditForm } from "../views/master/tab-roles";
 import { renderPersonEditForm } from "../views/master/person-form";
 import { TemplatePickerModal } from "../templates/visual-editor/editor-ui";
 import { Notice } from "obsidian";
+import { t } from "../i18n";
 
 export interface QuickAddItem {
 	icon: string;
@@ -109,7 +110,7 @@ export class QuickAddFab {
 		return [
 			{
 				id: "capturar",
-				label: "📥 CAPTURAR",
+				label: t("fab.cat.capture"),
 				items: [
 					{
 						icon: "🎯",
@@ -145,7 +146,7 @@ export class QuickAddFab {
 			},
 			{
 				id: "criar",
-				label: "➕ CRIAR",
+				label: t("fab.cat.create"),
 				items: [
 					{
 						icon: "👤",
@@ -220,7 +221,7 @@ export class QuickAddFab {
 			},
 			{
 				id: "tools",
-				label: "🛠️ TOOLS IA",
+				label: t("fab.cat.tools"),
 				items: [
 					{
 						icon: "📐",

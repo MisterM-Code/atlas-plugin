@@ -548,6 +548,10 @@ export default class AtlasPlugin extends Plugin {
 		// Register Atlas Master Sidebar (v0.4 Sprint 2 — UNIFIED UI)
 		this.registerView(ATLAS_MASTER_VIEW, (leaf) => new AtlasMasterSidebarView(leaf, this));
 
+		// v0.60: Atlas Cockpit popout (OS-level window via openPopoutLeaf)
+		const { COCKPIT_VIEW_TYPE, AtlasCockpitView } = await import("./src/views/cockpit-view");
+		this.registerView(COCKPIT_VIEW_TYPE, (leaf) => new AtlasCockpitView(leaf, this));
+
 		// Tutorial + XP (v0.4 Sprint 3)
 		this.tutorialSystem = new TutorialSystem(this.app, this);
 		this.achievements = new AchievementSystem();
@@ -1013,6 +1017,35 @@ captured_via: webhook
 			id: "quick-capture",
 			name: "Quick capture",
 			callback: () => new QuickCaptureModal(this.app, this).open(),
+		});
+
+		// v0.60: Atlas Cockpit popout (OS-level window)
+		this.addCommand({
+			id: "cockpit-popout",
+			name: "🌌 Atlas Cockpit (popout — janela separada)",
+			callback: async () => {
+				const { COCKPIT_VIEW_TYPE } = await import("./src/views/cockpit-view");
+				const leaf = this.app.workspace.openPopoutLeaf({
+					size: { width: 480, height: 720 },
+				});
+				await leaf.setViewState({ type: COCKPIT_VIEW_TYPE, active: true });
+				this.app.workspace.revealLeaf(leaf);
+			},
+		});
+
+		this.addCommand({
+			id: "cockpit-toggle-always-on-top",
+			name: "🌌 Cockpit: toggle always-on-top",
+			callback: async () => {
+				const { setAlwaysOnTop, isAlwaysOnTop } = await import("./src/ui/window-helper");
+				const next = !isAlwaysOnTop();
+				const ok = setAlwaysOnTop(next);
+				if (!ok) {
+					new Notice("Atlas: Electron remote indisponível.");
+					return;
+				}
+				new Notice(`Atlas Cockpit: always-on-top ${next ? "ON 📌" : "OFF 📍"}`);
+			},
 		});
 
 		this.addCommand({

@@ -4,6 +4,59 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.60.0] — 2026-05-03 — "Atlas Cockpit popout (OS-level window) + Onboarding/FAB i18n bulk"
+
+### v0.60 — Atlas Cockpit Popout (NEW MAJOR FEATURE)
+**Janela Electron OS-level via `app.workspace.openPopoutLeaf`** — sai do Obsidian, vai pra outro monitor, always-on-top.
+
+**NEW files:**
+- `src/ui/window-helper.ts` (~70 LOC) — Electron remote graceful wrapper:
+  - `setAlwaysOnTop(on)`, `isAlwaysOnTop()`, `getCurrentWindowBounds()`, `applyBounds()`
+  - Try-catch silencioso se Electron remote indisponível (sandbox/contextIsolation)
+- `src/views/cockpit-view.ts` (~120 LOC) — `AtlasCockpitView extends ItemView`:
+  - Header bar: 🌌 Atlas Cockpit + 📌/📍 pin toggle (always-on-top persisted em localStorage)
+  - Body: JarvisCore mode `fullscreen` (orb 220px + particles + counter-rings + sonar + reticule)
+  - Chat strip sticky bottom: input persistente + send → dispatcha `atlas:chat-send` event pra tab Chat
+  - Cleanup completo no onClose (jarvis.destroy)
+
+**MODIFY:**
+- `main.ts` — registerView `atlas-cockpit` + 2 commands:
+  - `atlas:cockpit-popout` — abre janela Electron 480×720 com AtlasCockpitView
+  - `atlas:cockpit-toggle-always-on-top` — toggle 📌 via window-helper
+- `styles.css` — `.atlas-cockpit-*` (~80 LOC): deep navy gradient bg + cyan accents + cosmic feel + chat strip sticky com focus glow
+
+### v0.59 — i18n bulk completion
+**Onboarding** (11 steps headers via `t()`):
+- Setup, language picker, profile, workflow, goals, theme, calendar, vault, ollama, email, telegram, done
+
+**FAB Quick Add** (3 categories via `t()`):
+- 📥 CAPTURAR, ➕ CRIAR, 🛠️ TOOLS IA
+
+**Dictionaries** — ~50 chaves novas:
+- `onboarding.*.title` (12 keys)
+- `notice.saved/cancelled/copied/opened/failed`
+- `fab.*` (20 keys: title, 3 categorias, 17 items)
+- `jarvis.title/status.*/hint/suggestion.*` (8 keys)
+
+### Multi-agent Orchestrator V2 (verified pre-existing)
+- `src/agent/orchestrator.ts` (107 LOC) + `researcher.ts` (153 LOC) + `writer.ts` (157 LOC) já implementados
+- Wired em `agent.ts:167` — quando intent é "report/email/análise sobre X", roteia pra orchestrator multi-step
+- Researcher (cheap LLM) → Writer (quality LLM) split
+- **Status: já entregue em sprints anteriores**
+
+### Total i18n acumulado v0.55→v0.60
+- Foundation + sidebar (v0.55), Chat/Today/Settings (v0.56), Citations + 4 empty states (v0.57), 3 empty states + 4 headers (v0.58), 11 onboarding steps + FAB + 50 keys (v0.59-v0.60)
+- **~200 chaves bilingual** cobrindo ~85% das strings user-facing
+
+### Pendente v0.61+
+- Home Cosmic redesign 3 zonas completo (4h sprint dedicado)
+- Settings restantes (~30 sections: Voice, Email, Telegram, Profile manager, Cost limits)
+- Notice messages individuais (centenas — refactor incremental)
+- WhatsNewModal + Tour content i18n
+- PR #12473 obsidian-releases — confirmar review final
+
+---
+
 ## [0.58.0] — 2026-05-03 — "i18n completion: empty states + tab headers + sidebar audit"
 
 ### Empty states i18n (3 sub-tabs adicionais)

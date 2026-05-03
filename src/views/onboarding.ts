@@ -6,6 +6,7 @@ import { encryptLight } from "../utils/crypto-light";
 import { detectSystemInfo, recommendationForProfile } from "../utils/system-info";
 import { applyResponsiveModal } from "../ui/modal-helpers";
 import { PROFILES, PROFILE_CATEGORIES, ProfileId, mergeProfiles } from "../profiles/registry";
+import { t } from "../i18n";
 
 // v0.55.0: language picker NOVA primeira tela. User escolhe PT/EN antes de tudo.
 const STEPS = [
@@ -142,7 +143,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderHeader(): void {
 		const wrap = this.contentEl.createDiv({ cls: "atlas-onboarding-header" });
-		wrap.createEl("h2", { text: "🧠 Atlas — Setup" });
+		wrap.createEl("h2", { text: t("onboarding.setup.title") });
 
 		const dots = wrap.createDiv({ cls: "atlas-onboarding-progress-dots" });
 		const total = STEPS.length - 1; // skip "done"
@@ -161,7 +162,7 @@ export class OnboardingWizard extends Modal {
 		const c = this.contentEl;
 		c.addClass("atlas-onboarding-language");
 
-		c.createEl("h2", { text: "🌐 Language / Idioma", cls: "atlas-onboarding-welcome-title" });
+		c.createEl("h2", { text: t("onboarding.lang.title"), cls: "atlas-onboarding-welcome-title" });
 		c.createEl("p", {
 			cls: "atlas-onboarding-welcome-tagline",
 			text: "Pick the language for Atlas UI. You can switch anytime in Settings.",
@@ -346,7 +347,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderProfile(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "👤 Qual é seu perfil profissional?" });
+		c.createEl("h3", { text: t("onboarding.profile.title") });
 		c.createEl("p", {
 			text: "Selecione 1+ perfis. Atlas adapta templates, ferramentas IA, frameworks e métricas.",
 			cls: "atlas-onboarding-section-desc",
@@ -439,7 +440,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderWorkflow(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "⏰ Seu ritmo de trabalho" });
+		c.createEl("h3", { text: t("onboarding.workflow.title") });
 		c.createEl("p", {
 			text: "Quando você quer briefing matinal e evening review? Atlas avisa só nessas janelas.",
 			cls: "atlas-onboarding-section-desc",
@@ -528,7 +529,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderGoals(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "🎯 O que mais te ajudaria primeiro?" });
+		c.createEl("h3", { text: t("onboarding.goals.title") });
 		c.createEl("p", {
 			text: "Atlas vai te guiar nessa task antes de tudo. Pode mudar depois.",
 			cls: "atlas-onboarding-section-desc",
@@ -566,7 +567,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderColor(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "🎨 Color theme" });
+		c.createEl("h3", { text: t("onboarding.theme.title") });
 		c.createEl("p", {
 			text: "Cor accent do Atlas. Aplica em badges, botões, headers da sidebar.",
 			cls: "atlas-onboarding-section-desc",
@@ -615,7 +616,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderCalendar(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "🗓️ Calendar (opcional)" });
+		c.createEl("h3", { text: t("onboarding.calendar.title") });
 		c.createEl("p", {
 			text: "Cole URL de iCal (.ics) do Google Calendar / Outlook. Atlas puxa eventos do dia pro Today widget + pré-meeting nudges.",
 			cls: "atlas-onboarding-section-desc",
@@ -662,7 +663,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderVault(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "📁 Estrutura do vault" });
+		c.createEl("h3", { text: t("onboarding.vault.title") });
 
 		const isCreated = this.plugin.settings.vaultStructureCreated;
 		c.createEl("p", {
@@ -731,7 +732,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderOllama(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "🤖 Ollama — LLM local" });
+		c.createEl("h3", { text: t("onboarding.ollama.title") });
 		c.createEl("p", {
 			text: "Atlas usa Ollama (gratuito, local, privado) para rodar modelos no seu computador. Vamos detectar.",
 		});
@@ -855,7 +856,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderEmail(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "📧 Email (opcional)" });
+		c.createEl("h3", { text: t("onboarding.email.title") });
 		c.createEl("p", {
 			text: "Atlas pode enviar weekly reports e briefings por email. Para Gmail, gere um App Password em myaccount.google.com → Security → 2-step → App Passwords.",
 		});
@@ -933,7 +934,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderTelegram(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "📱 Notificações mobile (opcional)" });
+		c.createEl("h3", { text: t("onboarding.telegram.title") });
 		c.createEl("p", {
 			text: "Atlas pode enviar push para seu celular via bot Telegram. Setup em 1 minuto:",
 		});
@@ -993,7 +994,7 @@ export class OnboardingWizard extends Modal {
 
 	private renderDone(): void {
 		const c = this.contentEl;
-		c.createEl("h3", { text: "✨ Pronto!" });
+		c.createEl("h3", { text: t("onboarding.done.title") });
 		c.createEl("p", {
 			text: "Atlas está configurado. Aqui estão os atalhos essenciais:",
 		});
