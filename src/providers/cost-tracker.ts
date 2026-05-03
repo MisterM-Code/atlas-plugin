@@ -80,6 +80,16 @@ export class CostTracker {
 		errorCode?: string;
 	}): Promise<void> {
 		const m = findModel(params.provider, params.model);
+		// v0.52.3: log warn quando modelo não está no registry — explicar custo $0
+		if (!m && params.provider !== "ollama") {
+			// Usar import lazy pra evitar circular
+			void import("../utils/logger").then((mod) => {
+				mod.logger.warn(
+					"cost-tracker: modelo não encontrado em registry — costUSD=0 mesmo com cobrança real",
+					{ provider: params.provider, model: params.model, taskKind: params.taskKind }
+				);
+			});
+		}
 		const cost = m
 			? computeCost(m, { promptTokens: params.usage.promptTokens, completionTokens: params.usage.completionTokens })
 			: 0;

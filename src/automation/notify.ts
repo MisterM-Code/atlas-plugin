@@ -1,10 +1,8 @@
 import { Notice } from "obsidian";
-import { exec } from "child_process";
-import { promisify } from "util";
 import axios from "axios";
 import { logger } from "../utils/logger";
-
-const pexec = promisify(exec);
+// v0.52.3: lazy shell — child_process só carrega quando function chama
+import { runShell } from "../utils/shell";
 
 export type Severity = "low" | "medium" | "high" | "critical";
 
@@ -130,16 +128,16 @@ export class Notifier {
 				const safeMsg = message.replace(/"/g, '\\"').replace(/\n/g, " ");
 				const safeSub = (subtitle ?? "Atlas").replace(/"/g, '\\"');
 				const script = `display notification "${safeMsg}" with title "${safeTitle}" subtitle "${safeSub}" sound name "Submarine"`;
-				await pexec(`osascript -e '${script}'`);
+				await runShell(`osascript -e '${script}'`);
 			} else if (platform === "win32") {
 				const safeTitle = title.replace(/'/g, "''");
 				const safeMsg = message.replace(/'/g, "''").replace(/\n/g, " ");
 				const ps = `Add-Type -AssemblyName System.Windows.Forms; $b = New-Object System.Windows.Forms.NotifyIcon; $b.Icon = [System.Drawing.SystemIcons]::Information; $b.BalloonTipTitle = '${safeTitle}'; $b.BalloonTipText = '${safeMsg}'; $b.Visible = $true; $b.ShowBalloonTip(8000); Start-Sleep -Seconds 9; $b.Dispose()`;
-				await pexec(`powershell -NoProfile -Command "${ps.replace(/"/g, '\\"')}"`);
+				await runShell(`powershell -NoProfile -Command "${ps.replace(/"/g, '\\"')}"`);
 			} else if (platform === "linux") {
 				const safeTitle = title.replace(/"/g, '\\"');
 				const safeMsg = message.replace(/"/g, '\\"');
-				await pexec(`notify-send "${safeTitle}" "${safeMsg}"`);
+				await runShell(`notify-send "${safeTitle}" "${safeMsg}"`);
 			}
 		} catch (e) {
 			logger.warn("notify: desktop falhou", { error: String(e) });

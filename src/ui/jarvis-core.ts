@@ -827,8 +827,11 @@ export class JarvisCore {
 				this.subtitleEl.setText("🎙️ Ouvindo...");
 			} else {
 				// Web Speech API fallback (zero config, browser-native)
+				// v0.52.3: continuous=true pra evitar fim prematuro durante press-to-talk
 				this.webSpeech = startWebSpeech({
 					language: this.plugin.settings.voice?.language ?? "pt-BR",
+					continuous: true,
+					interimResults: true,
 					onPartial: (txt) => {
 						this.subtitleEl.setText(`🎙️ ${txt}…`);
 					},
@@ -868,10 +871,20 @@ export class JarvisCore {
 					},
 				});
 				this.applyState("listening");
-				this.subtitleEl.setText("🎙️ Ouvindo...");
+				this.subtitleEl.setText("🎙️ Ouvindo... (segure SPACE e fale)");
 			}
 		} catch (e) {
-			new Notice(`Atlas Jarvis: mic indisponível — ${String(e)}`, 6000);
+			// v0.52.3: erro humano + fallback hint
+			const msg = String(e);
+			let humanMsg = msg;
+			if (msg.includes("Permission") || msg.includes("denied")) {
+				humanMsg = "Permissão de microfone bloqueada. Permita no sistema/browser.";
+			} else if (msg.includes("not allowed") || msg.includes("NotAllowed")) {
+				humanMsg = "Microfone bloqueado. Click no cadeado da URL/app pra permitir.";
+			} else if (msg.includes("not found") || msg.includes("NotFound")) {
+				humanMsg = "Nenhum microfone detectado. Conecte um e tente novamente.";
+			}
+			new Notice(`Atlas Jarvis: ${humanMsg}`, 8000);
 			this.applyState("idle");
 		}
 	}

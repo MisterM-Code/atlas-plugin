@@ -11741,3 +11741,84 @@ button.atlas-btn:active::after,
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* ═══ v0.52.3: Atlas emoji wrapper — fallback fonts pra evitar quadrado azul */
+.atlas-emoji {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+               "Twemoji Mozilla", "EmojiOne Color", "Android Emoji",
+               sans-serif !important;
+  font-style: normal !important;
+  font-weight: normal !important;
+  font-feature-settings: normal !important;
+  -webkit-font-feature-settings: normal !important;
+  display: inline-block;
+  vertical-align: -0.1em;
+  line-height: 1;
+}
+
+/* ═══ v0.52.3: Primary AI Provider picker em Settings ═══ */
+.atlas-primary-provider-picker {
+  margin: 14px 0 18px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: linear-gradient(135deg,
+    rgba(0, 229, 229, 0.06),
+    rgba(99, 102, 241, 0.04));
+  border: 1px solid rgba(139, 211, 251, 0.20);
+}
+.atlas-primary-provider-picker h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  background: linear-gradient(90deg, #00e5e5, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.atlas-primary-provider-select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.atlas-primary-provider-select:focus {
+  outline: 2px solid rgba(0, 229, 229, 0.40);
+  outline-offset: 1px;
+}
+
+/* ═══ v0.52.3: HUD inline chat row ═══ */
+.atlas-hud-chat-row {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid rgba(139, 211, 251, 0.10);
+  border-bottom: 1px solid rgba(139, 211, 251, 0.10);
+}
+.atlas-hud-chat-input {
+  flex: 1 1 auto;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+.atlas-hud-chat-input:focus {
+  outline: 2px solid rgba(0, 229, 229, 0.40);
+  outline-offset: 1px;
+}
+.atlas-hud-chat-send {
+  flex-shrink: 0;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--atlas-accent, #00e5e5);
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+.atlas-hud-chat-send:hover { filter: brightness(1.1); }

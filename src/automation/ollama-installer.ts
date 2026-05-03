@@ -8,12 +8,10 @@
  * Em vez disso: guia o user em <30s.
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
+// v0.52.3: lazy shell — child_process só carrega quando function chama
 import { OllamaClient } from "../ollama/client";
 import { logger } from "../utils/logger";
-
-const execAsync = promisify(exec);
+import { runShell } from "../utils/shell";
 
 export interface OllamaDetection {
 	installed: boolean;
@@ -40,7 +38,7 @@ export async function detectOllama(client: OllamaClient): Promise<OllamaDetectio
 
 	try {
 		const cmd = platform === "win32" ? "where ollama" : "which ollama";
-		const { stdout } = await execAsync(cmd, { timeout: 5000 });
+		const { stdout } = await runShell(cmd, { timeout: 5000 });
 		const path = stdout.trim().split("\n")[0];
 		if (path && !path.includes("not found")) {
 			installed = true;
@@ -58,7 +56,7 @@ export async function detectOllama(client: OllamaClient): Promise<OllamaDetectio
 	// 3. Version (se instalado)
 	if (installed && binaryPath) {
 		try {
-			const { stdout } = await execAsync(`"${binaryPath}" --version`, { timeout: 5000 });
+			const { stdout } = await runShell(`"${binaryPath}" --version`, { timeout: 5000 });
 			const match = /version is ([\d.]+)/.exec(stdout) || /([\d.]+)/.exec(stdout);
 			version = match?.[1];
 		} catch {

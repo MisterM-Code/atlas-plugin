@@ -1,11 +1,9 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+// v0.52.3: lazy shell — child_process só carrega quando function chama
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs/promises";
 import { logger } from "../utils/logger";
-
-const pexec = promisify(exec);
+import { runShell } from "../utils/shell";
 
 export interface TtsConfig {
 	binaryPath: string; // path to piper binary
@@ -49,7 +47,7 @@ export class PiperTTS {
 		const cmd = `"${this.cfg.binaryPath}" --model "${this.cfg.modelPath}" --output_file "${out}" < "${tempInput}"`;
 
 		try {
-			await pexec(cmd, { timeout: 30000 });
+			await runShell(cmd, { timeout: 30000 });
 			return out;
 		} catch (e) {
 			logger.warn("tts: synth falhou", { error: String(e) });
@@ -65,12 +63,12 @@ export class PiperTTS {
 		emitTTSEvent("atlas:tts-start");
 		try {
 			if (platform === "darwin") {
-				await pexec(`afplay "${filePath}"`);
+				await runShell(`afplay "${filePath}"`);
 			} else if (platform === "win32") {
 				const ps = `(New-Object Media.SoundPlayer "${filePath}").PlaySync()`;
-				await pexec(`powershell -NoProfile -Command "${ps.replace(/"/g, '\\"')}"`);
+				await runShell(`powershell -NoProfile -Command "${ps.replace(/"/g, '\\"')}"`);
 			} else {
-				await pexec(`aplay "${filePath}" 2>/dev/null || paplay "${filePath}" 2>/dev/null`);
+				await runShell(`aplay "${filePath}" 2>/dev/null || paplay "${filePath}" 2>/dev/null`);
 			}
 		} catch (e) {
 			logger.warn("tts: play falhou", { error: String(e) });

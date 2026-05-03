@@ -46,6 +46,9 @@ export class AtlasSettingTab extends PluginSettingTab {
 			text: "Atlas funciona 100% local com Ollama. Adicione API keys aqui para usar GPT-4o, Claude Opus 4.7, Gemini 2.0, etc — Atlas controla o gasto e mostra dashboard de spend.",
 		});
 
+		// v0.52.3: Primary AI Provider — quick way to set ALL routing (chat/extraction/reasoning/etc) at once
+		this.renderPrimaryProviderPicker(containerEl);
+
 		// v0.22 Sprint I: Quick Presets (4 buttons)
 		this.renderQuickPresets(containerEl);
 
@@ -281,6 +284,86 @@ export class AtlasSettingTab extends PluginSettingTab {
 	}
 
 	/** v0.22 Sprint I: render 4 Quick Presets buttons no topo de Cloud Providers section */
+	/**
+	 * v0.52.3: Primary AI Provider — define o provider PRINCIPAL.
+	 * Quando trocado, atualiza routing.chat + reasoning + summarization automaticamente
+	 * pra modelos default daquele provider. Mais simples que configurar 5+ taskKinds.
+	 */
+	private renderPrimaryProviderPicker(parent: HTMLElement): void {
+		const wrap = parent.createDiv({ cls: "atlas-primary-provider-picker" });
+		wrap.createEl("h4", { text: "🎯 Provider principal (quick setup)" });
+		wrap.createEl("p", {
+			cls: "atlas-settings-section-desc",
+			text: "Escolha um provider PRIMÁRIO. Atlas configura routing de chat / reasoning / summarization automático com modelos default. Refinamento por tarefa: editar JSON abaixo.",
+		});
+		const select = wrap.createEl("select", { cls: "atlas-primary-provider-select" });
+		const options: { value: string; label: string; needsKey?: string }[] = [
+			{ value: "ollama", label: "🤖 Ollama (local, grátis, privado)" },
+			{ value: "anthropic", label: "⭐ Anthropic Claude (qualidade premium)", needsKey: "anthropicEncrypted" },
+			{ value: "openai", label: "🟢 OpenAI GPT-4o (versátil)", needsKey: "openaiEncrypted" },
+			{ value: "google", label: "🔵 Google Gemini (cheap, fast)", needsKey: "googleEncrypted" },
+			{ value: "mistral", label: "🇪🇺 Mistral (EU)", needsKey: "mistralEncrypted" },
+			{ value: "deepseek", label: "🐳 DeepSeek (reasoning specialist)", needsKey: "deepseekEncrypted" },
+			{ value: "groq", label: "⚡ Groq (super fast)", needsKey: "groqEncrypted" },
+			{ value: "openrouter", label: "🛣️ OpenRouter (300+ models)", needsKey: "openrouterEncrypted" },
+		];
+		// Detect current primary based on routing.chat provider
+		const currentChat = this.plugin.settings.providers?.routing?.chat;
+		const currentPrimary = currentChat?.provider ?? "ollama";
+		for (const opt of options) {
+			const el = select.createEl("option", { value: opt.value, text: opt.label });
+			if (opt.value === currentPrimary) el.selected = true;
+		}
+		select.addEventListener("change", async () => {
+			const choice = select.value;
+			const opt = options.find((o) => o.value === choice);
+			if (!opt) return;
+			// Verifica se key existe (para non-ollama)
+			if (opt.needsKey) {
+				const keys = (this.plugin.settings.providers?.apiKeys ?? {}) as Record<string, string | undefined>;
+				if (!keys[opt.needsKey]) {
+					new Notice(
+						`Atlas: cole a API key de ${opt.label} primeiro nos campos abaixo, depois selecione como primário.`,
+						8000
+					);
+					select.value = currentPrimary; // revert
+					return;
+				}
+			}
+			// Apply default routing per provider
+			const PROVIDER_DEFAULTS: Record<string, { chat: string; reasoning?: string; summarization?: string; embedding?: string }> = {
+				ollama: { chat: this.plugin.settings.ollama?.generationModel ?? "qwen2.5:7b", embedding: "bge-m3" },
+				anthropic: { chat: "claude-sonnet-4-6", reasoning: "claude-opus-4-7", summarization: "claude-haiku-4-5-20251001" },
+				openai: { chat: "gpt-4o-mini", reasoning: "o1-mini", summarization: "gpt-4o-mini", embedding: "text-embedding-3-small" },
+				google: { chat: "gemini-2.0-flash", reasoning: "gemini-2.5-pro", summarization: "gemini-2.0-flash" },
+				mistral: { chat: "mistral-small-latest", reasoning: "mistral-large-latest" },
+				deepseek: { chat: "deepseek-chat", reasoning: "deepseek-reasoner", summarization: "deepseek-chat" },
+				groq: { chat: "llama-3.3-70b-versatile", summarization: "llama-3.1-8b-instant" },
+				openrouter: { chat: "anthropic/claude-3.5-sonnet" },
+			};
+			const defaults = PROVIDER_DEFAULTS[choice] ?? PROVIDER_DEFAULTS.ollama;
+			if (!this.plugin.settings.providers) {
+				this.plugin.settings.providers = { apiKeys: {} } as never;
+			}
+			if (!this.plugin.settings.providers.routing) {
+				this.plugin.settings.providers.routing = {} as never;
+			}
+			const r = this.plugin.settings.providers.routing as Record<string, { provider: string; model: string }>;
+			r.chat = { provider: choice, model: defaults.chat };
+			if (defaults.reasoning) r.reasoning = { provider: choice, model: defaults.reasoning };
+			if (defaults.summarization) r.summarization = { provider: choice, model: defaults.summarization };
+			if (defaults.embedding) r.embedding = { provider: choice, model: defaults.embedding };
+			await this.plugin.saveSettings();
+			try {
+				this.plugin.providerRouter?.updateConfig({ routing: this.plugin.settings.providers.routing as never });
+			} catch {
+				// best-effort
+			}
+			new Notice(`✓ Atlas agora usa ${opt.label} como primário. Re-abra Settings pra ver routing detalhado.`);
+			this.display(); // re-render
+		});
+	}
+
 	private renderQuickPresets(parent: HTMLElement): void {
 		const wrap = parent.createDiv({ cls: "atlas-quick-presets" });
 		const title = wrap.createDiv({ cls: "atlas-quick-presets-title" });

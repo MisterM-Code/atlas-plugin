@@ -156,19 +156,24 @@ async function renderAlertsTicker(el: HTMLElement, plugin: AtlasPlugin): Promise
 async function renderHero(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	const now = new Date();
 	const hour = now.getHours();
-	const greeting =
-		hour < 5 ? "🌙 Boa madrugada" :
-		hour < 12 ? "🌅 Bom dia" :
-		hour < 18 ? "☀️ Boa tarde" :
-		"🌇 Boa noite";
-
-	// v0.43: starfield removido por feedback — manter apenas LED glow ambient
+	// v0.52.3: emoji + texto separados — emoji em <span class="atlas-emoji">
+	// pra usar font-family fallback de emoji (evita "quadrado azul" quando font default não tem suporte)
+	const greetingText =
+		hour < 5 ? "Boa madrugada" :
+		hour < 12 ? "Bom dia" :
+		hour < 18 ? "Boa tarde" :
+		"Boa noite";
+	const greetingEmoji =
+		hour < 5 ? "🌙" :
+		hour < 12 ? "🌅" :
+		hour < 18 ? "☀️" :
+		"🌇";
 
 	const left = el.createDiv({ cls: "atlas-today-hero-left" });
 	const greetWrap = left.createDiv({ cls: "atlas-today-hero-greet" });
-	greetWrap.createEl("h1", {
-		text: `${greeting}, ${plugin.settings.user.displayName || "Atlas"}`,
-	});
+	const h1 = greetWrap.createEl("h1");
+	h1.createSpan({ cls: "atlas-emoji", text: greetingEmoji });
+	h1.appendText(` ${greetingText}, ${plugin.settings.user.displayName || "Atlas"}`);
 	const dateText = now.toLocaleDateString("pt-BR", {
 		weekday: "long",
 		day: "2-digit",

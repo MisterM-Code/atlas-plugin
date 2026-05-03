@@ -4,6 +4,50 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.3] — 2026-05-02 — "child_process lazy + emoji fallback + Primary Provider + HUD chat input + mic UX + cost warn"
+
+### Fix child_process imports (P0)
+- 6 arquivos com `import { exec } from "child_process"` top-level convertidos pra lazy via novo `src/utils/shell.ts::runShell()`
+- Files: voice-input, whisper-detector, tts, notify, ollama-installer, whisper-setup-modal
+- Plugin agora carrega mesmo se Electron sandbox bloqueia child_process no module load
+- Erro humano ao falhar: "Atlas: Node child_process não disponível neste ambiente"
+
+### Greeting emoji "quadrado azul" fix
+- Emoji separado em `<span class="atlas-emoji">` com font-family fallback explícita
+- Apple Color Emoji / Segoe UI Emoji / Noto Color Emoji / Twemoji / EmojiOne
+- `atlas-emoji` class disponível pra usar em qualquer lugar onde emoji renderiza mal
+
+### Primary AI Provider (Settings Quick Setup)
+- Novo dropdown "🎯 Provider principal" no topo de Cloud AI Providers
+- 8 opções: Ollama / Anthropic / OpenAI / Gemini / Mistral / DeepSeek / Groq / OpenRouter
+- Click → routing.chat + reasoning + summarization + embedding all-at-once com defaults inteligentes
+- Detecta API key faltante → pede pra colar primeiro
+- Re-render Settings após apply
+
+### Atlas HUD enhancement
+- Inline chat input "Pergunte ao Atlas..." + send button → ativa Chat tab + dispatch
+- Botões: 🎙️ Mic + 🤖 Jarvis + 🎯 Capture + 📊 Status (era Chat) + ⚙️ Settings
+- Status agora mostra `provider:model` (cloud aware) + RAM + 💰 cost do dia (async)
+- Cost tracker integrado no HUD
+
+### Jarvis press-to-talk fix
+- Web Speech: `continuous: true` + `interimResults: true` — evita fim prematuro durante hold space
+- Subtitle agora indica "(segure SPACE e fale)"
+- Erro humano por tipo: Permission denied / NotFound / NotAllowed
+- Antes: errors silenciavam state → user soltava space e nada acontecia
+
+### Cost tracker accuracy
+- Modelo não-Ollama não encontrado no registry → log warn explícito
+- Antes: silently $0 (cobrava real mas dashboard zerava)
+- Agora user vê warning no log: "modelo não encontrado em registry — costUSD=0 mesmo com cobrança real"
+
+### Files
+- **NEW**: `src/utils/shell.ts` (lazy child_process helper)
+- **MODIFY**: voice-input, whisper-detector, tts, notify, ollama-installer, whisper-setup-modal (lazy)
+- **MODIFY**: tab-today (greeting emoji), settings-tab (primary provider picker)
+- **MODIFY**: atlas-hud (chat input + cost), jarvis-core (continuous web speech + human errors)
+- **MODIFY**: cost-tracker (warn on missing model), styles.css (atlas-emoji + hud-chat-row + primary-picker)
+
 ## [0.52.2] — 2026-05-02 — "Smart routing + Chat persistence + Inline picker + Voice UX + Key regex + Home grid"
 
 ### Sprint 1 — Whisper.cpp UX (P0)

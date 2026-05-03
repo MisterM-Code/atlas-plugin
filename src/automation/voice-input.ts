@@ -13,14 +13,12 @@
  *  - voice.language (default "pt")
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
+// v0.52.3: lazy shell helper — child_process só carrega quando chamado
 import { writeFileSync, readFileSync, existsSync, unlinkSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { logger } from "../utils/logger";
-
-const execAsync = promisify(exec);
+import { runShell } from "../utils/shell";
 
 export interface VoiceInputConfig {
 	whisperBinaryPath: string;
@@ -173,7 +171,7 @@ export async function transcribeAudio(
 	logger.info("voice: transcribing", { cmd });
 
 	try {
-		await execAsync(cmd, { timeout: 60_000, maxBuffer: 10 * 1024 * 1024 });
+		await runShell(cmd, { timeout: 60_000, maxBuffer: 10 * 1024 * 1024 });
 	} catch (e) {
 		// v0.52.2: enriquecer erro com message real do shell pra debug
 		const errMsg = (e as { message?: string; stderr?: string })?.message ?? String(e);

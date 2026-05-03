@@ -13,7 +13,8 @@
  */
 
 import { App, Modal, Notice } from "obsidian";
-import { exec } from "child_process";
+// v0.52.3: lazy shell — child_process só carrega quando openTerminal chama
+import { runShell } from "../utils/shell";
 import type AtlasPlugin from "../../main";
 import { applyResponsiveModal } from "./modal-helpers";
 import { autoDetectWhisper, installInstructionsFor, type WhisperDetection } from "../automation/whisper-detector";
@@ -235,13 +236,9 @@ export class WhisperSetupModal extends Modal {
 			platform === "darwin" ? "open -a Terminal" :
 			platform === "win32" ? "start cmd" :
 			"x-terminal-emulator || gnome-terminal || konsole || xterm";
-		try {
-			exec(cmd, (err) => {
-				if (err) logger.warn("whisper-setup: failed to open Terminal", { error: String(err) });
-			});
-		} catch (e) {
-			logger.warn("whisper-setup: open Terminal exec failed", { error: String(e) });
-		}
+		void runShell(cmd, { timeout: 5000 }).catch((err) => {
+			logger.warn("whisper-setup: failed to open Terminal", { error: String(err) });
+		});
 	}
 
 	onClose(): void {

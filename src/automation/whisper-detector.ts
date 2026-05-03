@@ -8,14 +8,12 @@
  * If found, persists to settings.voice.{whisperBinaryPath, whisperModelPath}.
  */
 
-import { exec } from "child_process";
-import { promisify } from "util";
+// v0.52.3: lazy shell — child_process só carrega quando function chama
 import { existsSync, readdirSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 import { logger } from "../utils/logger";
-
-const execAsync = promisify(exec);
+import { runShell } from "../utils/shell";
 
 export interface WhisperDetection {
 	installed: boolean;
@@ -62,7 +60,7 @@ export async function autoDetectWhisper(): Promise<WhisperDetection> {
 
 	for (const cmd of candidatesToTry) {
 		try {
-			const { stdout } = await execAsync(cmd, { timeout: 3000 });
+			const { stdout } = await runShell(cmd, { timeout: 3000 });
 			const path = stdout.trim().split("\n")[0];
 			if (path && !path.includes("not found") && existsSync(path)) {
 				binaryPath = path;
@@ -95,7 +93,7 @@ export async function autoDetectWhisper(): Promise<WhisperDetection> {
 	// 3. Get version (validates binary actually works)
 	if (binaryPath) {
 		try {
-			const { stdout } = await execAsync(`"${binaryPath}" --version`, { timeout: 3000 });
+			const { stdout } = await runShell(`"${binaryPath}" --version`, { timeout: 3000 });
 			version = stdout.trim().split("\n")[0]?.substring(0, 80);
 		} catch {
 			// binary path exists but won't run — keep path but no version

@@ -78,6 +78,29 @@ export class AtlasHUD {
 		this.waveformCanvas.width = 280;
 		this.waveformCanvas.height = 40;
 
+		// v0.52.3: inline chat input — pergunta ao Atlas direto do HUD
+		const chatRow = overlay.createDiv({ cls: "atlas-hud-chat-row" });
+		const chatInput = chatRow.createEl("input", {
+			cls: "atlas-hud-chat-input",
+			type: "text",
+			attr: { placeholder: "Pergunte ao Atlas..." },
+		});
+		const sendBtn = chatRow.createEl("button", { cls: "atlas-hud-chat-send", text: "→" });
+		const submitChat = async (): Promise<void> => {
+			const text = chatInput.value.trim();
+			if (!text) return;
+			chatInput.value = "";
+			await this.plugin.activateMasterTab("chat");
+			document.dispatchEvent(new CustomEvent("atlas:chat-send", { detail: { text } }));
+		};
+		chatInput.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				void submitChat();
+			}
+		});
+		sendBtn.addEventListener("click", () => void submitChat());
+
 		const actions = overlay.createDiv({ cls: "atlas-hud-actions" });
 
 		const action = (label: string, title: string, onClick: () => void): HTMLButtonElement => {
@@ -88,13 +111,19 @@ export class AtlasHUD {
 		};
 
 		const micBtn = action("🎙️", "Falar (Atlas, ...)", () => void this.toggleRecording(micBtn));
-		action("💬", "Chat", () => void this.plugin.activateMasterTab("chat"));
+		action("🤖", "Jarvis (full screen)", () => {
+			const apiAny = this.plugin.app as unknown as {
+				commands?: { executeCommandById?: (id: string) => void };
+			};
+			apiAny.commands?.executeCommandById?.("atlas:jarvis");
+		});
 		action("🎯", "Quick Capture", () => {
 			const apiAny = this.plugin.app as unknown as {
 				commands?: { executeCommandById?: (id: string) => void };
 			};
 			apiAny.commands?.executeCommandById?.("atlas:quick-capture");
 		});
+		action("📊", "Status + Spend", () => void this.plugin.activateMasterTab("status"));
 		action("⚙️", "Settings", () => {
 			const apiAny = this.plugin.app as unknown as {
 				setting?: { open: () => void; openTabById: (id: string) => void };
@@ -137,11 +166,28 @@ export class AtlasHUD {
 				return 0;
 			}
 		})();
-		const model = this.plugin.settings.ollama.generationModel;
+		// v0.52.3: mostra modelo do routing.chat (cloud aware), não só Ollama
+		const route = this.plugin.providerRouter?.resolveTask("chat");
+		const modelLabel = route ? `${route.provider}:${route.model.substring(0, 20)}` : this.plugin.settings.ollama.generationModel;
 		this.statusEl.setText(up ? "✓ ready" : "✗ Ollama offline");
 		this.statusEl.removeClass("is-up", "is-down");
 		this.statusEl.addClass(up ? "is-up" : "is-down");
-		this.metaEl.setText(`${model} · ${freeGB.toFixed(1)} GB livre`);
+		// v0.52.3: cost de hoje (async)
+		let costStr = "";
+		try {
+			const tracker = (this.plugin as unknown as {
+				costTracker?: { getSpend: (o: { window: "day" }) => Promise<{ totalUSD: number }> };
+			}).costTracker;
+			if (tracker) {
+				const today = await tracker.getSpend({ window: "day" });
+				if (today.totalUSD > 0) {
+					costStr = ` · 💰 $${today.totalUSD.toFixed(2)}`;
+				}
+			}
+		} catch {
+			// silent
+		}
+		this.metaEl.setText(`${modelLabel} · ${freeGB.toFixed(1)} GB${costStr}`);
 	}
 
 	private async toggleRecording(btn: HTMLButtonElement): Promise<void> {
