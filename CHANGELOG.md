@@ -4,6 +4,22 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.75.0] — 2026-05-03 — "WhatsNew modal sync: v0.70-v0.74 entries"
+
+### WhatsNew modal entries added (top of FEATURES_BY_VERSION)
+**File:** `src/ui/whats-new-modal.ts`
+
+5 entries novas no topo (mostradas auto após upgrade):
+- **v0.74.0** — Settings Vault Import History + Health Dashboard
+- **v0.73.0** — Logs view Chat I/O quick filter
+- **v0.72.0** — Voice → create_note
+- **v0.71.0** — Chat visual polish Iron Man HUD
+- **v0.70.0** — 9 bugs críticos fixed (cost real + create_note + citations + deep)
+
+User abrindo plugin pós-upgrade vê tudo que foi entregue nas últimas 5 versões em formato compacto e visual (cards markdown).
+
+---
+
 ## [0.74.0] — 2026-05-03 — "Settings: Vault Import History + Health check dashboard"
 
 ### Vault Import History UI (settings.advanced)

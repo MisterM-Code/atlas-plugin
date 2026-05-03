@@ -13,6 +13,56 @@ import { t } from "../i18n";
 
 const FEATURES_BY_VERSION = [
 	{
+		version: "0.74.0",
+		title: "🩺 Settings Vault Import History + Health Dashboard",
+		bullets: [
+			"Histórico de imports com data + sourcePath + custo USD",
+			"Health check 7 sistemas (Ollama/Cost/Router/LLM/KG/Whisper/Cloud) ✅/❌",
+			"Quick-glance status sem abrir Status tab",
+		],
+	},
+	{
+		version: "0.73.0",
+		title: "💬 Logs view: Chat I/O quick filter",
+		bullets: [
+			"Botão `💬 Chat I/O` 1-click filter (agent: + tool:)",
+			"Logger search OR via 'term1|term2|term3'",
+			"Audit fácil de toda conversa Atlas",
+		],
+	},
+	{
+		version: "0.72.0",
+		title: "🎙️ Voice → create_note",
+		bullets: [
+			"'criar relatório sobre vendas Q2' via voz → cria documento + abre",
+			"Heurística noteType (relatório→weekly-status, ADR→adr, paper→paper)",
+			"Slot-filling se sem título",
+		],
+	},
+	{
+		version: "0.71.0",
+		title: "🎨 Chat visual polish (Iron Man HUD)",
+		bullets: [
+			"Mic button pulsa vermelho durante recording",
+			"Send button gradient cyan→indigo + hover scale",
+			"Message bubbles bouncy slide-in com border-left accent",
+			"Avatar pulsing glow durante AI thinking",
+		],
+	},
+	{
+		version: "0.70.0",
+		title: "🚀 9 bugs críticos fixed (cost real + create_note + citations + deep)",
+		bullets: [
+			"Cost tracker: $0.XX real (era $0 sempre — fix this.costTracker assign)",
+			"NEW tool create_note: Atlas cria/categoriza/abre documentos via chat",
+			"Citations REAIS validadas contra vault (filter halucinadas)",
+			"Deep research: topK adaptativo 8→20 + 6 patterns orchestrator",
+			"Logging completo I/O chat (agent: response com intent+citations+tools+duration)",
+			"Jarvis robust: graceful sandbox + VoicePermissionError typed",
+			"Chat header gradient cyan→indigo + empty state breathing emoji",
+		],
+	},
+	{
 		version: "0.51.2",
 		title: "🩺 Self-Test diagnostic",
 		bullets: [
