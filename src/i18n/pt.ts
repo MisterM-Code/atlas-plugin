@@ -118,4 +118,41 @@ export const dict: Record<string, string> = {
 	"notice.entity.created": "✓ {kind} {name} criado.",
 	"notice.cmd.executed": "✓ {label} executado.",
 	"notice.error.generic": "Atlas: {message}",
+
+	// ─── Today widgets extras (v0.56) ───
+	"today.activity.empty": "Sem atividade recente. Crie uma daily ou capture algo.",
+	"today.health.score.label": "Score do vault",
+	"today.health.orphans": "{n} órfãs",
+	"today.health.stale": "{n} stale",
+	"today.health.untagged": "{n} sem tag",
+	"today.percebeu.dismiss": "Dispensar",
+	"today.percebeu.detail": "Ver detalhes",
+	"today.knowledge.people": "PESSOAS",
+	"today.knowledge.systems": "SISTEMAS",
+	"today.knowledge.products": "PRODUTOS",
+	"today.knowledge.click.tab": "Abrir aba {name}",
+	"today.eisenhower.do": "Fazer agora",
+	"today.eisenhower.schedule": "Agendar",
+	"today.eisenhower.delegate": "Delegar",
+	"today.eisenhower.eliminate": "Eliminar",
+
+	// ─── Hub ───
+	"hub.title": "🤝 Hub",
+	"hub.empty": "🎉 Inbox zero! Você é a inveja do time.",
+	"hub.tab.actions": "Action items",
+	"hub.tab.reminders": "Reminders",
+	"hub.tab.suggestions": "Sugestões",
+	"hub.action.complete": "Concluir",
+	"hub.action.snooze": "Adiar",
+	"hub.filter.all": "Todos",
+	"hub.filter.overdue": "Atrasados",
+	"hub.filter.today": "Hoje",
+	"hub.filter.upcoming": "Próximos",
+
+	// ─── Common UI ───
+	"common.search.placeholder": "Buscar...",
+	"common.no.results": "Nenhum resultado.",
+	"common.add.new": "+ Novo",
+	"common.edit": "Editar",
+	"common.view": "Ver",
 };

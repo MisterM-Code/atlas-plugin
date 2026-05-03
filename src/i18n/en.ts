@@ -116,4 +116,41 @@ export const dict: Record<string, string> = {
 	"notice.entity.created": "✓ {kind} {name} created.",
 	"notice.cmd.executed": "✓ {label} executed.",
 	"notice.error.generic": "Atlas: {message}",
+
+	// ─── Today widgets extras (v0.56) ───
+	"today.activity.empty": "No recent activity. Create a daily or capture something.",
+	"today.health.score.label": "Vault score",
+	"today.health.orphans": "{n} orphans",
+	"today.health.stale": "{n} stale",
+	"today.health.untagged": "{n} untagged",
+	"today.percebeu.dismiss": "Dismiss",
+	"today.percebeu.detail": "View details",
+	"today.knowledge.people": "PEOPLE",
+	"today.knowledge.systems": "SYSTEMS",
+	"today.knowledge.products": "PRODUCTS",
+	"today.knowledge.click.tab": "Open {name} tab",
+	"today.eisenhower.do": "Do now",
+	"today.eisenhower.schedule": "Schedule",
+	"today.eisenhower.delegate": "Delegate",
+	"today.eisenhower.eliminate": "Eliminate",
+
+	// ─── Hub ───
+	"hub.title": "🤝 Hub",
+	"hub.empty": "🎉 Inbox zero! Your team's envy.",
+	"hub.tab.actions": "Action items",
+	"hub.tab.reminders": "Reminders",
+	"hub.tab.suggestions": "Suggestions",
+	"hub.action.complete": "Complete",
+	"hub.action.snooze": "Snooze",
+	"hub.filter.all": "All",
+	"hub.filter.overdue": "Overdue",
+	"hub.filter.today": "Today",
+	"hub.filter.upcoming": "Upcoming",
+
+	// ─── Common UI ───
+	"common.search.placeholder": "Search...",
+	"common.no.results": "No results.",
+	"common.add.new": "+ New",
+	"common.edit": "Edit",
+	"common.view": "View",
 };

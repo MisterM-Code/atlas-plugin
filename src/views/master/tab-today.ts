@@ -13,6 +13,7 @@
 import { TFile } from "obsidian";
 import type AtlasPlugin from "../../../main";
 import { getMode } from "../../coach/scope";
+import { t } from "../../i18n";
 
 const ZONE_TITLES = {
 	alerts: "🚨 Alerts",
@@ -159,10 +160,10 @@ async function renderHero(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	// v0.52.3: emoji + texto separados — emoji em <span class="atlas-emoji">
 	// pra usar font-family fallback de emoji (evita "quadrado azul" quando font default não tem suporte)
 	const greetingText =
-		hour < 5 ? "Boa madrugada" :
-		hour < 12 ? "Bom dia" :
-		hour < 18 ? "Boa tarde" :
-		"Boa noite";
+		hour < 5 ? t("today.greeting.dawn") :
+		hour < 12 ? t("today.greeting.morning") :
+		hour < 18 ? t("today.greeting.afternoon") :
+		t("today.greeting.evening");
 	const greetingEmoji =
 		hour < 5 ? "🌙" :
 		hour < 12 ? "🌅" :
@@ -258,7 +259,7 @@ function rotateQuote(): string {
 // ══ ZONE 2: ACTION ═══════════════════════════════════════════════════
 
 async function renderEisenhower(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "🎯 Urgência × Importância" });
+	el.createDiv({ cls: "atlas-today-widget-title", text: t("today.eisenhower.title") });
 	const grid = el.createDiv({ cls: "atlas-today-eisenhower-grid" });
 
 	const items = plugin.kg.data.actionItems.filter(
@@ -298,7 +299,7 @@ async function renderEisenhower(el: HTMLElement, plugin: AtlasPlugin): Promise<v
 }
 
 async function renderVencendo(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "⏰ Vencendo" });
+	el.createDiv({ cls: "atlas-today-widget-title", text: t("today.vencendo.title") });
 	const cols = el.createDiv({ cls: "atlas-today-vencendo-cols" });
 	const now = Date.now();
 	const dayMs = 86_400_000;
@@ -381,7 +382,7 @@ function isSameDay(a: Date, b: Date): boolean {
 }
 
 async function renderUpcomingMeetings(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "🤝 Próximos compromissos" });
+	el.createDiv({ cls: "atlas-today-widget-title", text: t("today.upcoming.title") });
 	const list = el.createDiv({ cls: "atlas-today-meetings-list" });
 	const now = Date.now();
 
@@ -493,7 +494,7 @@ async function renderQuickActions(el: HTMLElement, plugin: AtlasPlugin): Promise
 async function renderAtlasPercebeu(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	el.addClass("atlas-today-insights-pro"); // v0.49.1: premium gradient + glow
 	const titleRow = el.createDiv({ cls: "atlas-today-insights-title-row" });
-	titleRow.createDiv({ cls: "atlas-today-widget-title", text: "💡 Atlas Percebeu" });
+	titleRow.createDiv({ cls: "atlas-today-widget-title", text: t("today.percebeu.title") });
 
 	const insights = collectInsights(plugin);
 	if (insights.length === 0) {
@@ -535,7 +536,7 @@ async function renderAtlasPercebeu(el: HTMLElement, plugin: AtlasPlugin): Promis
 }
 
 async function renderProjectsRag(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "🚦 Projetos (RAG)" });
+	el.createDiv({ cls: "atlas-today-widget-title", text: t("today.projects.title") });
 	const projects = plugin.kg.data.projects.filter((p) => p.status === "active");
 	const cols = el.createDiv({ cls: "atlas-today-rag-cols" });
 
@@ -555,7 +556,7 @@ async function renderProjectsRag(el: HTMLElement, plugin: AtlasPlugin): Promise<
 }
 
 async function renderKnowledgePulse(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "📈 Knowledge Pulse" });
+	el.createDiv({ cls: "atlas-today-widget-title", text: t("today.pulse.title") });
 	// Simple sparkline: vault activity 14d
 	const days = 14;
 	const buckets: number[] = [];
@@ -612,7 +613,7 @@ function relativeTime(ts: number): string {
 
 async function renderVaultHealth(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	const titleRow = el.createDiv({ cls: "atlas-today-health-title-row" });
-	titleRow.createDiv({ cls: "atlas-today-widget-title", text: "🩺 Vault Health" });
+	titleRow.createDiv({ cls: "atlas-today-widget-title", text: t("today.health.title") });
 
 	const allFiles = plugin.app.vault.getMarkdownFiles().filter(
 		(f) => !f.path.startsWith(plugin.settings.folders.atlas)
@@ -685,7 +686,7 @@ function healthCard(
 }
 
 async function renderXp(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
-	el.createDiv({ cls: "atlas-today-widget-title", text: "🏆 Achievements & XP" });
+	el.createDiv({ cls: "atlas-today-widget-title", text: t("today.xp.title") });
 	const p = plugin.achievements?.getProgress();
 	if (!p) {
 		el.createDiv({ text: "XP indisponível.", cls: "atlas-today-xp-empty" });
@@ -964,7 +965,7 @@ function renderChatBridge(el: HTMLElement, plugin: AtlasPlugin): void {
 // ══ v0.44 E6: KNOWLEDGE CARDS — Pessoas/Sistemas/Produtos clicáveis ═════
 async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promise<void> {
 	el.empty();
-	el.createEl("div", { cls: "atlas-today-widget-title", text: "🌐 KNOWLEDGE" });
+	el.createEl("div", { cls: "atlas-today-widget-title", text: t("today.knowledge.title") });
 
 	const grid = el.createDiv({ cls: "atlas-today-knowledge-grid" });
 
@@ -1022,7 +1023,7 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 	);
 	buildCard(
 		"👥",
-		"Pessoas",
+		t("today.knowledge.people"),
 		people.length,
 		sortedPeople.map((p) => ({
 			name: p.name,
@@ -1047,7 +1048,7 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 	);
 	buildCard(
 		"🖥️",
-		"Sistemas",
+		t("today.knowledge.systems"),
 		systems.length,
 		sortedSystems.map((s) => ({
 			name: s.name,
@@ -1072,7 +1073,7 @@ async function renderKnowledgeCards(el: HTMLElement, plugin: AtlasPlugin): Promi
 	);
 	buildCard(
 		"📦",
-		"Produtos",
+		t("today.knowledge.products"),
 		products.length,
 		sortedProducts.map((p) => ({
 			name: p.name,
@@ -1154,7 +1155,7 @@ async function renderTodayStatusBar(el: HTMLElement, plugin: AtlasPlugin): Promi
 
 	// Cost pill (async aggregate via CostTracker.getSpend)
 	// v0.53.1: cost sempre com 2 decimais ($0.00, não "$0")
-	const costPill = el.createSpan({ cls: "atlas-today-status-cost is-zero", text: "💰 $0.00 hoje" });
+	const costPill = el.createSpan({ cls: "atlas-today-status-cost is-zero", text: t("today.statusbar.cost.local") });
 	const updateCost = async (): Promise<void> => {
 		try {
 			const tracker = (plugin as unknown as {
@@ -1163,7 +1164,7 @@ async function renderTodayStatusBar(el: HTMLElement, plugin: AtlasPlugin): Promi
 				};
 			}).costTracker;
 			if (!tracker) {
-				costPill.setText("💰 $0.00 hoje (local)");
+				costPill.setText(t("today.statusbar.cost.local"));
 				return;
 			}
 			const agg = await tracker.getSpend({ window: "day" });
@@ -1171,14 +1172,14 @@ async function renderTodayStatusBar(el: HTMLElement, plugin: AtlasPlugin): Promi
 			if (usd > 0) {
 				costPill.removeClass("is-zero");
 				costPill.addClass("is-spend");
-				costPill.setText(`💰 $${usd.toFixed(2)} hoje`);
+				costPill.setText(t("today.statusbar.cost.spend", { value: usd.toFixed(2) }));
 			} else {
 				costPill.removeClass("is-spend");
 				costPill.addClass("is-zero");
-				costPill.setText("💰 $0.00 hoje (local)");
+				costPill.setText(t("today.statusbar.cost.local"));
 			}
 		} catch {
-			costPill.setText("💰 $0.00 hoje");
+			costPill.setText(t("today.statusbar.cost.local"));
 		}
 	};
 	void updateCost();

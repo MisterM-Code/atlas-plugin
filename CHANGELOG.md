@@ -4,6 +4,29 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.56.0] — 2026-05-03 — "i18n expansão: Chat + Today + Settings views"
+
+### i18n wired nas views principais
+- `tab-chat.ts` — header (`💬 Atlas Chat`), botões (Nova/Limpar/Enviar), placeholder, subtitle, jarvis hint, "Você"/"Atlas" labels, "Atlas está digitando" via `t()`
+- `tab-today.ts` — greetings (Bom dia/Boa tarde/Boa noite/Boa madrugada), 9 widget titles (Vencendo, Eisenhower, Próximos compromissos, Atlas Percebeu, Projetos RAG, Pulse, Vault Health, Achievements & XP, Knowledge), Knowledge sub-cards (PESSOAS/SISTEMAS/PRODUTOS), cost pill (`💰 $X.XX hoje`)
+- `settings-tab.ts` — `☁️ Cloud AI Providers`, `🎯 Provider principal`, `Atlas usa AGORA pra chat:` ativos via i18n
+
+### Dictionaries expandidos (~30 chaves novas)
+- `today.activity.empty`, `today.health.score.label`, `today.health.orphans/stale/untagged`
+- `today.percebeu.dismiss/detail`, `today.knowledge.people/systems/products/click.tab`
+- `today.eisenhower.do/schedule/delegate/eliminate`
+- `hub.title`, `hub.empty`, `hub.tab.actions/reminders/suggestions`, `hub.action.complete/snooze`, `hub.filter.*`
+- `common.search.placeholder`, `common.no.results`, `common.add.new`, `common.edit`, `common.view`
+
+### Pendente v0.57.0
+- Wire restante: empty states em todos sub-tabs (Hub, Lab, Reports, Auto)
+- Sidebar audit: tabs com função obscura → renomear/refatorar
+- Citations clicáveis verify: confirm que click chip de citação abre nota fonte
+- Policies & gates audit: vault structure consistente, slot-filling E2E
+- Badges animation em criação (sem confetti — só pulse no tab badge)
+
+---
+
 ## [0.55.0] — 2026-05-03 — "i18n bilíngue (PT-BR + EN) + Onboarding language picker + LED polish"
 
 ### Sprint 1 — i18n foundation

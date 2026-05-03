@@ -1,6 +1,7 @@
 import { Notice, MarkdownView, TFile, MarkdownRenderer, Component } from "obsidian";
 import type AtlasPlugin from "../../../main";
 import { Agent } from "../../agent/agent";
+import { t } from "../../i18n";
 
 /**
  * Renders Atlas Chat dentro do master sidebar.
@@ -19,16 +20,16 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	header.style.alignItems = "center";
 	header.style.marginBottom = "8px"; // v0.53: alinhado com subtitle below
 	const titleWrap = header.createDiv();
-	const titleEl = titleWrap.createEl("h3", { text: "💬 Atlas Chat" });
+	const titleEl = titleWrap.createEl("h3", { text: t("chat.title") });
 	titleEl.style.margin = "0";
 	titleEl.style.fontSize = "16px";
 
 	const headerActions = header.createDiv();
 	headerActions.style.display = "flex";
 	headerActions.style.gap = "4px";
-	const newBtn = headerActions.createEl("button", { text: "Nova" });
+	const newBtn = headerActions.createEl("button", { text: t("chat.btn.new") });
 	newBtn.style.fontSize = "11px";
-	const clearBtn = headerActions.createEl("button", { text: "Limpar" });
+	const clearBtn = headerActions.createEl("button", { text: t("chat.btn.clear") });
 	clearBtn.style.fontSize = "11px";
 
 	// Subtitle: differentiate from Jarvis
@@ -37,8 +38,8 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	subtitle.style.opacity = "0.55";
 	subtitle.style.marginBottom = "8px";
 	subtitle.style.lineHeight = "1.5";
-	subtitle.createSpan({ text: "Pergunte sobre seu vault — respondo com citações [Nota: x.md] e memória de 20 turnos. " });
-	const jarvisHintBtn = subtitle.createEl("a", { text: "Prefere falar? Use Jarvis (Cmd+Shift+J) →" });
+	subtitle.createSpan({ text: t("chat.subtitle") + " " });
+	const jarvisHintBtn = subtitle.createEl("a", { text: t("chat.jarvis.hint") });
 	jarvisHintBtn.style.color = "var(--atlas-accent, var(--interactive-accent))";
 	jarvisHintBtn.style.cursor = "pointer";
 	jarvisHintBtn.addEventListener("click", async (e) => {
@@ -62,7 +63,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	inputWrap.style.padding = "8px 0";
 
 	const inputEl = inputWrap.createEl("textarea", { cls: "atlas-chat-input" });
-	inputEl.placeholder = "Pergunte algo... (Enter pra enviar)";
+	inputEl.placeholder = t("chat.placeholder");
 	inputEl.style.width = "100%";
 	inputEl.style.minHeight = "60px";
 	inputEl.style.padding = "6px";
@@ -140,7 +141,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		}
 	});
 
-	const sendBtn = inputActions.createEl("button", { text: "Enviar" }) as HTMLButtonElement;
+	const sendBtn = inputActions.createEl("button", { text: t("chat.btn.send") }) as HTMLButtonElement;
 
 	const agent = new Agent(
 		plugin.app,
@@ -203,7 +204,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 
 		const lbl = bubble.createDiv({
 			cls: "atlas-chat-msg-label",
-			text: role === "user" ? (plugin.settings.user?.displayName ?? "Você") : "Atlas",
+			text: role === "user" ? (plugin.settings.user?.displayName ?? t("chat.you")) : t("chat.atlas"),
 		});
 		void lbl;
 
@@ -240,7 +241,7 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 		const thinkingWrap = messagesEl.createDiv({ cls: "atlas-chat-thinking" });
 		const thinkingHead = thinkingWrap.createDiv({ cls: "atlas-chat-thinking-head" });
 		thinkingHead.createSpan({ cls: "atlas-emoji", text: "🧠" });
-		thinkingHead.createSpan({ cls: "atlas-chat-thinking-text", text: "Atlas está digitando" });
+		thinkingHead.createSpan({ cls: "atlas-chat-thinking-text", text: t("chat.thinking") });
 		const dotsWrap = thinkingHead.createSpan({ cls: "atlas-chat-typing" });
 		dotsWrap.createSpan();
 		dotsWrap.createSpan();

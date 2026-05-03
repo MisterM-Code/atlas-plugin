@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import type AtlasPlugin from "../../main";
 import { setupVaultStructure } from "../commands/setup-vault";
 import { PROFILES, PROFILE_CATEGORIES, ProfileId, mergeProfiles } from "../profiles/registry";
+import { t } from "../i18n";
 
 export class AtlasSettingTab extends PluginSettingTab {
 	/** v0.44 E3: track which provider keys triggered modal in this Settings open */
@@ -40,7 +41,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 	// v0.17 — Cloud AI providers + cost control
 	private section_providers(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "☁️ Cloud AI Providers (opcional, paid)" });
+		containerEl.createEl("h3", { text: t("settings.cloud.title") });
 		containerEl.createEl("p", {
 			cls: "atlas-settings-section-desc",
 			text: "Atlas funciona 100% local com Ollama. Adicione API keys aqui para usar GPT-4o, Claude Opus 4.7, Gemini 2.0, etc — Atlas controla o gasto e mostra dashboard de spend.",
@@ -383,7 +384,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		};
 		icon.setText(providerEmoji[route.provider] ?? "🤖");
 		const text = wrap.createSpan({ cls: "atlas-active-provider-text" });
-		text.createSpan({ cls: "atlas-active-provider-label", text: "Atlas usa AGORA pra chat: " });
+		text.createSpan({ cls: "atlas-active-provider-label", text: t("settings.active.label") });
 		text.createSpan({
 			cls: "atlas-active-provider-name",
 			text: `${route.provider}:${route.model}`,
@@ -406,7 +407,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 	 */
 	private renderPrimaryProviderPicker(parent: HTMLElement): void {
 		const wrap = parent.createDiv({ cls: "atlas-primary-provider-picker" });
-		wrap.createEl("h4", { text: "🎯 Provider principal (quick setup)" });
+		wrap.createEl("h4", { text: t("settings.primary.title") });
 		wrap.createEl("p", {
 			cls: "atlas-settings-section-desc",
 			text: "Escolha um provider PRIMÁRIO. Atlas configura routing de chat / reasoning / summarization automático com modelos default. Refinamento por tarefa: editar JSON abaixo.",
