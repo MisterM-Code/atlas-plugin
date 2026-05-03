@@ -4,6 +4,32 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.74.0] — 2026-05-03 — "Settings: Vault Import History + Health check dashboard"
+
+### Vault Import History UI (settings.advanced)
+v0.63 já guardava `settings.importHistory` mas UI nunca exibia. Agora:
+- Lista últimos 10 imports com data + sourcePath + total notas + custo USD
+- Botão "Limpar histórico" pra reset
+- Style: rows alternados com cyan accent em sourcePath, monospace em date
+
+### Health check dashboard
+Quick-glance de 7 sistemas críticos com ✅/❌/❓:
+- Ollama daemon
+- Cost tracker (v0.70 fix verify)
+- Provider router
+- LLM service
+- KG store
+- Whisper config
+- Cloud providers configurados (count)
+
+Grid auto-fill responsive, cyan accent border, mostra estado real do plugin sem precisar abrir Status tab.
+
+### Files MODIFY
+- `src/views/settings-tab.ts` — section_advanced + import history viewer + health check (~70 LOC)
+- `styles.css` — `.atlas-settings-import-hist*` + `.atlas-settings-health*` (~50 LOC)
+
+---
+
 ## [0.73.0] — 2026-05-03 — "Logs view: Chat I/O quick filter + OR search"
 
 ### Log View polish — Chat I/O filter rápido

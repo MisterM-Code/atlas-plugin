@@ -12434,6 +12434,56 @@ button.atlas-btn:active::after,
 	transform: scale(0.96);
 }
 
+/* v0.74.0: Settings — Import history + Health check blocks */
+.atlas-settings-import-hist {
+	background: rgba(15, 23, 42, 0.4);
+	border: 1px solid rgba(99, 102, 241, 0.2);
+	border-radius: 10px;
+	padding: 10px;
+	max-height: 220px;
+	overflow-y: auto;
+	margin-bottom: 12px;
+}
+.atlas-settings-import-hist-row {
+	display: grid;
+	grid-template-columns: 130px 1fr 160px;
+	gap: 12px;
+	padding: 6px 4px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+	font-size: 11px;
+	align-items: center;
+}
+.atlas-settings-import-hist-row:last-child { border-bottom: none; }
+.atlas-settings-import-hist-date { font-family: var(--font-monospace, monospace); opacity: 0.7; }
+.atlas-settings-import-hist-source {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--atlas-accent, #00e5e5);
+}
+.atlas-settings-import-hist-stats { text-align: right; opacity: 0.85; }
+.atlas-settings-health {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 8px;
+	padding: 10px;
+	background: rgba(15, 23, 42, 0.4);
+	border: 1px solid rgba(99, 102, 241, 0.2);
+	border-radius: 10px;
+	margin-bottom: 12px;
+}
+.atlas-settings-health-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	padding: 4px 6px;
+	border-radius: 6px;
+	background: rgba(99, 102, 241, 0.05);
+}
+.atlas-settings-health-icon { font-size: 14px; }
+.atlas-settings-health-label { opacity: 0.85; }
+
 /* v0.71.0: Input area Iron Man HUD aesthetic */
 .atlas-chat-input-area {
 	border-top: 1px solid rgba(0, 229, 229, 0.18);

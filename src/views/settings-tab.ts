@@ -1308,5 +1308,49 @@ export class AtlasSettingTab extends PluginSettingTab {
 					new Notice("Atlas: onboarding resetado. Reabra o plugin.");
 				})
 			);
+
+		// v0.74.0: Vault Importer History (v0.63 stores em settings.importHistory mas UI nunca exibia)
+		const importHistory = (this.plugin.settings as { importHistory?: { ranAt: number; sourcePath: string; total: number; cost: number }[] }).importHistory;
+		if (importHistory && importHistory.length > 0) {
+			containerEl.createEl("h4", { text: "📥 Histórico de Vault Imports" });
+			const histEl = containerEl.createDiv({ cls: "atlas-settings-import-hist" });
+			for (const entry of importHistory.slice(-10).reverse()) {
+				const row = histEl.createDiv({ cls: "atlas-settings-import-hist-row" });
+				const date = new Date(entry.ranAt).toISOString().slice(0, 16).replace("T", " ");
+				row.createSpan({ cls: "atlas-settings-import-hist-date", text: date });
+				row.createSpan({ cls: "atlas-settings-import-hist-source", text: entry.sourcePath });
+				row.createSpan({ cls: "atlas-settings-import-hist-stats", text: `${entry.total} notas · $${entry.cost.toFixed(4)}` });
+			}
+			new Setting(containerEl)
+				.setName("Limpar histórico de imports")
+				.addButton((b) =>
+					b.setButtonText("Limpar").onClick(async () => {
+						(this.plugin.settings as { importHistory?: unknown[] }).importHistory = [];
+						await this.plugin.saveSettings();
+						new Notice("Atlas: histórico de imports limpo.");
+						this.display();
+					})
+				);
+		}
+
+		// v0.74.0: System health quick check
+		containerEl.createEl("h4", { text: "🩺 Health check" });
+		const healthEl = containerEl.createDiv({ cls: "atlas-settings-health" });
+		const checks: { label: string; status: () => boolean | "unknown" }[] = [
+			{ label: "Ollama daemon", status: () => !!this.plugin.ollama },
+			{ label: "Cost tracker", status: () => !!this.plugin.costTracker },
+			{ label: "Provider router", status: () => !!this.plugin.providerRouter },
+			{ label: "LLM service", status: () => !!this.plugin.llm },
+			{ label: "KG store", status: () => !!this.plugin.kg },
+			{ label: "Whisper config", status: () => !!this.plugin.settings.voice?.whisperBinaryPath },
+			{ label: "Cloud providers", status: () => (this.plugin.providerRouter?.listConfiguredProviders().length ?? 0) > 0 },
+		];
+		for (const c of checks) {
+			const status = c.status();
+			const row = healthEl.createDiv({ cls: "atlas-settings-health-row" });
+			const icon = status === true ? "✅" : status === false ? "❌" : "❓";
+			row.createSpan({ cls: "atlas-settings-health-icon", text: icon });
+			row.createSpan({ cls: "atlas-settings-health-label", text: c.label });
+		}
 	}
 }
