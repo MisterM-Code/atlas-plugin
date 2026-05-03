@@ -1,6 +1,7 @@
 import { Notice } from "obsidian";
 import type AtlasPlugin from "../../../../main";
 import { AutoAliasingModal } from "../../../automation/auto-aliasing";
+import { t } from "../../../i18n";
 
 /**
  * AutoAliaser sub-view — descobre candidatos a fusão pessoa duplicada.
@@ -76,7 +77,7 @@ export async function renderAutoAliaserSub(
 		empty.style.opacity = "0.6";
 		empty.style.fontSize = "11px";
 		empty.setText(
-			"Nenhuma pessoa com aliases ainda. Roda 'Buscar duplicatas' acima para Atlas detectar e propor fusões."
+			`${t("empty.auto.aliaser.title")} — ${t("empty.auto.aliaser.body")}`
 		);
 		return;
 	}

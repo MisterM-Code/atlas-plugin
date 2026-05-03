@@ -20,6 +20,7 @@ import {
 	CapacityPlannerTool,
 } from "../../../innovations/ti-tools";
 import { mergeProfiles } from "../../../profiles/registry";
+import { t } from "../../../i18n";
 
 interface ToolDef {
 	id: string;
@@ -260,10 +261,10 @@ export function renderLabToolsIa(container: HTMLElement, plugin: AtlasPlugin): v
 	if (tools.length === 0) {
 		const empty = container.createDiv({ cls: "atlas-tab-empty-state" });
 		empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🔧" });
-		empty.createEl("div", { cls: "atlas-tab-empty-title", text: "Nenhuma ferramenta IA disponível" });
+		empty.createEl("div", { cls: "atlas-tab-empty-title", text: t("empty.lab.tools.title") });
 		empty.createEl("div", {
 			cls: "atlas-tab-empty-desc",
-			text: "Click 'Mostrar todas' acima ou ajuste seus perfis em Settings → Profile.",
+			text: t("empty.lab.tools.body"),
 		});
 		return;
 	}

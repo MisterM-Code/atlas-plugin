@@ -4,6 +4,7 @@ import { renderAutoTaggerSub } from "./auto-sub/auto-tagger";
 import { renderAutoAliaserSub } from "./auto-sub/auto-aliaser";
 import { renderAutoRulesSub } from "./auto-sub/auto-rules";
 import { renderProactiveFeedSub } from "./auto-sub/proactive-feed";
+import { t } from "../../i18n";
 
 type AutoSubId = "tagger" | "aliaser" | "rules" | "proactive";
 
@@ -24,7 +25,7 @@ export async function renderAutomationsTab(
 
 	const header = container.createDiv();
 	header.style.marginBottom = "10px";
-	const title = header.createEl("h3", { text: "🤖 Auto — automações silenciosas" });
+	const title = header.createEl("h3", { text: t("tab.auto.title") });
 	title.style.margin = "0 0 4px 0";
 	const sub = header.createEl("div", {
 		text: "Atlas faz muita coisa sozinho. Aqui você vê o que ele tá fazendo agora.",

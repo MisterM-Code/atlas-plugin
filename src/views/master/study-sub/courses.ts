@@ -4,6 +4,7 @@ import type { CourseT, CourseModuleT, CourseStatus } from "../../../kg/schemas";
 import { applyResponsiveModal } from "../../../ui/modal-helpers";
 import { SlideOverPanel } from "../../../ui/slide-over-panel";
 import { fieldInput, fieldSelect, fieldTextArea, formButtons } from "../../../ui/form-fields";
+import { t } from "../../../i18n";
 
 const STATUS_LABELS: Record<string, { emoji: string; label: string; color: string }> = {
 	planning: { emoji: "📝", label: "Planejado", color: "#a855f7" },
@@ -101,12 +102,12 @@ export async function renderStudyCourses(
 			empty.createEl("div", { cls: "atlas-tab-empty-emoji", text: "🎓" });
 			empty.createEl("div", {
 				cls: "atlas-tab-empty-title",
-				text: activeFilter === "all" ? "Nenhum curso ainda" : `Nenhum curso "${activeFilter}"`,
+				text: activeFilter === "all" ? t("empty.study.courses.title") : `Nenhum curso "${activeFilter}"`,
 			});
 			if (activeFilter === "all") {
 				empty.createEl("div", {
 					cls: "atlas-tab-empty-desc",
-					text: "Click '+ Novo curso' acima para começar.",
+					text: t("empty.study.courses.body"),
 				});
 			}
 			return;

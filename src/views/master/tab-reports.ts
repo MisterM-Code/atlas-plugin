@@ -3,6 +3,7 @@ import { renderSubTabBar, SubTabDef } from "../../ui/sub-tab-bar";
 import { renderReportsTimeline } from "./reports-sub/timeline";
 import { renderReportsTemplates } from "./reports-sub/templates";
 import { renderReportsComposerTab } from "./tab-reports-composer";
+import { t } from "../../i18n";
 
 type ReportsSubId = "timeline" | "composer" | "templates";
 
@@ -23,7 +24,7 @@ export async function renderReportsTab(
 	// Header
 	const header = container.createDiv();
 	header.style.marginBottom = "10px";
-	const title = header.createEl("h3", { text: "🎙️ Reports & Reviews" });
+	const title = header.createEl("h3", { text: t("tab.reports.title") });
 	title.style.margin = "0";
 
 	const subs: SubTabDef<ReportsSubId>[] = [

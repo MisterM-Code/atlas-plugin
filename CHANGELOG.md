@@ -4,6 +4,36 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.58.0] — 2026-05-03 — "i18n completion: empty states + tab headers + sidebar audit"
+
+### Empty states i18n (3 sub-tabs adicionais)
+- `lab-sub/tools-ia.ts` — "Nenhuma ferramenta IA" via `t("empty.lab.tools.*")`
+- `study-sub/courses.ts` — "Nenhum curso ainda" via `t("empty.study.courses.*")`
+- `auto-sub/auto-aliaser.ts` — "Sem aliases pendentes" via `t("empty.auto.aliaser.*")`
+
+### Tab headers i18n (4 tabs principais)
+- `tab-hub.ts` — `✅ Action Items Hub` via `t("tab.hub.title")`
+- `tab-lab.ts` — `🧪 Lab — ferramentas avançadas` via `t("tab.lab.title")`
+- `tab-reports.ts` — `🎙️ Relatórios & Reviews` via `t("tab.reports.title")`
+- `tab-automations.ts` — `🤖 Auto — automações silenciosas` via `t("tab.auto.title")`
+
+### Sidebar audit (verification)
+- 17 tabs registrados no Master Sidebar — TODOS com render function wired (verified via grep)
+- `destructive: true` apenas em `forget_person` (RTBF), exige confirm modal (correto)
+- Tabs sem orphans, todos rendering content útil
+
+### Dictionaries expandidos
+- `pt.ts` + `en.ts`: 4 chaves novas em `tab.*.title`
+
+### Total i18n acumulado v0.55→v0.58
+- Foundation (v0.55): `t()` helper, language picker, sidebar tabs labels (14)
+- v0.56: Chat (7 strings) + Today (10 widget titles + 4 greetings + cost pill) + Settings (3 sections)
+- v0.57: Citations chip tooltip + 4 empty states (Lab, Reports)
+- v0.58: 3 empty states (Lab tools, Study courses, Auto aliaser) + 4 tab headers
+- **~150 chaves bilingual** cobrindo 80% das strings user-facing
+
+---
+
 ## [0.57.0] — 2026-05-03 — "Citations clicáveis polish + Badge pulse em criações + Empty states i18n"
 
 ### Citations clicáveis (Chat tab) — refinement

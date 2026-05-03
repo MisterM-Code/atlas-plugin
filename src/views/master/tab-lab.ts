@@ -4,6 +4,7 @@ import { renderLabToolsIa } from "./lab-sub/tools-ia";
 import { renderLabSerendipity } from "./lab-sub/serendipity";
 import { renderLabCapsules } from "./lab-sub/capsules";
 import { renderLabEntityTree } from "./lab-sub/entity-tree";
+import { t } from "../../i18n";
 
 type LabSubId = "tools-ia" | "serendipity" | "capsules" | "tree";
 
@@ -24,7 +25,7 @@ export async function renderLabTab(
 
 	const header = container.createDiv();
 	header.style.marginBottom = "10px";
-	const title = header.createEl("h3", { text: "🧪 Lab — ferramentas avançadas" });
+	const title = header.createEl("h3", { text: t("tab.lab.title") });
 	title.style.margin = "0 0 4px 0";
 	const sub = header.createEl("div", {
 		text:

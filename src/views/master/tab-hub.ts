@@ -2,6 +2,7 @@ import { TFile, Notice, MarkdownView } from "obsidian";
 import type AtlasPlugin from "../../../main";
 import { getExcludedFolders, getInclusiveFolders } from "../../coach/scope";
 import { renderEmptyState } from "../../ui/empty-states";
+import { t } from "../../i18n";
 
 interface VaultTask {
 	notePath: string;
@@ -23,7 +24,7 @@ export async function renderHubTab(container: HTMLElement, plugin: AtlasPlugin):
 
 	// v0.26: Header polished com gradient title + tab utility classes
 	const header = container.createDiv({ cls: "atlas-tab-section-header" });
-	header.createEl("h3", { cls: "atlas-tab-section-title", text: "✅ Action Items Hub" });
+	header.createEl("h3", { cls: "atlas-tab-section-title", text: t("tab.hub.title") });
 	const refreshBtn = header.createEl("button", { text: "↻ Refresh" });
 	refreshBtn.style.fontSize = "11px";
 

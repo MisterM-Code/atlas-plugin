@@ -156,6 +156,12 @@ export const dict: Record<string, string> = {
 	"common.edit": "Editar",
 	"common.view": "Ver",
 
+	// ─── Tab headers (v0.58) ───
+	"tab.hub.title": "✅ Action Items Hub",
+	"tab.lab.title": "🧪 Lab — ferramentas avançadas",
+	"tab.reports.title": "🎙️ Relatórios & Reviews",
+	"tab.auto.title": "🤖 Auto — automações silenciosas",
+
 	// ─── Empty states sub-tabs (v0.57) ───
 	"empty.lab.tools.title": "Nenhuma ferramenta IA disponível",
 	"empty.lab.tools.body": "Configure um perfil em Settings para liberar tools especializadas.",
