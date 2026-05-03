@@ -4,6 +4,48 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.83.0] — 2026-05-03 — "Atlas Percebeu actionable insights + Health orphans actions + durationMs fix"
+
+### 🔴 BUG FIX: `agent: response durationMs: 0` always
+**Root cause:** `__startTime` was never set in `run()` — code read it but no assignment, falling through to `Date.now() - Date.now() = 0`.
+
+**Fix in `src/agent/agent.ts:70-77`:**
+- Capture `startTime = Date.now()` at top of `run()`
+- Store in `this.__startTime` for cross-method access
+- Final logger now uses local `startTime` from function scope
+
+### ⭐ Atlas Percebeu — actionable insights
+**File:** `src/views/master/tab-today.ts:801-868`
+
+Each `InsightItem` now has optional `action: { label, tabId?, commandId? }`:
+- 🏷️ Theme detection → "Ver no KG →" (opens Knowledge tab)
+- 🧠 People count → "Abrir Knowledge →"
+- 🔥 Recent mods → "Ver Activity →"
+- **NEW** 🏷️ Untagged notes detection → "Auto-tag agora →" (cmd `atlas:auto-tag-vault`)
+- **NEW** 👻 Ghost people (no sessions) → "Ver pessoas →"
+
+Insight slot now renders gradient cyan→indigo button after text.
+- Hover: scale 1.04 + translateY -1px + cyan glow shadow
+- Click: stops propagation + calls `plugin.activateMasterTab(tabId)` OR `commands.executeCommandById(commandId)`
+
+### ⭐ Health tab — actionable orphans + auto-tag + archive stale
+**File:** `src/views/master/tab-simple.ts compute()`
+
+Buttons added below stats grid:
+- **🧹 Listar N órfãs** — creates `01_Inbox/atlas-orphans-${date}.md` with wikilink list of all orphan notes (no in/out backlinks) + auto-opens
+- **🏷️ Auto-taggar N notas** — triggers `atlas:auto-tag-vault` command
+- **🗄️ Archivar N stale** — triggers `atlas:archive-stale` command
+
+Each button has Notice feedback. User can finally **act** on Health metrics (era só números mostrados).
+
+### Files MODIFY
+- `src/agent/agent.ts` — startTime captured at run() start
+- `src/views/master/tab-today.ts` — `InsightItem.action` field + 2 new insights (untagged/ghost) + clickable button
+- `src/views/master/tab-simple.ts` — Health action buttons (orphans/untagged/stale)
+- `styles.css` — `.atlas-today-insight-action` (gradient cyan→indigo + hover scale + active feedback)
+
+---
+
 ## [0.82.0] — 2026-05-03 — "Chat critical UX fixes (eternal composing + thinking wave + citations persistence)"
 
 ### 🔴 BUG FIX: Chat stuck in "composing response" forever

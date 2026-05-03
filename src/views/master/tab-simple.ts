@@ -273,6 +273,62 @@ export async function renderHealthTab(container: HTMLElement, plugin: AtlasPlugi
 		stat(grid, "Stale (>90d)", String(staleNotes));
 		stat(grid, "Stub (<50w)", String(stubNotes));
 		stat(grid, "Sem tags", String(total - tagged));
+
+		// v0.83.0: Action buttons for orphans/untagged (era só números, não dava pra fazer nada)
+		const actions = body.createDiv({ cls: "atlas-health-actions" });
+		actions.style.display = "flex";
+		actions.style.gap = "8px";
+		actions.style.flexWrap = "wrap";
+		actions.style.marginTop = "12px";
+
+		if (orphanNotes > 0) {
+			const btn = actions.createEl("button", {
+				cls: "atlas-health-action-btn mod-cta",
+				text: `🧹 Listar ${orphanNotes} órfãs`,
+			});
+			btn.addEventListener("click", async () => {
+				const orphans = allFiles.filter((f) => {
+					const cache = plugin.app.metadataCache.getFileCache(f);
+					const blForward = cache?.links?.length ?? 0;
+					const blBack = Object.keys(plugin.app.metadataCache.resolvedLinks?.[f.path] ?? {}).length;
+					return (blForward + blBack) === 0;
+				});
+				const lines = orphans.slice(0, 100).map((f) => `- [[${f.path}]]`);
+				const md = `# 🧹 Órfãs detectadas (${orphans.length})\n\n_Notas sem links de entrada/saída — candidatas a archivar ou conectar._\n\n${lines.join("\n")}`;
+				const path = `01_Inbox/atlas-orphans-${new Date().toISOString().slice(0, 10)}.md`;
+				await plugin.app.vault.adapter.write(path, md);
+				const file = plugin.app.vault.getAbstractFileByPath(path);
+				const { TFile } = await import("obsidian");
+				if (file instanceof TFile) await plugin.app.workspace.getLeaf().openFile(file);
+				new Notice(`Atlas: lista de ${orphans.length} órfãs criada em 01_Inbox/`);
+			});
+		}
+		if ((total - tagged) > 0) {
+			const btn = actions.createEl("button", {
+				cls: "atlas-health-action-btn",
+				text: `🏷️ Auto-taggar ${total - tagged} notas`,
+			});
+			btn.addEventListener("click", () => {
+				const apiAny = plugin.app as unknown as {
+					commands?: { executeCommandById?: (id: string) => void };
+				};
+				apiAny.commands?.executeCommandById?.("atlas:auto-tag-vault");
+				new Notice("Atlas: auto-tagger iniciado em background.");
+			});
+		}
+		if (staleNotes > 0) {
+			const btn = actions.createEl("button", {
+				cls: "atlas-health-action-btn",
+				text: `🗄️ Archivar ${staleNotes} stale`,
+			});
+			btn.addEventListener("click", () => {
+				const apiAny = plugin.app as unknown as {
+					commands?: { executeCommandById?: (id: string) => void };
+				};
+				apiAny.commands?.executeCommandById?.("atlas:archive-stale");
+				new Notice("Atlas: archivamento de stale iniciado.");
+			});
+		}
 	};
 
 	refresh.addEventListener("click", () => void compute());

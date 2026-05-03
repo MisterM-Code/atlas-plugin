@@ -69,6 +69,9 @@ export class Agent {
 
 	async run(input: AgentInput): Promise<AgentResponse> {
 		const { query } = input;
+		// v0.83.0: capture startTime at top of run() for accurate durationMs (was always 0)
+		const startTime = Date.now();
+		(this as unknown as { __startTime: number }).__startTime = startTime;
 		logger.info("agent: query", { query: query.substring(0, 80) });
 
 		// Track tools used for transparency
@@ -413,7 +416,7 @@ export class Agent {
 		}
 
 		// v0.70.0 BUG #1 fix: log resposta estruturada (era só query, faltava response)
-		const startTime = (this as unknown as { __startTime?: number }).__startTime ?? Date.now();
+		// v0.83.0: usa startTime do escopo da função (capturado no início de run())
 		logger.info("agent: response", {
 			query: query.slice(0, 100),
 			intent,

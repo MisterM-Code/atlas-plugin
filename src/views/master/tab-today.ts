@@ -537,6 +537,24 @@ async function renderAtlasPercebeu(el: HTMLElement, plugin: AtlasPlugin): Promis
 			slot.empty();
 			slot.createSpan({ cls: "atlas-today-insight-icon", text: ins.icon });
 			slot.createSpan({ cls: "atlas-today-insight-text", text: ins.text });
+			// v0.83.0: actionable button if insight has action
+			if (ins.action) {
+				const btn = slot.createEl("button", {
+					cls: "atlas-today-insight-action",
+					text: ins.action.label,
+				});
+				btn.addEventListener("click", (e) => {
+					e.stopPropagation();
+					if (ins.action?.tabId) {
+						void plugin.activateMasterTab(ins.action.tabId as never);
+					} else if (ins.action?.commandId) {
+						const apiAny = plugin.app as unknown as {
+							commands?: { executeCommandById?: (id: string) => void };
+						};
+						apiAny.commands?.executeCommandById?.(ins.action.commandId);
+					}
+				});
+			}
 			counter.setText(`${idx + 1} / ${insights.length}`);
 			idx = (idx + 1) % insights.length;
 		};
@@ -801,6 +819,8 @@ async function collectCriticalAlerts(plugin: AtlasPlugin): Promise<AlertItem[]> 
 interface InsightItem {
 	icon: string;
 	text: string;
+	// v0.83.0: actionable — click do user dispara callback (abre tab, executa command, etc)
+	action?: { label: string; tabId?: string; commandId?: string };
 }
 
 function collectInsights(plugin: AtlasPlugin): InsightItem[] {
@@ -816,6 +836,7 @@ function collectInsights(plugin: AtlasPlugin): InsightItem[] {
 		insights.push({
 			icon: "🏷️",
 			text: `Tema "${p.name}" mencionado ${p.frequency}× nos últimos 7 dias`,
+			action: { label: "Ver no KG →", tabId: "knowledge" },
 		});
 	}
 
@@ -824,6 +845,7 @@ function collectInsights(plugin: AtlasPlugin): InsightItem[] {
 		insights.push({
 			icon: "🧠",
 			text: `${peopleN} pessoas no seu Knowledge Graph — vault rico em relacionamentos`,
+			action: { label: "Abrir Knowledge →", tabId: "knowledge" },
 		});
 	}
 
@@ -832,6 +854,34 @@ function collectInsights(plugin: AtlasPlugin): InsightItem[] {
 		insights.push({
 			icon: "🔥",
 			text: `${recentMods} notas modificadas em 7d — você tá produzindo!`,
+			action: { label: "Ver Activity →", commandId: "atlas:weekly-now" },
+		});
+	}
+
+	// v0.83.0: detect orphan files (notas sem tags ou frontmatter — possíveis candidatos a categorizar)
+	const allFiles = plugin.app.vault.getMarkdownFiles();
+	const untagged = allFiles.filter((f) => {
+		const cache = plugin.app.metadataCache.getFileCache(f);
+		return !cache?.tags?.length && !cache?.frontmatter?.type;
+	}).length;
+	if (untagged > 5) {
+		insights.push({
+			icon: "🏷️",
+			text: `${untagged} notas sem tags ou type — Atlas pode auto-categorizar pra você`,
+			action: { label: "Auto-tag agora →", commandId: "atlas:auto-tag-vault" },
+		});
+	}
+
+	// v0.83.0: detect KG entities with low context (pessoas com <2 sessões — sugerir cadastrar mais)
+	const ghostPeople = plugin.kg.data.people.filter((p) => {
+		const sessions = plugin.kg.data.sessions.filter((s) => s.personId === p.id);
+		return sessions.length === 0;
+	}).length;
+	if (ghostPeople > 0) {
+		insights.push({
+			icon: "👻",
+			text: `${ghostPeople} pessoas sem sessões 1:1 registradas — agendar uma?`,
+			action: { label: "Ver pessoas →", tabId: "knowledge" },
 		});
 	}
 
