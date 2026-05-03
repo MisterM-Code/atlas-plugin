@@ -215,7 +215,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		// Test connection
 		new Setting(containerEl)
 			.setName("🔌 Testar conexão dos providers")
-			.setDesc("Lista quais providers estão configurados e respondendo.")
+			.setDesc(t("settings.desc.providers.test"))
 			.addButton((b) => {
 				b.setButtonText("Testar").onClick(async () => {
 					const router = this.plugin.providerRouter;
@@ -293,7 +293,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.budget.enabled"))
-			.setDesc("Liga rastreamento + alertas + (opcional) hard cutoff.")
+			.setDesc(t("settings.desc.budget.enabled"))
 			.addToggle((t) => {
 				const cfg = ensureProvidersConfig();
 				if (!cfg.budget) cfg.budget = { enabled: false, monthlyUSD: 20, dailyUSD: 2, hardCutoff: false, warnAtPct: 0.8 };
@@ -308,7 +308,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.budget.monthly"))
-			.setDesc("Limite total no mês. Default $20. 0 = sem limite.")
+			.setDesc(t("settings.desc.budget.monthly"))
 			.addText((t) => {
 				const cfg = ensureProvidersConfig();
 				t.setPlaceholder("20").setValue(String(cfg.budget?.monthlyUSD ?? 20));
@@ -323,7 +323,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.budget.daily"))
-			.setDesc("Limite por dia. Default $2. 0 = sem limite.")
+			.setDesc(t("settings.desc.budget.daily"))
 			.addText((t) => {
 				const cfg = ensureProvidersConfig();
 				t.setPlaceholder("2").setValue(String(cfg.budget?.dailyUSD ?? 2));
@@ -338,7 +338,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.budget.hardcutoff"))
-			.setDesc("Se ON, Atlas BLOQUEIA chamadas além do budget (recusa o request). Se OFF, só avisa.")
+			.setDesc(t("settings.desc.budget.hardcutoff"))
 			.addToggle((t) => {
 				const cfg = ensureProvidersConfig();
 				t.setValue(cfg.budget?.hardCutoff ?? false).onChange(async (v) => {
@@ -353,7 +353,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		// Quick link to Spend dashboard
 		new Setting(containerEl)
 			.setName(t("settings.field.budget.dashboard"))
-			.setDesc("Abre Status → Spend pra ver gastos por dia/provider/feature com gráficos.")
+			.setDesc(t("settings.desc.budget.dashboard"))
 			.addButton((b) => {
 				b.setButtonText("Abrir dashboard").setCta().onClick(async () => {
 					await this.plugin.activateMasterTab("status");
@@ -701,7 +701,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		// Color accent picker
 		new Setting(containerEl)
 			.setName("Color accent")
-			.setDesc("Cor primária do Atlas (aplicada em tabs ativas, header, badges).")
+			.setDesc(t("settings.desc.color.accent"))
 			.addDropdown((d) => {
 				const presets = [
 					{ id: "#6366f1", label: "Indigo" },
@@ -757,7 +757,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		// Show all tools override
 		new Setting(containerEl)
 			.setName("Mostrar todas as Tools IA")
-			.setDesc("Quando OFF (default), Lab → Tools IA mostra só tools do(s) perfil(is) ativos.")
+			.setDesc(t("settings.desc.tools.show"))
 			.addToggle((t) => {
 				t.setValue(this.plugin.settings.profile?.showAllToolsOverride ?? false);
 				t.onChange(async (v) => {
@@ -811,7 +811,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.user.name"))
-			.setDesc("Aparece em saudações e assinaturas de email.")
+			.setDesc(t("settings.desc.user.name"))
 			.addText((t) =>
 				t
 					.setPlaceholder("Nome")
@@ -847,7 +847,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("Estrutura de pastas do vault")
-			.setDesc("Cria as pastas do Atlas no seu vault. Seguro rodar mais de uma vez.")
+			.setDesc(t("settings.desc.vault.setup"))
 			.addButton((b) =>
 				b
 					.setButtonText(
@@ -869,7 +869,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("URL")
-			.setDesc("Padrão Ollama é http://localhost:11434.")
+			.setDesc(t("settings.desc.ollama.url"))
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.ollama.baseUrl)
@@ -881,7 +881,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.ollama.gen"))
-			.setDesc("Recomendado: qwen2.5:14b (≥16 GB RAM) ou llama3.2:3b (RAM menor).")
+			.setDesc(t("settings.desc.ollama.gen"))
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.ollama.generationModel)
@@ -893,7 +893,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.ollama.emb"))
-			.setDesc("bge-m3 é o melhor para PT-BR.")
+			.setDesc(t("settings.desc.ollama.emb"))
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.ollama.embeddingModel)
@@ -924,7 +924,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.sched.morning"))
-			.setDesc("Email + push com agenda do dia.")
+			.setDesc(t("settings.desc.sched.morning"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.schedules.morningBriefingEnabled)
@@ -945,7 +945,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.sched.evening"))
-			.setDesc("Lembrete para fechar daily log.")
+			.setDesc(t("settings.desc.sched.evening"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.schedules.eveningReviewEnabled)
@@ -965,7 +965,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.sched.weekly"))
-			.setDesc("Sexta 16h por padrão.")
+			.setDesc(t("settings.desc.sched.weekly"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.schedules.weeklyReportEnabled)
@@ -1044,7 +1044,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.email.from"))
-			.setDesc("Costuma ser igual ao usuário SMTP.")
+			.setDesc(t("settings.desc.email.from"))
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.email.fromAddress)
@@ -1056,7 +1056,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.email.recipients"))
-			.setDesc("Separe múltiplos por vírgula.")
+			.setDesc(t("settings.desc.email.recipients"))
 			.addTextArea((t) =>
 				t
 					.setValue(this.plugin.settings.email.defaultRecipientsWeekly)
@@ -1082,7 +1082,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.notify.telegram"))
-			.setDesc("Crie um bot via @BotFather, cole o token.")
+			.setDesc(t("settings.desc.notify.telegram"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.notifications.telegramEnabled)
@@ -1148,7 +1148,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		// v0.22 Sprint F: Auto-detect now button
 		new Setting(containerEl)
 			.setName(t("settings.field.voice.autodetect"))
-			.setDesc("Re-scan dos paths conhecidos (/opt/homebrew, /usr/local, ~/whisper.cpp/build, etc).")
+			.setDesc(t("settings.desc.voice.autodetect"))
 			.addButton((b) => {
 				b.setButtonText("Detectar").onClick(async () => {
 					b.setButtonText("Detectando...");
@@ -1182,7 +1182,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.voice.binary"))
-			.setDesc("Ex: /opt/homebrew/bin/whisper-cpp")
+			.setDesc(t("settings.desc.voice.binary"))
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.voice.whisperBinaryPath)
@@ -1194,7 +1194,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.voice.model"))
-			.setDesc("Ex: ~/whisper.cpp/models/ggml-base.bin")
+			.setDesc(t("settings.desc.voice.model"))
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.voice.whisperModelPath)
@@ -1207,7 +1207,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		// v0.22 Sprint F: Test button (validates binary executes)
 		new Setting(containerEl)
 			.setName(t("settings.field.voice.test"))
-			.setDesc("Executa `whisper-cpp --version` e confirma que está funcionando.")
+			.setDesc(t("settings.desc.voice.test"))
 			.addButton((b) => {
 				b.setButtonText("Testar").onClick(async () => {
 					const path = this.plugin.settings.voice.whisperBinaryPath;
@@ -1236,7 +1236,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		// v0.22 Sprint F: Install instructions (per-OS)
 		new Setting(containerEl)
 			.setName(t("settings.field.voice.install"))
-			.setDesc("Comando + instruções específicas pra seu OS.")
+			.setDesc(t("settings.desc.voice.install"))
 			.addButton((b) => {
 				b.setButtonText("Ver instruções").onClick(async () => {
 					const { installInstructionsFor } = await import("../automation/whisper-detector");
@@ -1275,7 +1275,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.adv.autokg"))
-			.setDesc("Pode atrasar saves em vaults grandes.")
+			.setDesc(t("settings.desc.adv.autokg"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.behavior.autoExtractKgOnSave)
@@ -1287,7 +1287,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.adv.audit"))
-			.setDesc("Loga ações em .atlas/audit.jsonl (recomendado).")
+			.setDesc(t("settings.desc.adv.audit"))
 			.addToggle((t) =>
 				t
 					.setValue(this.plugin.settings.privacy.auditLogEnabled)
@@ -1299,7 +1299,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName(t("settings.field.adv.reset"))
-			.setDesc("Re-executa o wizard de configuração inicial.")
+			.setDesc(t("settings.desc.adv.reset"))
 			.addButton((b) =>
 				b.setButtonText("Resetar").onClick(async () => {
 					this.plugin.settings.onboarding.completed = false;

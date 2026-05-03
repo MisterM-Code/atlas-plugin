@@ -4,6 +4,40 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.79.0] — 2026-05-03 — "Settings field descriptions (27 setDesc wired) — backlog 100% i18n Settings"
+
+### All Settings field descriptions i18n (27 wired)
+**File:** `src/views/settings-tab.ts`
+
+Sections completas com setDesc i18n:
+- **Providers** (1): test
+- **Budget** (5): enabled / monthly / daily / hardcutoff / dashboard
+- **Profile/Color** (2): color.accent / tools.show
+- **User** (1): name
+- **Vault** (1): setup
+- **Ollama** (3): url / gen / emb
+- **Schedules** (3): morning / evening / weekly
+- **Email** (2): from / recipients
+- **Notifications** (1): telegram
+- **Voice** (5): autodetect / binary / model / test / install
+- **Advanced** (3): autokg / audit / reset
+
+### Settings i18n agora 100%
+35 setName + 27 setDesc = **62 strings wired** em Settings tab. Inclui também:
+- 10 section headers (v0.66)
+- UI Language toggle runtime (v0.67)
+- Vault Import History viewer + Health dashboard (v0.74)
+
+### Total i18n acumulado v0.55→v0.79
+- **~354 chaves bilingual** cobrindo ~99% UX
+
+### Backlog real restante (~1%)
+- Tour body content em PT (markdown rico — não traduzir intencional)
+- Notice messages bulk em PT (centenas espalhadas — chaves disponíveis pra refactor incremental)
+- PR #12473 obsidian-releases — bot validation queue async
+
+---
+
 ## [0.78.0] — 2026-05-03 — "Settings field labels remaining (20 wired) — backlog 98% completo"
 
 ### Settings field labels — 20 wired (all sections covered)
