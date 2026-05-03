@@ -331,15 +331,18 @@ export class AtlasSettingTab extends PluginSettingTab {
 				}
 			}
 			// Apply default routing per provider
+			// v0.52.4: defaults agora priorizam CHEAP (Haiku/mini/Flash) pra economia.
+			// User pode upgrade manual pra Sonnet/Opus se quiser qualidade premium.
+			// Reasoning sempre usa modelo top do provider (uso pontual = OK gastar mais).
 			const PROVIDER_DEFAULTS: Record<string, { chat: string; reasoning?: string; summarization?: string; embedding?: string }> = {
 				ollama: { chat: this.plugin.settings.ollama?.generationModel ?? "qwen2.5:7b", embedding: "bge-m3" },
-				anthropic: { chat: "claude-sonnet-4-6", reasoning: "claude-opus-4-7", summarization: "claude-haiku-4-5-20251001" },
+				anthropic: { chat: "claude-haiku-4-5-20251001", reasoning: "claude-opus-4-7", summarization: "claude-haiku-4-5-20251001" },
 				openai: { chat: "gpt-4o-mini", reasoning: "o1-mini", summarization: "gpt-4o-mini", embedding: "text-embedding-3-small" },
 				google: { chat: "gemini-2.0-flash", reasoning: "gemini-2.5-pro", summarization: "gemini-2.0-flash" },
 				mistral: { chat: "mistral-small-latest", reasoning: "mistral-large-latest" },
 				deepseek: { chat: "deepseek-chat", reasoning: "deepseek-reasoner", summarization: "deepseek-chat" },
-				groq: { chat: "llama-3.3-70b-versatile", summarization: "llama-3.1-8b-instant" },
-				openrouter: { chat: "anthropic/claude-3.5-sonnet" },
+				groq: { chat: "llama-3.1-8b-instant", reasoning: "llama-3.3-70b-versatile", summarization: "llama-3.1-8b-instant" },
+				openrouter: { chat: "anthropic/claude-3.5-haiku" },
 			};
 			const defaults = PROVIDER_DEFAULTS[choice] ?? PROVIDER_DEFAULTS.ollama;
 			if (!this.plugin.settings.providers) {

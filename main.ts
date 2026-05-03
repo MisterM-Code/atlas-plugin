@@ -328,11 +328,10 @@ export default class AtlasPlugin extends Plugin {
 		}
 
 		// v0.18 — LLMService façade (single entry point: cloud-or-ollama auto)
+		// v0.52.4 FIX: criar LLMService AGORA mas wire pro embedder DEPOIS (embedder ainda não existe)
 		try {
 			const { createLLMService } = await import("./src/providers/llm-service");
 			this.llm = createLLMService(this);
-			// Wire LLMService into Embedder so all chunk embeddings route via router
-			this.embedder.setLLMService(this.llm);
 
 			// v0.18: auto-default embeddings to OpenAI when OpenAI key configured
 			// (decisão do user: "Cloud auto se key configurada")
@@ -385,6 +384,15 @@ export default class AtlasPlugin extends Plugin {
 			normalizePath(`${this.settings.folders.atlas}/embeddings.json`)
 		);
 		await this.embedder.load();
+		// v0.52.4 FIX: wire LLMService no embedder AGORA que ele existe
+		// (antes era no try/catch acima e quebrava com TypeError: undefined.setLLMService)
+		if (this.llm) {
+			try {
+				this.embedder.setLLMService(this.llm);
+			} catch (e) {
+				logger.warn("Atlas: embedder.setLLMService falhou", { error: String(e) });
+			}
+		}
 
 		this.notifier = new Notifier({
 			desktopEnabled: this.settings.notifications.desktopEnabled,
@@ -692,6 +700,27 @@ ${selection ? `## Highlight\n\n> ${selection.replace(/\n/g, "\n> ")}\n` : ""}
 		}
 
 		logger.info("Atlas plugin pronto.");
+
+		// v0.52.4: Low RAM warning — Ollama precisa 6-9 GB pra modelos médios.
+		// Se free < 2 GB, alerta user que cloud é a opção viável.
+		try {
+			const os = await import("os");
+			const freeGB = os.freemem() / 1_073_741_824;
+			const totalGB = os.totalmem() / 1_073_741_824;
+			logger.info("system: RAM check", {
+				freeGB: Math.round(freeGB * 10) / 10,
+				totalGB: Math.round(totalGB * 10) / 10,
+			});
+			if (freeGB < 2) {
+				const cloudConfigured = (this.providerRouter?.listConfiguredProviders().length ?? 0) > 0;
+				const msg = cloudConfigured
+					? `Atlas: pouca RAM livre (${freeGB.toFixed(1)} GB). Use cloud (Settings → Cloud Providers) — Ollama local pode ficar lento.`
+					: `Atlas: pouca RAM livre (${freeGB.toFixed(1)} GB). Recomendo configurar cloud (Anthropic Haiku é cheap+fast) ou usar Ollama com modelo pequeno (qwen2.5:1.5b).`;
+				new Notice(msg, 12000);
+			}
+		} catch {
+			// silent — RAM check é nice-to-have
+		}
 
 		// v0.52 Sprint E: WhatsNewModal SÓ depois de onboarding completo
 		// (evita competição com Splash + OnboardingWizard + TabsTourModal em first-run)

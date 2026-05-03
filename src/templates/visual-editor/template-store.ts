@@ -54,8 +54,14 @@ export class TemplateStore {
 			if (file instanceof TFile) {
 				await this.app.vault.modify(file, json);
 			} else {
+				// v0.52.4: createFolder pode dar race ("Folder already exists") — try/catch silencia
 				if (!this.app.vault.getAbstractFileByPath(this.atlasFolder)) {
-					await this.app.vault.createFolder(this.atlasFolder);
+					try {
+						await this.app.vault.createFolder(this.atlasFolder);
+					} catch (folderErr) {
+						// folder may exist via race — ignore "already exists" error
+						if (!String(folderErr).includes("already exists")) throw folderErr;
+					}
 				}
 				await this.app.vault.create(this.path, json);
 			}

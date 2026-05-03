@@ -4,6 +4,36 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.52.4] — 2026-05-03 — "🚨 HOTFIX: LLMService init bug + Haiku default + RAM warn + folder race"
+
+### Bug crítico corrigido (P0 — quebra o chat com cloud)
+- Em main.ts onload, `this.embedder.setLLMService(this.llm)` era chamado ANTES de `this.embedder = new Embedder(...)` — `embedder` era `undefined` → `TypeError: Cannot read properties of undefined (reading 'setLLMService')`
+- Resultado: LLMService caía em fallback ollama-only, cloud routing IGNORADO
+- Logs do user mostraram exatamente: `"LLMService falhou ao iniciar — fallback ollama-only"`
+- Fix: mover `embedder.setLLMService(this.llm)` pra DEPOIS de `new Embedder()` + try/catch
+
+### Anthropic default chat: Sonnet → Haiku
+- Primary Provider picker (Settings → Cloud Providers) agora seta `claude-haiku-4-5` como chat default (era Sonnet 4.6)
+- 12× mais barato ($0.25/$1.25 vs $3/$15 por 1M tokens)
+- Reasoning ainda usa Opus, summarization Haiku
+- User pode upgrade pra Sonnet/Opus manual via dropdown se quiser qualidade premium
+- OpenRouter default `claude-3.5-haiku` (era 3.5-sonnet)
+- Groq default `llama-3.1-8b-instant` (era 70b)
+
+### Templates folder race condition
+- `template-store.ts save()` agora try/catch ao redor de `createFolder` — silencia "Folder already exists"
+- Logs do user mostraram: `"templates: save falhou {Error: Folder already exists}"`
+
+### Low-RAM warning no startup
+- main.ts onload checa `os.freemem()` — se < 2 GB livre, dispara Notice 12s
+- Mensagem contextual: se cloud configurado → "use cloud, Ollama vai ficar lento"; se não → "configure Anthropic Haiku ou qwen 1.5b"
+- User reportou `freeRamGB: 1.4` — justamente o caso
+
+### Files
+- `main.ts` — embedder init order fix + RAM warning
+- `src/views/settings-tab.ts` — PROVIDER_DEFAULTS Anthropic chat → Haiku
+- `src/templates/visual-editor/template-store.ts` — try/catch em createFolder
+
 ## [0.52.3] — 2026-05-02 — "child_process lazy + emoji fallback + Primary Provider + HUD chat input + mic UX + cost warn"
 
 ### Fix child_process imports (P0)
