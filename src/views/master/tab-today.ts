@@ -55,6 +55,24 @@ export async function renderTodayTab(container: HTMLElement, plugin: AtlasPlugin
 	const chatBridge = zone1.createDiv({ cls: "atlas-today-chat-bridge" });
 	renderChatBridge(chatBridge, plugin);
 
+	// v0.64.0: Vault Importer hint — só se nunca importou + vault não-vazio
+	const importHistory = (plugin.settings as unknown as { importHistory?: unknown[] }).importHistory;
+	const totalNotes = plugin.app.vault.getMarkdownFiles().length;
+	if ((!importHistory || importHistory.length === 0) && totalNotes >= 30) {
+		const banner = zone1.createDiv({ cls: "atlas-today-import-hint" });
+		banner.createSpan({ cls: "atlas-today-import-hint-icon", text: "📥" });
+		const body = banner.createDiv({ cls: "atlas-today-import-hint-body" });
+		body.createDiv({ cls: "atlas-today-import-hint-title", text: "Tem notas em outro vault?" });
+		body.createDiv({ cls: "atlas-today-import-hint-desc", text: "Atlas pode importar e categorizar tudo automaticamente — pessoas, sistemas, projetos." });
+		const cta = banner.createEl("button", { cls: "mod-cta atlas-today-import-hint-cta", text: "📥 Importar vault" });
+		cta.onclick = () => {
+			const apiAny = plugin.app as unknown as { commands?: { executeCommandById?: (id: string) => void } };
+			apiAny.commands?.executeCommandById?.("atlas:import-vault");
+		};
+		const dismiss = banner.createEl("button", { cls: "atlas-today-import-hint-dismiss", text: "✕" });
+		dismiss.onclick = () => banner.remove();
+	}
+
 	// ─── ZONE 2: ACTION ───────────────────────────────────────────
 	const zone2 = container.createDiv({ cls: "atlas-today-zone atlas-today-zone-action" });
 	zone2.createDiv({ cls: "atlas-today-zone-title", text: zoneTitles().action });

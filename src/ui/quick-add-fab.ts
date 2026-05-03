@@ -244,6 +244,12 @@ export class QuickAddFab {
 						description: "Análise de risco de iniciativa",
 						onClick: () => exec("atlas:premortem-oracle"),
 					},
+					{
+						icon: "📥",
+						label: "Importar vault externo",
+						description: "Migrar notas de outro vault pra estrutura Atlas",
+						onClick: () => exec("atlas:import-vault"),
+					},
 				],
 			},
 		];

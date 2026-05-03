@@ -4,6 +4,23 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.64.0] — 2026-05-03 — "Vault Importer discoverability hooks"
+
+### Discoverability do v0.63 Vault Importer
+- **FAB Quick Add** ganha entry "📥 Importar vault externo" na categoria 🛠️ TOOLS IA → user descobre a feature ao abrir o FAB familiar
+- **Today tab hint banner** — banner CTA gradient cyan→indigo aparece no topo da Home APENAS se:
+  - `importHistory` vazio (nunca importou)
+  - Vault tem ≥30 notas (.md files no vault)
+  - Banner: "Tem notas em outro vault? Atlas pode importar e categorizar tudo automaticamente — pessoas, sistemas, projetos." + botão "📥 Importar vault" + dismiss ✕
+- Após primeiro import bem-sucedido, banner some automaticamente
+
+### Files MODIFY
+- `src/ui/quick-add-fab.ts` — adicionar item Tools IA
+- `src/views/master/tab-today.ts` — banner condicional após chat-bridge na zone 1
+- `styles.css` — `.atlas-today-import-hint*` (~50 LOC, gradient + hover lift)
+
+---
+
 ## [0.63.0] — 2026-05-03 — "Vault Importer Wizard — migra vaults existentes pra estrutura Atlas"
 
 ### Vault Importer (NEW MAJOR FEATURE)

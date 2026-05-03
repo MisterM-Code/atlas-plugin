@@ -12306,6 +12306,58 @@ button.atlas-btn:active::after,
   opacity: 1;
 }
 
+/* v0.64.0: Vault Importer hint banner em Today tab */
+.atlas-today-import-hint {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin: 14px 0 8px;
+	padding: 14px 18px;
+	background: linear-gradient(135deg, rgba(0, 229, 229, 0.08), rgba(99, 102, 241, 0.08));
+	border: 1px solid rgba(0, 229, 229, 0.3);
+	border-radius: 14px;
+	transition: transform 220ms ease, border-color 220ms ease;
+}
+.atlas-today-import-hint:hover {
+	transform: translateY(-2px);
+	border-color: var(--atlas-accent, #00e5e5);
+}
+.atlas-today-import-hint-icon {
+	font-size: 28px;
+	flex-shrink: 0;
+}
+.atlas-today-import-hint-body {
+	flex: 1;
+	min-width: 0;
+}
+.atlas-today-import-hint-title {
+	font-weight: 600;
+	font-size: 14px;
+	color: var(--text-normal);
+	margin-bottom: 2px;
+}
+.atlas-today-import-hint-desc {
+	font-size: 12px;
+	opacity: 0.75;
+	line-height: 1.4;
+}
+.atlas-today-import-hint-cta {
+	flex-shrink: 0;
+}
+.atlas-today-import-hint-dismiss {
+	background: transparent;
+	border: none;
+	color: var(--text-muted);
+	cursor: pointer;
+	padding: 4px 8px;
+	font-size: 14px;
+	flex-shrink: 0;
+	transition: color 180ms ease;
+}
+.atlas-today-import-hint-dismiss:hover {
+	color: var(--text-normal);
+}
+
 /* v0.63.0: Vault Importer Wizard */
 .atlas-import-wizard {
 	display: flex;
