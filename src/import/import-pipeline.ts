@@ -15,7 +15,7 @@ import { App, normalizePath, TFile } from "obsidian";
 import type AtlasPlugin from "../../main";
 import { classify, ClassifyResult, NoteType, targetFolderFor } from "./heuristic-classifier";
 import { resolveDuplicate, detectBrokenLinks, markBrokenLink } from "./conflict-resolver";
-import { detectSourceFormat, stripNotionUuid, SourceFormat } from "./source-detector";
+import { detectSourceFormat, stripNotionUuid, convertNotionInlineProps, SourceFormat } from "./source-detector";
 import { writeImportReport, ImportReportData } from "./import-report";
 import { logger } from "../utils/logger";
 import type { ExtractionResultT } from "../kg/schemas";
@@ -370,12 +370,29 @@ export class ImportPipeline {
 				const file = this.app.vault.getAbstractFileByPath(m.source);
 				if (file instanceof TFile) {
 					try {
-						const body = await this.app.vault.cachedRead(file);
+						let body = await this.app.vault.cachedRead(file);
+						let bodyChanged = false;
+						// v0.69: Notion → converter inline props (Tags: ..., Created: ...) pra YAML frontmatter
+						if (this.sourceFormat === "notion") {
+							const hasFm = body.startsWith("---\n");
+							if (!hasFm) {
+								const { props, cleanBody } = convertNotionInlineProps(body);
+								if (Object.keys(props).length > 0) {
+									const yaml = Object.entries(props)
+										.map(([k, v]) => `${k}: ${Array.isArray(v) ? `[${v.join(", ")}]` : JSON.stringify(v)}`)
+										.join("\n");
+									body = `---\n${yaml}\n---\n\n${cleanBody}`;
+									bodyChanged = true;
+								}
+							}
+						}
 						const broken = detectBrokenLinks(this.app, body);
 						if (broken.length > 0) {
-							let updated = body;
-							for (const b of broken) updated = markBrokenLink(updated, b);
-							await this.app.vault.modify(file, updated);
+							for (const b of broken) body = markBrokenLink(body, b);
+							bodyChanged = true;
+						}
+						if (bodyChanged) {
+							await this.app.vault.modify(file, body);
 						}
 					} catch {/* best effort */}
 					// fileManager.renameFile reescreve backlinks atomicamente

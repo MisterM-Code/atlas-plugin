@@ -4,6 +4,48 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.69.0] — 2026-05-03 — "Notion frontmatter conversion wired (gap crítico fechado)"
+
+### Gap fechado: Notion inline props → YAML frontmatter
+v0.68 criou `convertNotionInlineProps` em source-detector mas **não estava chamado**. Agora wired em `applyMovePlan`:
+
+**Antes (Notion export importado):**
+```
+Tags: Work, Important
+Created: 2026-04-15
+Status: Done
+
+Real content...
+```
+
+**Depois (Atlas-converted):**
+```yaml
+---
+tags: [Work, Important]
+created: "2026-04-15"
+status: "Done"
+---
+
+Real content...
+```
+
+### Implementação
+- `import-pipeline.ts applyMovePlan` detecta `sourceFormat === "notion"` + nota sem frontmatter (`!body.startsWith("---\n")`)
+- Chama `convertNotionInlineProps(body)` → extrai props
+- Reconstrói body com YAML frontmatter (`---\nkey: value\n---\n\n...`)
+- Salva via `vault.modify()` ANTES do `fileManager.renameFile()` (preserva content)
+- Backlinks broken também marcados no mesmo loop (eficiente single-pass)
+
+### Resultado
+Notion users agora têm:
+- ✅ Filenames limpos (UUID strip — v0.68)
+- ✅ Frontmatter YAML Atlas-compatible (v0.69)
+- ✅ Tags reconhecidas corretamente
+- ✅ Created/modified dates parsáveis
+- Atlas KG extractor pode consumir as notas direto sem etapa manual
+
+---
+
 ## [0.68.0] — 2026-05-03 — "Notion/Roam/Logseq source detection no Vault Importer"
 
 ### Source format detector
