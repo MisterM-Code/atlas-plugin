@@ -9,6 +9,7 @@
 import { App, Modal, Setting, MarkdownRenderer, Component } from "obsidian";
 import type AtlasPlugin from "../../main";
 import { applyResponsiveModal } from "./modal-helpers";
+import { t } from "../i18n";
 
 const FEATURES_BY_VERSION = [
 	{
@@ -103,11 +104,11 @@ export class WhatsNewModal extends Modal {
 		const header = contentEl.createDiv({ cls: "atlas-whats-new-header" });
 		header.createEl("h2", {
 			cls: "atlas-whats-new-title",
-			text: `🌌 Atlas v${this.plugin.manifest.version} — Novidades recentes`,
+			text: t("whatsnew.title", { version: this.plugin.manifest.version }),
 		});
 		header.createEl("p", {
 			cls: "atlas-whats-new-subtitle",
-			text: "Veja o que foi adicionado nas últimas versões. Use Cmd+P pra acessar qualquer comando.",
+			text: t("whatsnew.subtitle"),
 		});
 
 		const list = contentEl.createDiv({ cls: "atlas-whats-new-list" });

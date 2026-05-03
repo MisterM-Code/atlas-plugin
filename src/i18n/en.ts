@@ -154,6 +154,22 @@ export const dict: Record<string, string> = {
 	"common.edit": "Edit",
 	"common.view": "View",
 
+	// ─── WhatsNew + UX modais (v0.61) ───
+	"whatsnew.title": "🌌 Atlas v{version} — What's new",
+	"whatsnew.subtitle": "See what was added in recent versions. Use Cmd+P to access any command.",
+
+	// ─── Settings section headers (v0.61) ───
+	"settings.routing.title": "🎯 Routing per task",
+	"settings.budget.title": "💰 Spending control",
+	"settings.profile.section.title": "🎯 Professional profile",
+	"settings.you.title": "👤 You",
+	"settings.ollama.title": "🤖 Ollama (local LLM)",
+	"settings.schedules.title": "⏰ Schedules",
+	"settings.email.title": "📧 Email",
+	"settings.notifications.title": "🔔 Notifications",
+	"settings.voice.title": "🎤 Voice (whisper.cpp)",
+	"settings.advanced.title": "⚙️ Advanced",
+
 	// ─── Onboarding steps (v0.59) ───
 	"onboarding.setup.title": "🧠 Atlas — Setup",
 	"onboarding.profile.title": "👤 What's your professional profile?",

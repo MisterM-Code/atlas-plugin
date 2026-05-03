@@ -4,6 +4,37 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.61.0] — 2026-05-03 — "Settings i18n completion + WhatsNew + PR #12473 template re-fix"
+
+### Settings i18n (10 sections)
+Wired via `t("settings.*.title")`:
+- 🎯 Roteamento por tarefa, 💰 Controle de gastos
+- 🎯 Perfil profissional, 👤 Você
+- 🤖 Ollama, ⏰ Agendamentos, 📧 Email
+- 🔔 Notificações, 🎤 Voice, ⚙️ Avançado
+
+### WhatsNew modal i18n
+- Title `🌌 Atlas v{version} — Novidades recentes` via `t("whatsnew.title")`
+- Subtitle via `t("whatsnew.subtitle")`
+
+### Dictionaries — 12 chaves novas
+- `settings.routing/budget/profile.section/you/ollama/schedules/email/notifications/voice/advanced.title`
+- `whatsnew.title/subtitle`
+
+### PR #12473 obsidian-releases (re-application)
+Body re-aplicado com template literal completo + plugin summary abaixo do `---` separator. Bot validator executa após próximo trigger commit.
+
+### Total i18n acumulado v0.55→v0.61
+- **~210 chaves bilingual** cobrindo ~88% das strings UX (Settings agora ~70% wired)
+
+### Pendente v0.62+
+- Home Cosmic 3-zone redesign sprint dedicado
+- Notice messages individuais (refactor incremental por arquivo)
+- Settings field labels individuais (~50 strings menores)
+- Tour content driver.js i18n
+
+---
+
 ## [0.60.0] — 2026-05-03 — "Atlas Cockpit popout (OS-level window) + Onboarding/FAB i18n bulk"
 
 ### v0.60 — Atlas Cockpit Popout (NEW MAJOR FEATURE)

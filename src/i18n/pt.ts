@@ -156,6 +156,22 @@ export const dict: Record<string, string> = {
 	"common.edit": "Editar",
 	"common.view": "Ver",
 
+	// ─── WhatsNew + UX modais (v0.61) ───
+	"whatsnew.title": "🌌 Atlas v{version} — Novidades recentes",
+	"whatsnew.subtitle": "Veja o que foi adicionado nas últimas versões. Use Cmd+P pra acessar qualquer comando.",
+
+	// ─── Settings section headers (v0.61) ───
+	"settings.routing.title": "🎯 Roteamento por tarefa",
+	"settings.budget.title": "💰 Controle de gastos",
+	"settings.profile.section.title": "🎯 Perfil profissional",
+	"settings.you.title": "👤 Você",
+	"settings.ollama.title": "🤖 Ollama (LLM local)",
+	"settings.schedules.title": "⏰ Agendamentos",
+	"settings.email.title": "📧 Email",
+	"settings.notifications.title": "🔔 Notificações",
+	"settings.voice.title": "🎤 Voice (whisper.cpp)",
+	"settings.advanced.title": "⚙️ Avançado",
+
 	// ─── Onboarding steps (v0.59) ───
 	"onboarding.setup.title": "🧠 Atlas — Setup",
 	"onboarding.profile.title": "👤 Qual é seu perfil profissional?",

@@ -228,7 +228,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			});
 
 		// Routing
-		containerEl.createEl("h4", { text: "🎯 Roteamento por tarefa" });
+		containerEl.createEl("h4", { text: t("settings.routing.title") });
 		containerEl.createEl("p", {
 			cls: "atlas-settings-section-desc",
 			text: "Escolha qual provider+model usar para cada tipo de tarefa. Cada combinação tem preço diferente — veja Spend dashboard pra acompanhar custos.",
@@ -284,7 +284,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		}
 
 		// Budget controls
-		containerEl.createEl("h4", { text: "💰 Controle de gastos" });
+		containerEl.createEl("h4", { text: t("settings.budget.title") });
 		containerEl.createEl("p", {
 			cls: "atlas-settings-section-desc",
 			text: "Atlas rastreia tokens consumidos × preço por modelo. Defina limites diário/mensal — Atlas avisa em 80% e (opcional) bloqueia chamadas além do limite.",
@@ -630,7 +630,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 	// v0.7.6: Profile section — mudar perfil sem refazer onboarding
 	private section_profile(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "🎯 Perfil profissional" });
+		containerEl.createEl("h3", { text: t("settings.profile.section.title") });
 		containerEl.createEl("p", {
 			text: "Multi-perfil: Atlas adapta templates, tools IA, frameworks, métricas e schedules ao(s) perfil(is) escolhido(s).",
 			cls: "atlas-settings-section-desc",
@@ -771,7 +771,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 	private section_user(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "👤 Você" });
+		containerEl.createEl("h3", { text: t("settings.you.title") });
 
 		new Setting(containerEl)
 			.setName("Seu nome")
@@ -829,7 +829,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 	private section_ollama(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "🤖 Ollama (LLM local)" });
+		containerEl.createEl("h3", { text: t("settings.ollama.title") });
 
 		new Setting(containerEl)
 			.setName("URL")
@@ -884,7 +884,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 	private section_schedules(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "⏰ Agendamentos" });
+		containerEl.createEl("h3", { text: t("settings.schedules.title") });
 
 		new Setting(containerEl)
 			.setName("Briefing matinal")
@@ -972,7 +972,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 	private section_email(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "📧 Email" });
+		containerEl.createEl("h3", { text: t("settings.email.title") });
 		containerEl.createEl("p", {
 			text: "Para Gmail use App Password. Guardado encriptado localmente.",
 		});
@@ -1033,7 +1033,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 	private section_notifications(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "🔔 Notificações" });
+		containerEl.createEl("h3", { text: t("settings.notifications.title") });
 
 		new Setting(containerEl).setName("Desktop").addToggle((t) =>
 			t
@@ -1077,7 +1077,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 	private section_voice(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "🎤 Voice (whisper.cpp)" });
+		containerEl.createEl("h3", { text: t("settings.voice.title") });
 
 		// v0.22 Sprint F: FREE local banner
 		const banner = containerEl.createDiv({ cls: "atlas-voice-banner" });
@@ -1224,7 +1224,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 	private section_advanced(): void {
 		const { containerEl } = this;
-		containerEl.createEl("h3", { text: "⚙️ Avançado" });
+		containerEl.createEl("h3", { text: t("settings.advanced.title") });
 
 		new Setting(containerEl)
 			.setName("Auto-indexar vault no startup")
