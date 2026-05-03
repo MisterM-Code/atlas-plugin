@@ -47,12 +47,15 @@
 	word-wrap: break-word;
 }
 
+/* v0.82.0: citations DEPOIS da resposta (não ao lado), max-width pra não comprimir */
 .atlas-chat-citations {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 4px;
-	margin-top: 8px;
-	font-size: 10px;
+	gap: 6px;
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px dashed rgba(99, 102, 241, 0.2);
+	font-size: 11px;
 }
 
 .atlas-citation-card {
@@ -12363,12 +12366,48 @@ button.atlas-btn:active::after,
 	from { opacity: 0; transform: translateY(12px); }
 	to   { opacity: 1; transform: translateY(0); }
 }
-/* v0.80: shadow proporcional + scaled menor (era 48px+drop-shadow grande causando "sombra fixa fora do tamanho") */
+/* v0.80: shadow proporcional + scaled menor */
 .atlas-chat-empty-emoji {
 	font-size: 32px;
 	filter: drop-shadow(0 0 4px rgba(0, 229, 229, 0.3));
 	animation: atlas-chat-empty-breathe 3.2s ease-in-out infinite;
 	display: inline-block;
+}
+
+/* v0.82.0: Pre-stream "Atlas pensando" cyan wave indicator */
+.atlas-chat-pre-stream {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 10px;
+	background: linear-gradient(90deg, rgba(0, 229, 229, 0.08), rgba(99, 102, 241, 0.06));
+	border-left: 2px solid var(--atlas-accent, #00e5e5);
+	border-radius: 6px;
+	font-size: 12px;
+	opacity: 0.85;
+	animation: atlas-chat-pre-stream-pulse 1.6s ease-in-out infinite;
+}
+@keyframes atlas-chat-pre-stream-pulse {
+	0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 229, 0); }
+	50%      { box-shadow: 0 0 0 4px rgba(0, 229, 229, 0.15); }
+}
+/* Better typing dots — cyan wave (era plain dots) */
+.atlas-chat-typing span {
+	display: inline-block;
+	width: 5px;
+	height: 5px;
+	margin: 0 2px;
+	background: var(--atlas-accent, #00e5e5);
+	border-radius: 50%;
+	animation: atlas-chat-typing-wave 1.2s ease-in-out infinite;
+	box-shadow: 0 0 4px rgba(0, 229, 229, 0.5);
+}
+.atlas-chat-typing span:nth-child(1) { animation-delay: 0s; }
+.atlas-chat-typing span:nth-child(2) { animation-delay: 0.18s; }
+.atlas-chat-typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes atlas-chat-typing-wave {
+	0%, 60%, 100% { transform: translateY(0) scale(0.8); opacity: 0.5; }
+	30%           { transform: translateY(-6px) scale(1); opacity: 1; }
 }
 @keyframes atlas-chat-empty-breathe {
 	0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(0, 229, 229, 0.25)); }

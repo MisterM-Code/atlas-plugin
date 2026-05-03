@@ -1,7 +1,7 @@
 {
 	"id": "atlas",
 	"name": "Atlas",
-	"version": "0.81.0",
+	"version": "0.82.0",
 	"minAppVersion": "1.5.0",
 	"description": "Local-first second brain. 15 professional profiles, 15 AI tools, ECharts analytics, course manager, knowledge graph, 100% local via Ollama.",
 	"author": "Miguel Veríssimo",

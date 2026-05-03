@@ -230,9 +230,11 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 	};
 
 	// Restore last session — v0.54.0: assistant messages com markdown render
+	// v0.82.0: persist citations across re-renders (era passando []  perdia citations)
 	const turns = plugin.memory.getRecentTurns(20);
 	for (const t of turns) {
-		renderTurn(t.role, t.content, [], { markdown: t.role === "assistant" });
+		const cits = (t.citations ?? []).map((p) => ({ notePath: p, snippet: "" }));
+		renderTurn(t.role, t.content, cits, { markdown: t.role === "assistant" });
 	}
 
 	const send = async () => {
@@ -262,18 +264,45 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 			const bodyEl = wrap.querySelector(".atlas-msg-body") as HTMLElement | null;
 			const cursor = bodyEl?.createSpan({ text: "▎", cls: "atlas-stream-cursor" }) ?? null;
 
+			// v0.82.0: Status pre-stream — show "🧠 Atlas pensando..." in body until first token
+			if (bodyEl && cursor) {
+				const preStream = bodyEl.createDiv({ cls: "atlas-chat-pre-stream" });
+				preStream.createSpan({ text: "🧠 Atlas pensando" });
+				const dots = preStream.createSpan({ cls: "atlas-chat-typing" });
+				dots.createSpan();
+				dots.createSpan();
+				dots.createSpan();
+			}
+
 			// Trigger logo glow durante streaming
 			document
 				.querySelectorAll(".atlas-header-logo")
 				.forEach((el) => el.classList.add("atlas-thinking"));
 
+			// v0.82.0: timeout warning — if no token after 30s, show "ainda processando..."
+			let firstTokenReceived = false;
+			const stuckTimer = window.setTimeout(() => {
+				if (!firstTokenReceived && bodyEl) {
+					const preStream = bodyEl.querySelector(".atlas-chat-pre-stream");
+					if (preStream) preStream.setText("⏳ Demorando mais que esperado... (verifique Logs)");
+				}
+			}, 30000);
+
 			let textBuf = "";
 			const r = await agent.run({
 				query: text,
 				streamCallback: (token: string) => {
+					if (!firstTokenReceived) {
+						firstTokenReceived = true;
+						window.clearTimeout(stuckTimer);
+						// Remove pre-stream placeholder no primeiro token
+						if (bodyEl) {
+							bodyEl.empty();
+							if (cursor) bodyEl.appendChild(cursor);
+						}
+					}
 					textBuf += token;
 					if (bodyEl) {
-						// Substitui texto + recoloca cursor no fim
 						bodyEl.empty();
 						bodyEl.appendText(textBuf);
 						if (cursor) bodyEl.appendChild(cursor);
@@ -281,6 +310,13 @@ export async function renderChatTab(container: HTMLElement, plugin: AtlasPlugin)
 					messagesEl.scrollTop = messagesEl.scrollHeight;
 				},
 			});
+
+			// v0.82.0: limpa timer + pre-stream se streamCallback não disparou (resposta veio inteira)
+			window.clearTimeout(stuckTimer);
+			if (!firstTokenReceived && bodyEl) {
+				bodyEl.empty();
+				if (cursor) bodyEl.appendChild(cursor);
+			}
 
 			// Stream terminou — remove cursor, render citations finais
 			cursor?.remove();

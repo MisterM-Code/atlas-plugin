@@ -4,6 +4,45 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.82.0] — 2026-05-03 — "Chat critical UX fixes (eternal composing + thinking wave + citations persistence)"
+
+### 🔴 BUG FIX: Chat stuck in "composing response" forever
+**Root cause:** When `streamCallback` from `agent.run()` doesn't fire (e.g. when LLM returns whole response without streaming), the chat showed an empty assistant bubble with just `▎` cursor — appearing frozen with no feedback to user.
+
+**Fix in `src/views/master/tab-chat.ts`:**
+- Added **pre-stream placeholder**: "🧠 Atlas pensando" with cyan-glow animated wave dots, displayed in body BEFORE first token arrives
+- Added **30s timeout** that swaps placeholder to "⏳ Demorando mais que esperado... (verifique Logs)" if no token received
+- Tracks `firstTokenReceived` flag — clears placeholder + cancels timer on first stream chunk
+- Final cleanup if response came whole (no streaming): empties placeholder before final markdown render
+
+### 🎨 Better thinking indicator (cyan wave dots)
+**File:** `styles.css`
+- `.atlas-chat-typing span` redesigned — dots agora cyan accent with `box-shadow` glow
+- Animation `atlas-chat-typing-wave` with `translateY(-6px) scale(1)` bouncy lift (era plain opacity fade)
+- Stagger 0/0.18/0.36s entre os 3 dots
+- New `.atlas-chat-pre-stream` container: gradient bg + border-left cyan + pulse box-shadow ring
+
+### 🔴 BUG FIX: Citations disappear on tab re-render
+**Root cause:** History replay on chat tab open passed `[]` empty citations to `renderTurn`. Memory.ConversationTurn had `citations?: string[]` saved from agent.run, but tab-chat ignored it.
+
+**Fix in `tab-chat.ts:233-237`:**
+```ts
+const cits = (t.citations ?? []).map((p) => ({ notePath: p, snippet: "" }));
+renderTurn(t.role, t.content, cits, { markdown: t.role === "assistant" });
+```
+
+### 🎨 Citations layout fix (não comprime mais resposta)
+**styles.css `.atlas-chat-citations`:**
+- Added `padding-top: 8px` + `border-top: 1px dashed rgba(99,102,241,0.2)` — visual separator
+- Citations now clearly BELOW message body (era ao lado achatando)
+- Larger gap (4 → 6px), font 10 → 11px
+
+### Files MODIFY
+- `src/views/master/tab-chat.ts` — pre-stream placeholder + 30s timeout + citations persisted from memory
+- `styles.css` — cyan wave dots animation + pre-stream container + citations separator
+
+---
+
 ## [0.81.0] — 2026-05-03 — "Vault scope security guard + README total rewrite (Iron Man HUD aesthetic)"
 
 ### 🔴 SECURITY FIX: Vault Importer scope guard
