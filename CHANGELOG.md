@@ -4,6 +4,38 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.72.0] — 2026-05-03 — "Voice command 'criar nota/documento/relatório' wired ao create_note tool"
+
+### Voice command `create_note` integration
+v0.70 criou o `create_note` tool, v0.71 polish visual, agora v0.72 wireia voz pra create_note.
+
+**Patterns suportados (regex):**
+- "criar nota sobre X"
+- "criar documento sobre X"
+- "gerar relatório sobre X" → noteType=weekly-status auto
+- "criar ADR sobre X" → noteType=adr
+- "criar paper sobre X" → noteType=paper
+- Sem título → Atlas pergunta (slot-filling com 2 fields: title + noteType)
+
+### Heurística de noteType
+- `/relatório|relatorio/` → weekly-status
+- `/adr|decisão/` → adr
+- `/paper|artigo|research/` → paper
+- default → knowledge
+
+### Fluxo E2E
+1. User aciona Jarvis (Cmd+Shift+J), aperta SPACE, fala "criar relatório sobre vendas Q2"
+2. Whisper transcreve → voice-commands tryDispatch matches createNoteMatch regex
+3. Returns `tool: "create_note", params: { title: "vendas Q2", noteType: "weekly-status", content: "" }`
+4. tool-registry executa create_note → cria `04_Reports/weekly/2026-05-03-vendas-q2.md` com frontmatter
+5. **Auto-abre no editor**
+6. Notice: "✓ Nota 'vendas Q2' criada em 04_Reports/weekly/...md"
+
+### Files MODIFY
+- `src/automation/voice-commands.ts` — pattern createNoteMatch (~30 LOC)
+
+---
+
 ## [0.71.0] — 2026-05-03 — "Chat input area + buttons + bubbles polish premium"
 
 ### Visual polish da Chat tab — input area + buttons + bubbles

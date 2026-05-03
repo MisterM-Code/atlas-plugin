@@ -380,6 +380,33 @@ function detectPartialIntent(
 		};
 	}
 
+	// v0.71.1: "criar/gere nota/documento/relatório [sobre X]"
+	const createNoteMatch = /^(?:cri[ae]r?|gere?|gerar|fa[çc]a)\s+(?:um[a]?\s+)?(?:nota|documento|relat[óo]rio|brief|adr|paper)(?:\s+(?:sobre|de|do|da)\s+(.+))?$/i.exec(command);
+	if (createNoteMatch) {
+		const titleHint = createNoteMatch[1]?.trim();
+		if (titleHint) {
+			// Detectar noteType pelo prompt (heurística)
+			let noteType = "knowledge";
+			if (/relat[óo]rio/i.test(command)) noteType = "weekly-status";
+			if (/adr|decis[ãa]o/i.test(command)) noteType = "adr";
+			if (/paper|artigo|research/i.test(command)) noteType = "paper";
+			return {
+				tool: "create_note",
+				params: { title: titleHint, noteType, content: "" },
+				fieldsToAsk: [],
+			};
+		}
+		// Sem título → perguntar
+		return {
+			tool: "create_note",
+			params: {},
+			fieldsToAsk: [
+				{ name: "title", question: "Qual o título do documento?" },
+				{ name: "noteType", question: "Tipo? (daily/1on1/weekly-status/project/adr/paper/knowledge/inbox)" },
+			],
+		};
+	}
+
 	// "mandar email" (bare)
 	if (/^(?:mand[ae]r?|envi[ae]r?)\s+email\s*$/.test(lower)) {
 		return {
