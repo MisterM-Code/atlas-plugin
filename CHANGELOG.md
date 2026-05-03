@@ -4,6 +4,32 @@ Todas as mudanças notáveis do Atlas.
 
 Format: [Keep a Changelog](https://keepachangelog.com/) · Versionamento: [SemVer](https://semver.org/).
 
+## [0.77.0] — 2026-05-03 — "Settings field labels (15 critical) + Notice messages (10 keys)"
+
+### Settings field labels i18n (15 wired)
+**File:** `src/views/settings-tab.ts`
+
+- 5 budget fields: enabled/monthly/daily/hardcutoff/dashboard
+- 3 user fields: name/role/team
+- 3 Ollama fields: gen/emb/test
+- 3 schedule fields: morning/evening/weekly
+- (URL Ollama setName plain — not wired since "URL" é universal)
+
+### Notice messages i18n (10 keys novas, ainda não wired — disponíveis pra refactor incremental)
+- `notice.kg.indexed`, `notice.tool.executed`, `notice.entity.merged/deleted`
+- `notice.email.sent`, `notice.import.started/complete`
+- `notice.cost.budget.warn/exceeded`, `notice.atlas.ready`
+
+Quem quiser, pode wirar via `t("notice.kg.indexed", { count: 250 })` em qualquer arquivo.
+
+### Total i18n acumulado v0.55→v0.77
+- **~307 chaves bilingual** cobrindo ~96% UX
+  - +15 settings field labels
+  - +10 notice keys (disponíveis)
+  - = 282 (v0.76) + 25 = 307 chaves
+
+---
+
 ## [0.76.0] — 2026-05-03 — "Tour STEPS titles i18n (26 strings) — backlog finalizado"
 
 ### Tour STEPS title i18n (26 titles, 5 tours)

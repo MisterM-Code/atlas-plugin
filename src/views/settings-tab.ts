@@ -292,7 +292,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		});
 
 		new Setting(containerEl)
-			.setName("Budget enabled")
+			.setName(t("settings.field.budget.enabled"))
 			.setDesc("Liga rastreamento + alertas + (opcional) hard cutoff.")
 			.addToggle((t) => {
 				const cfg = ensureProvidersConfig();
@@ -307,7 +307,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Budget mensal (USD)")
+			.setName(t("settings.field.budget.monthly"))
 			.setDesc("Limite total no mês. Default $20. 0 = sem limite.")
 			.addText((t) => {
 				const cfg = ensureProvidersConfig();
@@ -322,7 +322,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Budget diário (USD)")
+			.setName(t("settings.field.budget.daily"))
 			.setDesc("Limite por dia. Default $2. 0 = sem limite.")
 			.addText((t) => {
 				const cfg = ensureProvidersConfig();
@@ -337,7 +337,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Hard cutoff")
+			.setName(t("settings.field.budget.hardcutoff"))
 			.setDesc("Se ON, Atlas BLOQUEIA chamadas além do budget (recusa o request). Se OFF, só avisa.")
 			.addToggle((t) => {
 				const cfg = ensureProvidersConfig();
@@ -352,7 +352,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 
 		// Quick link to Spend dashboard
 		new Setting(containerEl)
-			.setName("📊 Spend dashboard")
+			.setName(t("settings.field.budget.dashboard"))
 			.setDesc("Abre Status → Spend pra ver gastos por dia/provider/feature com gráficos.")
 			.addButton((b) => {
 				b.setButtonText("Abrir dashboard").setCta().onClick(async () => {
@@ -810,7 +810,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		containerEl.createEl("h3", { text: t("settings.you.title") });
 
 		new Setting(containerEl)
-			.setName("Seu nome")
+			.setName(t("settings.field.user.name"))
 			.setDesc("Aparece em saudações e assinaturas de email.")
 			.addText((t) =>
 				t
@@ -823,7 +823,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Seu cargo")
+			.setName(t("settings.field.user.role"))
 			.addText((t) =>
 				t
 					.setPlaceholder("Coordenador de TI")
@@ -835,7 +835,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Nome do time / squad")
+			.setName(t("settings.field.user.team"))
 			.addText((t) =>
 				t
 					.setValue(this.plugin.settings.user.teamName)
@@ -880,7 +880,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Modelo principal (geração)")
+			.setName(t("settings.field.ollama.gen"))
 			.setDesc("Recomendado: qwen2.5:14b (≥16 GB RAM) ou llama3.2:3b (RAM menor).")
 			.addText((t) =>
 				t
@@ -892,7 +892,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Modelo de embeddings")
+			.setName(t("settings.field.ollama.emb"))
 			.setDesc("bge-m3 é o melhor para PT-BR.")
 			.addText((t) =>
 				t
@@ -904,7 +904,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Testar conexão com Ollama")
+			.setName(t("settings.field.ollama.test"))
 			.addButton((b) =>
 				b.setButtonText("Testar agora").onClick(async () => {
 					const ok = await this.plugin.ollama.ping();
@@ -923,7 +923,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 		containerEl.createEl("h3", { text: t("settings.schedules.title") });
 
 		new Setting(containerEl)
-			.setName("Briefing matinal")
+			.setName(t("settings.field.sched.morning"))
 			.setDesc("Email + push com agenda do dia.")
 			.addToggle((t) =>
 				t
@@ -944,7 +944,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Evening review")
+			.setName(t("settings.field.sched.evening"))
 			.setDesc("Lembrete para fechar daily log.")
 			.addToggle((t) =>
 				t
@@ -964,7 +964,7 @@ export class AtlasSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Weekly report")
+			.setName(t("settings.field.sched.weekly"))
 			.setDesc("Sexta 16h por padrão.")
 			.addToggle((t) =>
 				t
